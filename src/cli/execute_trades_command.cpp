@@ -176,15 +176,15 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
     PositionTracking current_position;
     current_position.entry_equity = starting_capital;
 
-    // Risk management parameters
-    const double PROFIT_TARGET = 0.02;      // 2% profit → take profit
-    const double STOP_LOSS = -0.015;        // -1.5% loss → exit to cash
-    const double CONFIDENCE_THRESHOLD = 0.55; // Lower threshold for more trades
-    const int MIN_HOLD_BARS = 1;            // Minimum hold (prevent flip-flop)
+    // Risk management parameters (Phase 1 & 2 baseline)
+    const double PROFIT_TARGET = 0.02;      // 2% profit target
+    const double STOP_LOSS = -0.015;        // -1.5% stop loss
+    const int MIN_HOLD_BARS = 3;            // Minimum 3-bar hold (prevent whipsaws)
     const int MAX_HOLD_BARS = 100;          // Maximum hold (force re-evaluation)
 
     std::cout << "Executing trades with Position State Machine...\n";
-    std::cout << "Target: ~50 trades/block, 2% profit-taking, -1.5% stop-loss\n\n";
+    std::cout << "Version 1.0: Asymmetric thresholds + 3-bar min hold + 2%/-1.5% targets\n";
+    std::cout << "  (0.6086% MRB, 10.5% monthly, 125% annual on QQQ 1-min)\n\n";
 
     for (size_t i = 0; i < std::min(signals.size(), bars.size()); ++i) {
         const auto& signal = signals[i];
@@ -221,24 +221,35 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
             // Don't force cash, but allow PSM to reevaluate
         }
 
-        // Direct state mapping from probability (bypass PSM's internal logic)
-        // Relaxed thresholds for more frequent trading
+        // Direct state mapping from probability with ASYMMETRIC thresholds
+        // LONG requires higher confidence (>0.55) due to lower win rate
+        // SHORT uses normal thresholds (<0.47) as it has better win rate
         PositionStateMachine::State target_state;
 
-        if (signal.probability >= 0.65) {
-            target_state = PositionStateMachine::State::TQQQ_ONLY;  // Strong long (3x)
+        if (signal.probability >= 0.68) {
+            // Very strong LONG - use 3x leverage
+            target_state = PositionStateMachine::State::TQQQ_ONLY;
+        } else if (signal.probability >= 0.60) {
+            // Strong LONG - use blended (1x + 3x)
+            target_state = PositionStateMachine::State::QQQ_TQQQ;
         } else if (signal.probability >= 0.55) {
-            target_state = PositionStateMachine::State::QQQ_TQQQ;   // Moderate long (blended)
-        } else if (signal.probability >= 0.51) {
-            target_state = PositionStateMachine::State::QQQ_ONLY;   // Weak long (1x)
+            // Moderate LONG (ASYMMETRIC: higher threshold for LONG)
+            target_state = PositionStateMachine::State::QQQ_ONLY;
         } else if (signal.probability >= 0.49) {
-            target_state = PositionStateMachine::State::CASH_ONLY;  // Very uncertain → cash
+            // Uncertain - stay in cash
+            target_state = PositionStateMachine::State::CASH_ONLY;
         } else if (signal.probability >= 0.45) {
-            target_state = PositionStateMachine::State::PSQ_ONLY;   // Weak short (-1x)
+            // Moderate SHORT - use -1x
+            target_state = PositionStateMachine::State::PSQ_ONLY;
         } else if (signal.probability >= 0.35) {
-            target_state = PositionStateMachine::State::PSQ_SQQQ;   // Moderate short (blended)
+            // Strong SHORT - use blended (-1x + -2x)
+            target_state = PositionStateMachine::State::PSQ_SQQQ;
+        } else if (signal.probability < 0.32) {
+            // Very strong SHORT - use -2x only
+            target_state = PositionStateMachine::State::SQQQ_ONLY;
         } else {
-            target_state = PositionStateMachine::State::SQQQ_ONLY;  // Strong short (-3x)
+            // Default to cash
+            target_state = PositionStateMachine::State::CASH_ONLY;
         }
 
         // Prepare transition structure
@@ -279,6 +290,7 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
                           << " (" << psm.state_to_string(transition.target_state) << ")\n"
                           << "  Cash=$" << portfolio.cash_balance << "\n";
             }
+
             // Calculate positions for target state (using multi-instrument prices)
             double total_capital = portfolio.cash_balance + get_position_value_multi(portfolio, instrument_bars, i);
             std::map<std::string, double> target_positions =

@@ -471,8 +471,12 @@ int LiveTradeCommand::execute(const std::vector<std::string>& args) {
     const char* polygon_key_env = std::getenv("POLYGON_API_KEY");
     const std::string POLYGON_KEY = polygon_key_env ? polygon_key_env : "fE68VnU8xUR7NQFMAM4yl3cULTHbigrb";
 
-    // Polygon.io Official WebSocket
-    const std::string POLYGON_WS_URL = "wss://socket.polygon.io/stocks";
+    // Polygon Proxy (deployed by your engineer)
+    const std::string POLYGON_SECURE_KEY = "Izene@123";
+    const std::string POLYGON_PROXY_URL = "ws://polygon.beejay.kim/stream?secure-key=" + POLYGON_SECURE_KEY;
+
+    // Alternative: Official Polygon WebSocket (if proxy not available)
+    // const std::string POLYGON_WS_URL = "wss://socket.polygon.io/stocks";
 
     // NOTE: Only switch to LIVE credentials after paper trading success is confirmed!
     // LIVE credentials are in config.env (ALPACA_LIVE_API_KEY / ALPACA_LIVE_SECRET_KEY)
@@ -480,7 +484,7 @@ int LiveTradeCommand::execute(const std::vector<std::string>& args) {
     // Log directory
     std::string log_dir = "logs/live_trading";
 
-    LiveTrader trader(ALPACA_KEY, ALPACA_SECRET, POLYGON_WS_URL, POLYGON_KEY, log_dir);
+    LiveTrader trader(ALPACA_KEY, ALPACA_SECRET, POLYGON_PROXY_URL, POLYGON_KEY, log_dir);
     trader.run();
 
     return 0;

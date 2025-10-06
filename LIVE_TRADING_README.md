@@ -73,15 +73,19 @@ source config.env  # Loads POLYGON_API_KEY
 
 ## Market Data
 
-**Polygon.io Official WebSocket**:
-- URL: `wss://socket.polygon.io/stocks`
-- API Key: From config.env
-- Data: Real-time 1-minute aggregated bars
+**Polygon Proxy** (deployed by your engineer):
+- URL: `ws://polygon.beejay.kim/stream?secure-key=Izene@123`
+- Secure Key: `Izene@123`
+- API Key: From config.env (`fE68VnU8xUR7NQFMAM4yl3cULTHbigrb`)
+- Data: Real-time quotes via WebSocket
 - Symbols: SPY, SPXL, SH, SDS
 
-**Alternative (if engineer provides proxy)**:
-- Can use custom proxy URL
-- Auth: "Izene@123"
+**Connection Format** (from trader-bot code):
+```
+ws://polygon.beejay.kim/stream?secure-key=Izene@123
+```
+
+This is the same proxy used by the Python trader-bot, ensuring consistency across systems.
 
 ## Comprehensive Logging
 

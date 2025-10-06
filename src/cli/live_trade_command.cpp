@@ -462,16 +462,24 @@ private:
 };
 
 int LiveTradeCommand::execute(const std::vector<std::string>& args) {
-    // Credentials
-    const std::string ALPACA_KEY = "PK3NCBT07OJZJULDJR5V";
-    const std::string ALPACA_SECRET = "cEZcHNAReKZcjsH5j9cPYgOtI5rvdra1QhVCVBJe";
-    const std::string POLYGON_URL = "http://polygon-proxy.example.com";  // TODO: Get from engineer
-    const std::string POLYGON_KEY = "Izene@123";
+    // Load credentials from environment variables (source config.env first)
+    const char* alpaca_key_env = std::getenv("ALPACA_PAPER_API_KEY");
+    const char* alpaca_secret_env = std::getenv("ALPACA_PAPER_SECRET_KEY");
+    const char* polygon_key_env = std::getenv("POLYGON_API_KEY");
+
+    // Fallback to your new paper account if env vars not set
+    const std::string ALPACA_KEY = alpaca_key_env ? alpaca_key_env : "PK3NCBT07OJZJULDJR5V";
+    const std::string ALPACA_SECRET = alpaca_secret_env ? alpaca_secret_env : "cEZcHNAReKZcjsH5j9cPYgOtI5rvdra1QhVCVBJe";
+    const std::string POLYGON_KEY = polygon_key_env ? polygon_key_env : "fE68VnU8xUR7NQFMAM4yl3cULTHbigrb";
+
+    // Polygon.io WebSocket URLs
+    const std::string POLYGON_WS_URL = "wss://socket.polygon.io/stocks";  // Official Polygon WebSocket
+    // Or use proxy if your engineer provides it: const std::string POLYGON_URL = "ws://proxy-url";
 
     // Log directory
     std::string log_dir = "logs/live_trading";
 
-    LiveTrader trader(ALPACA_KEY, ALPACA_SECRET, POLYGON_URL, POLYGON_KEY, log_dir);
+    LiveTrader trader(ALPACA_KEY, ALPACA_SECRET, POLYGON_WS_URL, POLYGON_KEY, log_dir);
     trader.run();
 
     return 0;

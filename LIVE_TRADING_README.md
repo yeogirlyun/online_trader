@@ -47,27 +47,41 @@ Polygon Proxy → Live Data → OnlineEnsemble v1.0 → PSM → Alpaca Paper Tra
 | ≥0.35 | PSQ_SQQQ | SH + SDS |
 | <0.32 | SQQQ_ONLY | SDS (-2x) |
 
-## Alpaca Paper Account
+## Configuration
 
-**Credentials**:
+**Environment Setup**:
+```bash
+# Load credentials from config.env
+source config.env
+```
+
+**Credentials in config.env**:
+- Polygon API Key: `fE68VnU8xUR7NQFMAM4yl3cULTHbigrb`
+- Alpaca Paper Key: `PKYTG7BKKLMUUMKXYA9A`
+- Alpaca Paper Secret: `ud2IqjE8aKMSF3DaGign1GkvFltIUdfli1oCs9Rb`
+
+**Fallback Account** (if env not sourced):
 - API Key: `PK3NCBT07OJZJULDJR5V`
 - Secret Key: `cEZcHNAReKZcjsH5j9cPYgOtI5rvdra1QhVCVBJe`
-- Base URL: `https://paper-api.alpaca.markets/v2`
+- Account: PA3FOCO5XA55
 
-**Account Details**:
-- Account Number: PA3FOCO5XA55
+**Both accounts have**:
 - Starting Capital: $100,000
 - Buying Power: $200,000 (2x margin)
 - Pattern Day Trader: No
 - Status: Active ✓
 
-## Polygon Proxy
+## Market Data
 
-**Connection**:
-- URL: TBD (from engineer meeting)
-- Auth Key: `Izene@123`
-- Data: 1-minute aggregated OHLCV bars
+**Polygon.io Official WebSocket**:
+- URL: `wss://socket.polygon.io/stocks`
+- API Key: From config.env
+- Data: Real-time 1-minute aggregated bars
 - Symbols: SPY, SPXL, SH, SDS
+
+**Alternative (if engineer provides proxy)**:
+- Can use custom proxy URL
+- Auth: "Izene@123"
 
 ## Comprehensive Logging
 
@@ -154,13 +168,24 @@ Portfolio snapshot after each bar:
 
 ## Running Live Trading
 
+### Setup:
+```bash
+# Load API credentials
+source config.env
+
+# Create log directory
+mkdir -p logs/live_trading
+```
+
 ### Foreground (for testing):
 ```bash
+source config.env
 ./build/sentio_cli live-trade
 ```
 
 ### Background (production):
 ```bash
+source config.env
 nohup ./build/sentio_cli live-trade > logs/live_trading/runner.log 2>&1 &
 echo $! > logs/live_trading/runner.pid
 ```

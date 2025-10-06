@@ -26,6 +26,8 @@ Makefile
 # Data files (large)
 *.bin
 *.dat
+*.pt
+data/processed/
 
 # Test outputs
 /test_output/

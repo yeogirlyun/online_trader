@@ -177,11 +177,20 @@ public:
         const std::map<std::string, std::vector<Bar>>& instrument_bars,
         size_t bar_index);
 
+    // Symbol mapping for PSM (to support both QQQ and SPY)
+    struct SymbolMap {
+        std::string base;      // QQQ or SPY
+        std::string bull_3x;   // TQQQ or SPXL
+        std::string bear_1x;   // PSQ or SH
+        std::string bear_nx;   // SQQQ (-3x) or SDS (-2x)
+    };
+
     static std::map<std::string, double> calculate_target_positions_multi(
         PositionStateMachine::State state,
         double total_capital,
         const std::map<std::string, std::vector<Bar>>& instrument_bars,
-        size_t bar_index);
+        size_t bar_index,
+        const SymbolMap& symbol_map);
 };
 
 /**

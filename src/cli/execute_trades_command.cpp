@@ -25,6 +25,30 @@ inline double get_instrument_price(
     return 0.0;  // Should never happen if data is properly loaded
 }
 
+// Helper: Create symbol mapping for PSM states based on base symbol
+ExecuteTradesCommand::SymbolMap create_symbol_map(const std::string& base_symbol,
+                                                   const std::vector<std::string>& symbols) {
+    ExecuteTradesCommand::SymbolMap mapping;
+    if (base_symbol == "QQQ") {
+        mapping.base = "QQQ";
+        mapping.bull_3x = "TQQQ";
+        mapping.bear_1x = "PSQ";
+        mapping.bear_nx = "SQQQ";
+    } else if (base_symbol == "SPY") {
+        mapping.base = "SPY";
+        mapping.bull_3x = "SPXL";
+        mapping.bear_1x = "SH";
+
+        // Check if using SPXS (-3x) or SDS (-2x)
+        if (std::find(symbols.begin(), symbols.end(), "SPXS") != symbols.end()) {
+            mapping.bear_nx = "SPXS";  // -3x symmetric
+        } else {
+            mapping.bear_nx = "SDS";   // -2x asymmetric
+        }
+    }
+    return mapping;
+}
+
 int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
     // Parse arguments
     std::string signal_path = get_arg(args, "--signals", "");
@@ -67,15 +91,45 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
     }
     std::cout << "Loaded " << signals.size() << " signals\n";
 
-    // Load market data for ALL instruments (QQQ, TQQQ, PSQ, SQQQ)
+    // Load market data for ALL instruments
+    // Auto-detect base symbol (QQQ or SPY) from data file path
     std::cout << "Loading market data for all instruments...\n";
 
-    // Extract base directory from data_path
+    // Extract base directory and symbol from data_path
     std::string base_dir = data_path.substr(0, data_path.find_last_of("/\\"));
+
+    // Detect base symbol from filename (QQQ_RTH_NH.csv or SPY_RTH_NH.csv)
+    std::string filename = data_path.substr(data_path.find_last_of("/\\") + 1);
+    std::string base_symbol;
+    std::vector<std::string> symbols;
+
+    if (filename.find("QQQ") != std::string::npos) {
+        base_symbol = "QQQ";
+        symbols = {"QQQ", "TQQQ", "PSQ", "SQQQ"};
+        std::cout << "Detected QQQ trading (3x bull: TQQQ, -1x: PSQ, -3x: SQQQ)\n";
+    } else if (filename.find("SPY") != std::string::npos) {
+        base_symbol = "SPY";
+
+        // Check if SPXS (-3x) exists, otherwise use SDS (-2x)
+        std::string spxs_path = base_dir + "/SPXS_RTH_NH.csv";
+        std::ifstream spxs_check(spxs_path);
+
+        if (spxs_check.good()) {
+            symbols = {"SPY", "SPXL", "SH", "SPXS"};
+            std::cout << "Detected SPY trading (3x bull: SPXL, -1x: SH, -3x: SPXS) [SYMMETRIC LEVERAGE]\n";
+        } else {
+            symbols = {"SPY", "SPXL", "SH", "SDS"};
+            std::cout << "Detected SPY trading (3x bull: SPXL, -1x: SH, -2x: SDS) [ASYMMETRIC LEVERAGE]\n";
+        }
+        spxs_check.close();
+    } else {
+        std::cerr << "Error: Could not detect base symbol from " << filename << "\n";
+        std::cerr << "Expected filename to contain 'QQQ' or 'SPY'\n";
+        return 1;
+    }
 
     // Load all 4 instruments
     std::map<std::string, std::vector<Bar>> instrument_bars;
-    std::vector<std::string> symbols = {"QQQ", "TQQQ", "PSQ", "SQQQ"};
 
     for (const auto& symbol : symbols) {
         std::string instrument_path = base_dir + "/" + symbol + "_RTH_NH.csv";
@@ -88,13 +142,16 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
         std::cout << "  Loaded " << instrument_bars[symbol].size() << " bars for " << symbol << "\n";
     }
 
-    // Use QQQ bars as reference for bar count
-    auto& bars = instrument_bars["QQQ"];
+    // Use base symbol bars as reference for bar count
+    auto& bars = instrument_bars[base_symbol];
     std::cout << "Total bars: " << bars.size() << "\n\n";
 
     if (signals.size() != bars.size()) {
         std::cerr << "Warning: Signal count (" << signals.size() << ") != bar count (" << bars.size() << ")\n";
     }
+
+    // Create symbol mapping for PSM
+    SymbolMap symbol_map = create_symbol_map(base_symbol, symbols);
 
     // Create Position State Machine for 4-instrument strategy
     PositionStateMachine psm;
@@ -225,7 +282,7 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
             // Calculate positions for target state (using multi-instrument prices)
             double total_capital = portfolio.cash_balance + get_position_value_multi(portfolio, instrument_bars, i);
             std::map<std::string, double> target_positions =
-                calculate_target_positions_multi(transition.target_state, total_capital, instrument_bars, i);
+                calculate_target_positions_multi(transition.target_state, total_capital, instrument_bars, i, symbol_map);
 
             // PHASE 1: Execute all SELL orders first to free up cash
             // First, sell any positions NOT in target state
@@ -521,7 +578,8 @@ std::map<std::string, double> ExecuteTradesCommand::calculate_target_positions_m
     PositionStateMachine::State state,
     double total_capital,
     const std::map<std::string, std::vector<Bar>>& instrument_bars,
-    size_t bar_index) {
+    size_t bar_index,
+    const SymbolMap& symbol_map) {
 
     std::map<std::string, double> positions;
 
@@ -531,50 +589,50 @@ std::map<std::string, double> ExecuteTradesCommand::calculate_target_positions_m
             break;
 
         case PositionStateMachine::State::QQQ_ONLY:
-            // 100% in QQQ (moderate long)
-            if (instrument_bars.count("QQQ") && bar_index < instrument_bars.at("QQQ").size()) {
-                positions["QQQ"] = total_capital / instrument_bars.at("QQQ")[bar_index].close;
+            // 100% in base symbol (moderate long, 1x)
+            if (instrument_bars.count(symbol_map.base) && bar_index < instrument_bars.at(symbol_map.base).size()) {
+                positions[symbol_map.base] = total_capital / instrument_bars.at(symbol_map.base)[bar_index].close;
             }
             break;
 
         case PositionStateMachine::State::TQQQ_ONLY:
-            // 100% in TQQQ (strong long, 3x leverage)
-            if (instrument_bars.count("TQQQ") && bar_index < instrument_bars.at("TQQQ").size()) {
-                positions["TQQQ"] = total_capital / instrument_bars.at("TQQQ")[bar_index].close;
+            // 100% in leveraged bull (strong long, 3x leverage)
+            if (instrument_bars.count(symbol_map.bull_3x) && bar_index < instrument_bars.at(symbol_map.bull_3x).size()) {
+                positions[symbol_map.bull_3x] = total_capital / instrument_bars.at(symbol_map.bull_3x)[bar_index].close;
             }
             break;
 
         case PositionStateMachine::State::PSQ_ONLY:
-            // 100% in PSQ (moderate short, -1x)
-            if (instrument_bars.count("PSQ") && bar_index < instrument_bars.at("PSQ").size()) {
-                positions["PSQ"] = total_capital / instrument_bars.at("PSQ")[bar_index].close;
+            // 100% in moderate bear (moderate short, -1x)
+            if (instrument_bars.count(symbol_map.bear_1x) && bar_index < instrument_bars.at(symbol_map.bear_1x).size()) {
+                positions[symbol_map.bear_1x] = total_capital / instrument_bars.at(symbol_map.bear_1x)[bar_index].close;
             }
             break;
 
         case PositionStateMachine::State::SQQQ_ONLY:
-            // 100% in SQQQ (strong short, -3x)
-            if (instrument_bars.count("SQQQ") && bar_index < instrument_bars.at("SQQQ").size()) {
-                positions["SQQQ"] = total_capital / instrument_bars.at("SQQQ")[bar_index].close;
+            // 100% in leveraged bear (strong short, -2x or -3x)
+            if (instrument_bars.count(symbol_map.bear_nx) && bar_index < instrument_bars.at(symbol_map.bear_nx).size()) {
+                positions[symbol_map.bear_nx] = total_capital / instrument_bars.at(symbol_map.bear_nx)[bar_index].close;
             }
             break;
 
         case PositionStateMachine::State::QQQ_TQQQ:
-            // Split: 50% QQQ + 50% TQQQ (blended long)
-            if (instrument_bars.count("QQQ") && bar_index < instrument_bars.at("QQQ").size()) {
-                positions["QQQ"] = (total_capital * 0.5) / instrument_bars.at("QQQ")[bar_index].close;
+            // Split: 50% base + 50% leveraged bull (blended long)
+            if (instrument_bars.count(symbol_map.base) && bar_index < instrument_bars.at(symbol_map.base).size()) {
+                positions[symbol_map.base] = (total_capital * 0.5) / instrument_bars.at(symbol_map.base)[bar_index].close;
             }
-            if (instrument_bars.count("TQQQ") && bar_index < instrument_bars.at("TQQQ").size()) {
-                positions["TQQQ"] = (total_capital * 0.5) / instrument_bars.at("TQQQ")[bar_index].close;
+            if (instrument_bars.count(symbol_map.bull_3x) && bar_index < instrument_bars.at(symbol_map.bull_3x).size()) {
+                positions[symbol_map.bull_3x] = (total_capital * 0.5) / instrument_bars.at(symbol_map.bull_3x)[bar_index].close;
             }
             break;
 
         case PositionStateMachine::State::PSQ_SQQQ:
-            // Split: 50% PSQ + 50% SQQQ (blended short)
-            if (instrument_bars.count("PSQ") && bar_index < instrument_bars.at("PSQ").size()) {
-                positions["PSQ"] = (total_capital * 0.5) / instrument_bars.at("PSQ")[bar_index].close;
+            // Split: 50% moderate bear + 50% leveraged bear (blended short)
+            if (instrument_bars.count(symbol_map.bear_1x) && bar_index < instrument_bars.at(symbol_map.bear_1x).size()) {
+                positions[symbol_map.bear_1x] = (total_capital * 0.5) / instrument_bars.at(symbol_map.bear_1x)[bar_index].close;
             }
-            if (instrument_bars.count("SQQQ") && bar_index < instrument_bars.at("SQQQ").size()) {
-                positions["SQQQ"] = (total_capital * 0.5) / instrument_bars.at("SQQQ")[bar_index].close;
+            if (instrument_bars.count(symbol_map.bear_nx) && bar_index < instrument_bars.at(symbol_map.bear_nx).size()) {
+                positions[symbol_map.bear_nx] = (total_capital * 0.5) / instrument_bars.at(symbol_map.bear_nx)[bar_index].close;
             }
             break;
 

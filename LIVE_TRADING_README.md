@@ -49,27 +49,27 @@ Polygon Proxy → Live Data → OnlineEnsemble v1.0 → PSM → Alpaca Paper Tra
 
 ## Configuration
 
-**Environment Setup**:
-```bash
-# Load credentials from config.env
-source config.env
-```
+**IMPORTANT**: Using PAPER TRADING credentials only!
 
-**Credentials in config.env**:
-- Polygon API Key: `fE68VnU8xUR7NQFMAM4yl3cULTHbigrb`
-- Alpaca Paper Key: `PKYTG7BKKLMUUMKXYA9A`
-- Alpaca Paper Secret: `ud2IqjE8aKMSF3DaGign1GkvFltIUdfli1oCs9Rb`
-
-**Fallback Account** (if env not sourced):
+**Paper Trading Account** (hardcoded for safety):
 - API Key: `PK3NCBT07OJZJULDJR5V`
 - Secret Key: `cEZcHNAReKZcjsH5j9cPYgOtI5rvdra1QhVCVBJe`
 - Account: PA3FOCO5XA55
-
-**Both accounts have**:
 - Starting Capital: $100,000
 - Buying Power: $200,000 (2x margin)
 - Pattern Day Trader: No
 - Status: Active ✓
+
+**Polygon API** (load from config.env):
+```bash
+source config.env  # Loads POLYGON_API_KEY
+```
+- API Key: `fE68VnU8xUR7NQFMAM4yl3cULTHbigrb`
+
+**⚠️ LIVE CREDENTIALS**:
+- Stored in config.env (ALPACA_LIVE_API_KEY / ALPACA_LIVE_SECRET_KEY)
+- **DO NOT USE** until paper trading success is confirmed!
+- Requires manual code change to enable
 
 ## Market Data
 

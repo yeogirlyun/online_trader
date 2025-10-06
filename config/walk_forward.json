@@ -1,0 +1,9 @@
+{
+  "dataset_path": "data/equities/QQQ_RTH_NH.csv",
+  "train_window_rows": 9600,
+  "test_window_rows": 4800,
+  "stride_rows": 2400,
+  "strategies": ["SGO", "XGBoost", "LeveragedPPO", "PPO"]
+}
+
+

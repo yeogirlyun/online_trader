@@ -1,0 +1,45 @@
+{
+  "williams_period": 10,
+  "rsi_period": 20,
+  "bb_period": 20,
+  "bb_std_dev": 2.0,
+  "bb_proximity": 0.30,
+  "cross_margin": 1.0,
+  "lookback_bars": 5,
+  "base_confidence": 0.5,
+  "require_volume_confirmation": false,
+  "volume_threshold": 1.2,
+  "confirmation_window": 3,
+  "debug_mode": false,
+  
+  "anticipation": {
+    "enable_anticipatory_detection": true,
+    "anticipatory_lookback": 5,
+    "convergence_threshold": 0.1,
+    "velocity_weight": 0.6,
+    "closeness_weight": 0.4,
+    "distance_normalization": 10.0,
+    "anticipatory_probability_scale": 0.5,
+    "min_anticipatory_strength": 0.3,
+    "cross_confirmation_bars": 3
+  },
+  
+  "amplification": {
+    "enable_directional_amplification": true,
+    "amplification_factor": 1.05,
+    "amplification_method": "directional",
+    "signal_strength_multiplier": 1.2
+  },
+  
+  "filters": {
+    "min_williams_strength": 0.35,
+    "enable_rsi_confirmation": false,
+    "rsi_confirmation_boost": 0.2
+  },
+  
+  "throttling": {
+    "enable_signal_throttling": true,
+    "throttle_window_size": 15,
+    "throttle_max_signals": 8
+  }
+}

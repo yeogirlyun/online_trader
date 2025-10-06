@@ -1,0 +1,382 @@
+{
+  "generated_at": "2025-09-14T03:58:27.594106",
+  "data_year": 2026,
+  "start_date": "2026-01-02T04:00:00",
+  "num_tracks": 10,
+  "duration_days": 28,
+  "duration_minutes": 40320,
+  "symbol": "QQQ",
+  "base_price": 458.0,
+  "trading_hours": {
+    "premarket": "04:00-09:30 ET",
+    "regular": "09:30-16:00 ET",
+    "afterhours": "16:00-20:00 ET",
+    "timezone": "All timestamps in UTC (like Polygon)",
+    "excludes": "Weekends and US market holidays"
+  },
+  "market_holidays_2026": [
+    "2026-01-01",
+    "2026-01-19",
+    "2026-02-16",
+    "2026-04-03",
+    "2026-05-25",
+    "2026-07-03",
+    "2026-09-07",
+    "2026-11-26",
+    "2026-12-25"
+  ],
+  "volume_profile": {
+    "base_daily_volume": 42000000,
+    "volume_growth_rate": 0.15,
+    "intraday_patterns": {
+      "premarket_multiplier": 0.15,
+      "market_open_multiplier": 2.5,
+      "morning_multiplier": 1.2,
+      "lunch_lull_multiplier": 0.6,
+      "afternoon_multiplier": 1.0,
+      "close_surge_multiplier": 1.8,
+      "afterhours_multiplier": 0.25,
+      "overnight_multiplier": 0.05
+    },
+    "volatility_volume_correlation": 1.5,
+    "regime_multipliers": {
+      "normal": 1.0,
+      "volatile": 1.4,
+      "trending": 1.2,
+      "bear": 1.6,
+      "bull": 1.1
+    }
+  },
+  "tracks": [
+    {
+      "track_id": 1,
+      "regime": "normal",
+      "bars_count": 26830,
+      "json_file": "future_qqq_track_01.json",
+      "csv_file": "future_qqq_track_01.csv",
+      "file_size_mb": 4.28,
+      "timeline": {
+        "start_date": "2026-01-02T09:00:00Z",
+        "end_date": "2026-02-12T00:09:00Z",
+        "trading_days": 35
+      },
+      "price_range": {
+        "min": 409.0,
+        "max": 466.0,
+        "start": 455.0,
+        "end": 413.0,
+        "total_return_pct": -9.23
+      },
+      "volume_stats": {
+        "per_minute": {
+          "min": 9501,
+          "max": 295392,
+          "avg": 51485
+        },
+        "daily": {
+          "min": 229569,
+          "max": 50484519,
+          "avg": 39467470
+        },
+        "total_volume": 1381361472
+      }
+    },
+    {
+      "track_id": 2,
+      "regime": "volatile",
+      "bars_count": 26830,
+      "json_file": "future_qqq_track_02.json",
+      "csv_file": "future_qqq_track_02.csv",
+      "file_size_mb": 4.28,
+      "timeline": {
+        "start_date": "2026-01-02T09:00:00Z",
+        "end_date": "2026-02-12T00:09:00Z",
+        "trading_days": 35
+      },
+      "price_range": {
+        "min": 409.0,
+        "max": 466.0,
+        "start": 455.0,
+        "end": 413.0,
+        "total_return_pct": -9.23
+      },
+      "volume_stats": {
+        "per_minute": {
+          "min": 13933,
+          "max": 435149,
+          "avg": 75718
+        },
+        "daily": {
+          "min": 343403,
+          "max": 73987482,
+          "avg": 58043409
+        },
+        "total_volume": 2031519334
+      }
+    },
+    {
+      "track_id": 3,
+      "regime": "trending",
+      "bars_count": 26830,
+      "json_file": "future_qqq_track_03.json",
+      "csv_file": "future_qqq_track_03.csv",
+      "file_size_mb": 4.28,
+      "timeline": {
+        "start_date": "2026-01-02T09:00:00Z",
+        "end_date": "2026-02-12T00:09:00Z",
+        "trading_days": 35
+      },
+      "price_range": {
+        "min": 409.0,
+        "max": 466.0,
+        "start": 455.0,
+        "end": 413.0,
+        "total_return_pct": -9.23
+      },
+      "volume_stats": {
+        "per_minute": {
+          "min": 12499,
+          "max": 388130,
+          "avg": 67797
+        },
+        "daily": {
+          "min": 305965,
+          "max": 65870991,
+          "avg": 51971647
+        },
+        "total_volume": 1819007660
+      }
+    },
+    {
+      "track_id": 4,
+      "regime": "normal",
+      "bars_count": 26830,
+      "json_file": "future_qqq_track_04.json",
+      "csv_file": "future_qqq_track_04.csv",
+      "file_size_mb": 4.28,
+      "timeline": {
+        "start_date": "2026-01-02T09:00:00Z",
+        "end_date": "2026-02-12T00:09:00Z",
+        "trading_days": 35
+      },
+      "price_range": {
+        "min": 409.0,
+        "max": 466.0,
+        "start": 455.0,
+        "end": 413.0,
+        "total_return_pct": -9.23
+      },
+      "volume_stats": {
+        "per_minute": {
+          "min": 10856,
+          "max": 338487,
+          "avg": 58827
+        },
+        "daily": {
+          "min": 282999,
+          "max": 57191153,
+          "avg": 45095378
+        },
+        "total_volume": 1578338243
+      }
+    },
+    {
+      "track_id": 5,
+      "regime": "volatile",
+      "bars_count": 26830,
+      "json_file": "future_qqq_track_05.json",
+      "csv_file": "future_qqq_track_05.csv",
+      "file_size_mb": 4.28,
+      "timeline": {
+        "start_date": "2026-01-02T09:00:00Z",
+        "end_date": "2026-02-12T00:09:00Z",
+        "trading_days": 35
+      },
+      "price_range": {
+        "min": 409.0,
+        "max": 466.0,
+        "start": 455.0,
+        "end": 413.0,
+        "total_return_pct": -9.23
+      },
+      "volume_stats": {
+        "per_minute": {
+          "min": 15837,
+          "max": 495564,
+          "avg": 85924
+        },
+        "daily": {
+          "min": 379167,
+          "max": 84017072,
+          "avg": 65867602
+        },
+        "total_volume": 2305366095
+      }
+    },
+    {
+      "track_id": 6,
+      "regime": "trending",
+      "bars_count": 26830,
+      "json_file": "future_qqq_track_06.json",
+      "csv_file": "future_qqq_track_06.csv",
+      "file_size_mb": 4.28,
+      "timeline": {
+        "start_date": "2026-01-02T09:00:00Z",
+        "end_date": "2026-02-12T00:09:00Z",
+        "trading_days": 35
+      },
+      "price_range": {
+        "min": 409.0,
+        "max": 466.0,
+        "start": 455.0,
+        "end": 413.0,
+        "total_return_pct": -9.23
+      },
+      "volume_stats": {
+        "per_minute": {
+          "min": 14126,
+          "max": 438377,
+          "avg": 76656
+        },
+        "daily": {
+          "min": 330055,
+          "max": 74822755,
+          "avg": 58762837
+        },
+        "total_volume": 2056699321
+      }
+    },
+    {
+      "track_id": 7,
+      "regime": "normal",
+      "bars_count": 26830,
+      "json_file": "future_qqq_track_07.json",
+      "csv_file": "future_qqq_track_07.csv",
+      "file_size_mb": 4.28,
+      "timeline": {
+        "start_date": "2026-01-02T09:00:00Z",
+        "end_date": "2026-02-12T00:09:00Z",
+        "trading_days": 35
+      },
+      "price_range": {
+        "min": 409.0,
+        "max": 466.0,
+        "start": 455.0,
+        "end": 413.0,
+        "total_return_pct": -9.23
+      },
+      "volume_stats": {
+        "per_minute": {
+          "min": 12216,
+          "max": 381118,
+          "avg": 66362
+        },
+        "daily": {
+          "min": 248434,
+          "max": 64718671,
+          "avg": 50871782
+        },
+        "total_volume": 1780512370
+      }
+    },
+    {
+      "track_id": 8,
+      "regime": "volatile",
+      "bars_count": 26830,
+      "json_file": "future_qqq_track_08.json",
+      "csv_file": "future_qqq_track_08.csv",
+      "file_size_mb": 4.28,
+      "timeline": {
+        "start_date": "2026-01-02T09:00:00Z",
+        "end_date": "2026-02-12T00:09:00Z",
+        "trading_days": 35
+      },
+      "price_range": {
+        "min": 409.0,
+        "max": 466.0,
+        "start": 455.0,
+        "end": 413.0,
+        "total_return_pct": -9.23
+      },
+      "volume_stats": {
+        "per_minute": {
+          "min": 17767,
+          "max": 553738,
+          "avg": 96255
+        },
+        "daily": {
+          "min": 435403,
+          "max": 93797376,
+          "avg": 73786777
+        },
+        "total_volume": 2582537204
+      }
+    },
+    {
+      "track_id": 9,
+      "regime": "trending",
+      "bars_count": 26830,
+      "json_file": "future_qqq_track_09.json",
+      "csv_file": "future_qqq_track_09.csv",
+      "file_size_mb": 4.28,
+      "timeline": {
+        "start_date": "2026-01-02T09:00:00Z",
+        "end_date": "2026-02-12T00:09:00Z",
+        "trading_days": 35
+      },
+      "price_range": {
+        "min": 409.0,
+        "max": 466.0,
+        "start": 455.0,
+        "end": 413.0,
+        "total_return_pct": -9.23
+      },
+      "volume_stats": {
+        "per_minute": {
+          "min": 15759,
+          "max": 491400,
+          "avg": 85431
+        },
+        "daily": {
+          "min": 384698,
+          "max": 82742153,
+          "avg": 65489077
+        },
+        "total_volume": 2292117703
+      }
+    },
+    {
+      "track_id": 10,
+      "regime": "normal",
+      "bars_count": 26830,
+      "json_file": "future_qqq_track_10.json",
+      "csv_file": "future_qqq_track_10.csv",
+      "file_size_mb": 4.28,
+      "timeline": {
+        "start_date": "2026-01-02T09:00:00Z",
+        "end_date": "2026-02-12T00:09:00Z",
+        "trading_days": 35
+      },
+      "price_range": {
+        "min": 409.0,
+        "max": 466.0,
+        "start": 455.0,
+        "end": 413.0,
+        "total_return_pct": -9.23
+      },
+      "volume_stats": {
+        "per_minute": {
+          "min": 13571,
+          "max": 422299,
+          "avg": 73753
+        },
+        "daily": {
+          "min": 313010,
+          "max": 71642701,
+          "avg": 56537409
+        },
+        "total_volume": 1978809323
+      }
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+model:
+  path: "artifacts/PPO/leveraged_trained/final_model_fixed.pt"
+  input_dim: 16
+  num_states: 11
+features:
+  extractor: PPOFeatureExtractor
+  normalize: true
+  history_window: 20
+calibration:
+  temperature:
+    initial: 1.0
+    adaptive: false
+    min: 0.5
+    max: 2.0
+risk_management:
+  position_limits:
+    max_leverage: 3.0
+    max_position_size: 1.0
+  volatility_adjustments:
+    enabled: true
+    high_vol_threshold: 0.03
+    leverage_scale: 0.5
+action_policy:
+  deterministic: false
+  hysteresis:
+    enabled: true
+    probability_margin: 0.1
+    cooldown_bars: 3
+  transition_masking:
+    enabled: true
+    max_jump: 2
+monitoring:
+  log_level: INFO

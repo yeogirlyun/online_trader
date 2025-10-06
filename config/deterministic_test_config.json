@@ -1,0 +1,8 @@
+{
+    "mode": "perfect",
+    "target_accuracy": 0.6,
+    "long_threshold": 102.0,
+    "short_threshold": 98.0,
+    "signal_probability": 0.75,
+    "seed": 42
+}

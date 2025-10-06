@@ -1,0 +1,26 @@
+{
+  "strategy": "WilliamsRSIBB",
+  "version": "3.0",
+  "description": "Williams/RSI crossover with Bollinger Bands mean reversion",
+  "indicators": {
+    "williams_period": 10,
+    "rsi_period": 20,
+    "bb_period": 20,
+    "bb_std_dev": 2.0
+  },
+  "trading_gates": {
+    "bb_proximity_pct": 0.40,
+    "cross_margin": 0.0
+  },
+  "signal_generation": {
+    "base_confidence": 0.6,
+    "require_volume_confirmation": true,
+    "volume_threshold": 1.2
+  },
+  "sentio_integration": {
+    "min_confidence": 0.55,
+    "min_signal_strength": 0.05,
+    "enable_filtering": true
+  }
+}
+

@@ -1,0 +1,74 @@
+{
+  "717f063ec40d0ece308af9eff7e344a0": {
+    "symbol": "QQQ",
+    "duration_minutes": 1440,
+    "bar_interval_seconds": 60,
+    "market_regime": "normal",
+    "bars_count": 963,
+    "file_path": "data/mars_cache/717f063ec40d0ece308af9eff7e344a0.json",
+    "created_at": "1757770534.7405057"
+  },
+  "7ce70056703346ed9507eb7831b1bb51": {
+    "symbol": "QQQ",
+    "duration_minutes": 1440,
+    "bar_interval_seconds": 60,
+    "market_regime": "volatile",
+    "bars_count": 963,
+    "file_path": "data/mars_cache/7ce70056703346ed9507eb7831b1bb51.json",
+    "created_at": "1757770535.4503753"
+  },
+  "bbdaffd352df23838728a107becf636f": {
+    "symbol": "QQQ",
+    "duration_minutes": 1440,
+    "bar_interval_seconds": 60,
+    "market_regime": "trending",
+    "bars_count": 963,
+    "file_path": "data/mars_cache/bbdaffd352df23838728a107becf636f.json",
+    "created_at": "1757770536.0358055"
+  },
+  "63301ca69f9eb27bea9bfa9268d95102": {
+    "symbol": "QQQ",
+    "duration_minutes": 10080,
+    "bar_interval_seconds": 60,
+    "market_regime": "normal",
+    "bars_count": 6731,
+    "file_path": "data/mars_cache/63301ca69f9eb27bea9bfa9268d95102.json",
+    "created_at": "1757770561.5738118"
+  },
+  "a88c10ea4f02af51a506c14a14f68e88": {
+    "symbol": "QQQ",
+    "duration_minutes": 10080,
+    "bar_interval_seconds": 60,
+    "market_regime": "volatile",
+    "bars_count": 6731,
+    "file_path": "data/mars_cache/a88c10ea4f02af51a506c14a14f68e88.json",
+    "created_at": "1757770587.0276968"
+  },
+  "251c4df5845d04d5aba9e6039e0112f8": {
+    "symbol": "QQQ",
+    "duration_minutes": 40320,
+    "bar_interval_seconds": 60,
+    "market_regime": "normal",
+    "bars_count": 26830,
+    "file_path": "data/mars_cache/251c4df5845d04d5aba9e6039e0112f8.json",
+    "created_at": "1757771291.4780364"
+  },
+  "396e99b777f04ed30267e820d0beee3f": {
+    "symbol": "QQQ",
+    "duration_minutes": 40320,
+    "bar_interval_seconds": 60,
+    "market_regime": "volatile",
+    "bars_count": 26830,
+    "file_path": "data/mars_cache/396e99b777f04ed30267e820d0beee3f.json",
+    "created_at": "1757771708.7021399"
+  },
+  "5e42084c2793fde35747dd90a281767b": {
+    "symbol": "QQQ",
+    "duration_minutes": 14400,
+    "bar_interval_seconds": 60,
+    "market_regime": "normal",
+    "bars_count": 9610,
+    "file_path": "data/mars_cache/5e42084c2793fde35747dd90a281767b.json",
+    "created_at": "1757781512.5596967"
+  }
+}

@@ -1,0 +1,25 @@
+{
+    "enhanced_psm": {
+        "enabled": true,
+        "hysteresis": {
+            "enabled": true,
+            "entry_bias": 0.02,
+            "exit_bias": 0.05,
+            "variance_sensitivity": 0.10,
+            "signal_history_window": 20
+        },
+        "allocation": {
+            "enabled": true,
+            "strategy": "confidence_based",
+            "max_leverage": 3.0,
+            "min_base_allocation": 0.10,
+            "max_leverage_allocation": 0.85,
+            "confidence_power": 1.0
+        },
+        "risk_management": {
+            "max_position_value": 1000000.0,
+            "max_portfolio_leverage": 3.0,
+            "daily_loss_limit": 0.10
+        }
+    }
+}

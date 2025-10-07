@@ -177,46 +177,55 @@ std::vector<double> OnlineEnsembleStrategy::extract_features(const Bar& current_
 void OnlineEnsembleStrategy::track_prediction(int bar_index, int horizon,
                                               const std::vector<double>& features,
                                               double entry_price, bool is_long) {
+    // Create shared_ptr only once per bar (reuse for all horizons)
+    static std::shared_ptr<const std::vector<double>> shared_features;
+    static int last_bar_index = -1;
+
+    if (bar_index != last_bar_index) {
+        // New bar - create new shared features
+        shared_features = std::make_shared<const std::vector<double>>(features);
+        last_bar_index = bar_index;
+    }
+
     HorizonPrediction pred;
     pred.entry_bar_index = bar_index;
     pred.target_bar_index = bar_index + horizon;
     pred.horizon = horizon;
-    pred.features = features;
+    pred.features = shared_features;  // Share, don't copy
     pred.entry_price = entry_price;
     pred.is_long = is_long;
 
-    auto& vec = pending_updates_[pred.target_bar_index];
-    if (vec.empty()) {
-        vec.reserve(3);  // Reserve space for 3 horizons (1, 5, 10)
+    // Use fixed array instead of vector
+    auto& update = pending_updates_[pred.target_bar_index];
+    if (update.count < 3) {
+        update.horizons[update.count++] = std::move(pred);  // Move, don't copy
     }
-    vec.push_back(pred);
 }
 
 void OnlineEnsembleStrategy::process_pending_updates(const Bar& current_bar) {
-    // Process ALL predictions that target the current bar
     auto it = pending_updates_.find(samples_seen_);
     if (it != pending_updates_.end()) {
-        const auto& predictions = it->second;  // vector of predictions
+        const auto& update = it->second;
 
-        for (const auto& pred : predictions) {
-            // Calculate actual return
+        // Process only the valid predictions (0 to count-1)
+        for (uint8_t i = 0; i < update.count; ++i) {
+            const auto& pred = update.horizons[i];
+
             double actual_return = (current_bar.close - pred.entry_price) / pred.entry_price;
             if (!pred.is_long) {
-                actual_return = -actual_return;  // Invert for short
+                actual_return = -actual_return;
             }
 
-            // Update the appropriate horizon predictor
-            ensemble_predictor_->update(pred.horizon, pred.features, actual_return);
+            // Dereference shared_ptr only when needed
+            ensemble_predictor_->update(pred.horizon, *pred.features, actual_return);
         }
 
-        // Debug logging
         if (samples_seen_ % 100 == 0) {
-            utils::log_debug("Processed " + std::to_string(predictions.size()) +
+            utils::log_debug("Processed " + std::to_string(static_cast<int>(update.count)) +
                            " updates at bar " + std::to_string(samples_seen_) +
                            ", pending_count=" + std::to_string(pending_updates_.size()));
         }
 
-        // Remove all processed predictions for this bar
         pending_updates_.erase(it);
     }
 }

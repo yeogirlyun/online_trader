@@ -130,11 +130,17 @@ private:
         int entry_bar_index;
         int target_bar_index;
         int horizon;
-        std::vector<double> features;
+        std::shared_ptr<const std::vector<double>> features;  // Shared, immutable
         double entry_price;
         bool is_long;
     };
-    std::map<int, std::vector<HorizonPrediction>> pending_updates_;
+
+    struct PendingUpdate {
+        std::array<HorizonPrediction, 3> horizons;  // Fixed size for 3 horizons
+        uint8_t count = 0;  // Track actual count (1-3)
+    };
+
+    std::map<int, PendingUpdate> pending_updates_;
 
     // Performance tracking
     struct TradeResult {

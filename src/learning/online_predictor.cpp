@@ -49,16 +49,16 @@ OnlinePredictor::PredictionResult OnlinePredictor::predict(const std::vector<dou
 
 void OnlinePredictor::update(const std::vector<double>& features, double actual_return) {
     samples_seen_++;
-    
+
     // Store return for volatility estimation
     recent_returns_.push_back(actual_return);
     if (recent_returns_.size() > HISTORY_SIZE) {
         recent_returns_.pop_front();
     }
-    
-    // Convert to Eigen
-    Eigen::VectorXd x = Eigen::Map<const Eigen::VectorXd>(features.data(), features.size());
-    
+
+    // Use Eigen::Map to avoid copy (zero-copy view of std::vector)
+    Eigen::Map<const Eigen::VectorXd> x(features.data(), features.size());
+
     // Current prediction
     double predicted = theta_.dot(x);
     double error = actual_return - predicted;
@@ -90,12 +90,14 @@ void OnlinePredictor::update(const std::vector<double>& features, double actual_
     }
     
     Eigen::VectorXd k = Px / denominator;
-    
+
     // Update parameters
-    theta_ += k * error;
-    
-    // Update covariance
-    P_ = (P_ - k * x.transpose() * P_) / current_lambda_;
+    theta_.noalias() += k * error;
+
+    // Update covariance (optimized: reuse Px, avoid k * x.transpose() * P_)
+    // P = (P - k * x' * P) / lambda = (P - k * Px') / lambda
+    P_.noalias() -= k * Px.transpose();
+    P_ /= current_lambda_;
     
     // Ensure numerical stability
     ensure_positive_definite();

@@ -14,6 +14,7 @@
 // #include "cli/online_sanity_check_command.h"  // Commented out - missing implementations
 // #include "cli/online_trade_command.h"  // Commented out - missing implementations
 #include "cli/ensemble_workflow_command.h"
+#include "cli/live_trade_command.hpp"
 #ifdef XGBOOST_AVAILABLE
 #include "cli/train_command.h"
 #endif
@@ -362,6 +363,14 @@ void CommandRegistry::initialize_default_commands() {
     analyze_trades_info.tags = {"ensemble", "analysis", "metrics", "reporting"};
     register_command("analyze-trades", std::make_shared<AnalyzeTradesCommand>(), analyze_trades_info);
 
+    // Register live trading command
+    CommandInfo live_trade_info;
+    live_trade_info.category = "Live Trading";
+    live_trade_info.version = "1.0";
+    live_trade_info.description = "Run OnlineTrader v1.0 with paper account (SPY/SPXL/SH/SDS)";
+    live_trade_info.tags = {"live", "paper-trading", "alpaca", "polygon"};
+    register_command("live-trade", std::make_shared<LiveTradeCommand>(), live_trade_info);
+
     // Register training commands if available
 // XGBoost training now handled by Python scripts (tools/train_xgboost_binary.py)
 // C++ train command disabled
@@ -627,6 +636,9 @@ void CommandFactory::register_builtin_commands() {
     register_factory("generate-signals", []() { return std::make_shared<GenerateSignalsCommand>(); });
     register_factory("execute-trades", []() { return std::make_shared<ExecuteTradesCommand>(); });
     register_factory("analyze-trades", []() { return std::make_shared<AnalyzeTradesCommand>(); });
+
+    // Live trading command
+    register_factory("live-trade", []() { return std::make_shared<LiveTradeCommand>(); });
     
 // XGBoost training now handled by Python scripts
 

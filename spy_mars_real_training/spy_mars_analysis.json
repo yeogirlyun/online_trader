@@ -1,0 +1,46 @@
+{
+  "simulation_stats": {
+    "total_bars": 51,
+    "avg_return": 6.0726656921250566e-05,
+    "volatility": 0.0014142642962181747,
+    "skewness": 1.4303185606131545,
+    "kurtosis": 4.712674562791314,
+    "avg_volume": 264.70588235294116,
+    "price_range": {
+      "min": 668.5,
+      "max": 671.5,
+      "start": 668.5,
+      "end": 670.5
+    }
+  },
+  "comparison_with_historical": {
+    "return_similarity": 5.1819233525022785e-05,
+    "volatility_similarity": 0.0011873292720589105,
+    "volume_similarity": 0.9982117836285458,
+    "overall_similarity_score": 5.21118558346831
+  },
+  "regime_analysis": {
+    "normal": {
+      "bars_count": 51,
+      "avg_return": 6.0726656921250566e-05,
+      "volatility": 0.0014142642962181747,
+      "avg_volume": 264.70588235294116,
+      "price_change": 2.0
+    }
+  },
+  "quality_metrics": {
+    "data_quality": {
+      "completeness": 1.0,
+      "price_consistency": 1.0,
+      "volume_realism": 1.0
+    },
+    "market_realism": {
+      "volatility_clustering": 0.8130604054877462,
+      "volume_price_correlation": -0.24819520927097627,
+      "return_distribution": {
+        "skewness": 1.4303185606131545,
+        "kurtosis": 4.712674562791314
+      }
+    }
+  }
+}

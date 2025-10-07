@@ -1,7 +1,7 @@
 #ifndef SENTIO_POLYGON_CLIENT_HPP
 #define SENTIO_POLYGON_CLIENT_HPP
 
-#include "common/bar.hpp"
+#include "common/types.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -60,6 +60,11 @@ public:
      */
     bool is_connected() const;
 
+    /**
+     * Store a bar in history (public for WebSocket callback access)
+     */
+    void store_bar(const std::string& symbol, const Bar& bar);
+
 private:
     std::string proxy_url_;
     std::string auth_key_;
@@ -71,9 +76,8 @@ private:
     std::map<std::string, std::deque<Bar>> bars_history_;
     static constexpr size_t MAX_BARS_HISTORY = 1000;
 
-    // WebSocket implementation (will use libwebsockets or simple HTTP polling)
+    // WebSocket implementation
     void receive_loop(BarCallback callback);
-    void store_bar(const std::string& symbol, const Bar& bar);
 };
 
 } // namespace sentio

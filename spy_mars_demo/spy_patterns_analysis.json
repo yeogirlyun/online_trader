@@ -1,0 +1,19 @@
+{
+  "total_bars": 1392,
+  "avg_return": 8.907423396227781e-06,
+  "volatility": 0.00022693502415926424,
+  "skewness": 2.323414300782101,
+  "kurtosis": 29.3163849072588,
+  "avg_volume": 148027.88218390805,
+  "volume_volatility": 145901.58752421208,
+  "regime_distribution": {
+    "normal": 842,
+    "volatile": 275,
+    "low_vol": 275
+  },
+  "price_range": {
+    "min": 663.06,
+    "max": 672.675,
+    "current": 671.505
+  }
+}

@@ -517,12 +517,12 @@ double sentio::PositionStateMachine::calculate_kelly_position_size(
 std::string sentio::PositionStateMachine::state_to_string(State s) {
     switch (s) {
         case State::CASH_ONLY: return "CASH_ONLY";
-        case State::QQQ_ONLY: return "QQQ_ONLY";
-        case State::TQQQ_ONLY: return "TQQQ_ONLY";
-        case State::PSQ_ONLY: return "PSQ_ONLY";
-        case State::SQQQ_ONLY: return "SQQQ_ONLY";
-        case State::QQQ_TQQQ: return "QQQ_TQQQ";
-        case State::PSQ_SQQQ: return "PSQ_SQQQ";
+        case State::QQQ_ONLY: return "BASE_ONLY";           // 1x base (QQQ/SPY)
+        case State::TQQQ_ONLY: return "BULL_3X_ONLY";       // 3x bull (TQQQ/SPXL)
+        case State::PSQ_ONLY: return "BEAR_1X_ONLY";        // -1x bear (PSQ/SH)
+        case State::SQQQ_ONLY: return "BEAR_NX_ONLY";       // -2x/-3x bear (SQQQ/SDS/SPXS)
+        case State::QQQ_TQQQ: return "BASE_BULL_3X";        // 50% base + 50% bull
+        case State::PSQ_SQQQ: return "BEAR_1X_NX";          // 50% bear_1x + 50% bear_nx
         case State::INVALID: return "INVALID";
         default: return "UNKNOWN_STATE";
     }

@@ -174,6 +174,34 @@ if(nlohmann_json_FOUND)
 endif()
 
 # =============================================================================
+# Live Trading Library (Alpaca + Polygon WebSocket Integration)
+# =============================================================================
+find_package(CURL REQUIRED)
+
+# Find libwebsockets for real-time Polygon data
+find_library(WEBSOCKETS_LIB websockets HINTS /opt/homebrew/lib)
+if(WEBSOCKETS_LIB)
+    message(STATUS "libwebsockets found: ${WEBSOCKETS_LIB}")
+else()
+    message(FATAL_ERROR "libwebsockets not found - install with: brew install libwebsockets")
+endif()
+
+add_library(online_live
+    src/live/alpaca_client.cpp
+    src/live/polygon_websocket.cpp
+)
+target_link_libraries(online_live PRIVATE
+    online_common
+    CURL::libcurl
+    ${WEBSOCKETS_LIB}
+)
+target_include_directories(online_live PRIVATE /opt/homebrew/include)
+if(nlohmann_json_FOUND)
+    target_link_libraries(online_live PRIVATE nlohmann_json::nlohmann_json)
+endif()
+message(STATUS "Created online_live library for live trading (Alpaca + Polygon WebSocket)")
+
+# =============================================================================
 # CLI Executable (sentio_cli for online learning)
 # =============================================================================
 add_executable(sentio_cli
@@ -189,6 +217,8 @@ add_executable(sentio_cli
     src/cli/generate_signals_command.cpp
     src/cli/execute_trades_command.cpp
     src/cli/analyze_trades_command.cpp
+    # Live trading command
+    src/cli/live_trade_command.cpp
 )
 
 # Link all required libraries
@@ -198,6 +228,7 @@ target_link_libraries(sentio_cli PRIVATE
     online_backend
     online_common
     online_testing_framework
+    online_live
 )
 
 # Add nlohmann/json include for CLI
@@ -280,7 +311,12 @@ endif()
 # =============================================================================
 # Installation
 # =============================================================================
-install(TARGETS online_testing_framework online_learning online_strategy online_backend online_common
+# Add quote simulation module
+# =============================================================================
+add_subdirectory(quote_simulation)
+
+# =============================================================================
+install(TARGETS online_testing_framework online_learning online_strategy online_backend online_common quote_simulation
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
@@ -298,4 +334,6 @@ message(STATUS "  - Online Learning: ENABLED")
 message(STATUS "  - Ensemble PSM: ENABLED")
 message(STATUS "  - Strategy Framework: ENABLED")
 message(STATUS "  - Testing Framework: ENABLED")
+message(STATUS "  - Quote Simulation: ENABLED")
+message(STATUS "  - MarS Integration: ENABLED")
 message(STATUS "========================================")

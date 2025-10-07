@@ -1,0 +1,35 @@
+{
+  "historical": {
+    "total_bars": 1392,
+    "avg_return": 8.907423396227781e-06,
+    "volatility": 0.00022693502415926424,
+    "skewness": 2.323414300782101,
+    "kurtosis": 29.3163849072588,
+    "avg_volume": 148027.88218390805,
+    "volume_volatility": 145901.58752421208,
+    "regime_distribution": {
+      "normal": 842,
+      "volatile": 275,
+      "low_vol": 275
+    },
+    "price_range": {
+      "min": 663.06,
+      "max": 672.675,
+      "current": 671.505
+    }
+  },
+  "continuation": {
+    "total_bars": 90,
+    "avg_return": -5.010246003278346e-06,
+    "volatility": 0.0014237564540002063,
+    "skewness": 0.344025069779723,
+    "kurtosis": 8.57838892962066,
+    "price_range": {
+      "min": 445.93646207313907,
+      "max": 453.10841020386067,
+      "start": 449.86200617379495,
+      "end": 449.6213592780533
+    }
+  },
+  "similarity_score": 2.809871669757174
+}

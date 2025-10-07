@@ -1,0 +1,26 @@
+# Professional Trading Visualization Requirements
+# =============================================
+
+# Core visualization libraries
+plotly>=5.17.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Optional: Additional chart types
+mplfinance>=0.12.10
+
+# Optional: Enhanced data analysis
+scipy>=1.10.0
+scikit-learn>=1.3.0
+
+# Optional: Web dashboard framework
+dash>=2.14.0
+streamlit>=1.28.0
+
+# Optional: Advanced plotting
+seaborn>=0.12.0
+matplotlib>=3.7.0
+
+# Optional: Financial data analysis
+yfinance>=0.2.18
+ta-lib>=0.4.25

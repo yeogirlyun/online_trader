@@ -1,0 +1,14 @@
+{
+  "demo_info": {
+    "timestamp": "2025-10-07T10:18:22.107202",
+    "historical_data_file": "data/equities/SPY_RTH_NH.csv",
+    "continuation_bars": 90,
+    "mars_ai_enabled": true
+  },
+  "summary": {
+    "historical_data_loaded": true,
+    "continuation_generated": true,
+    "mars_available": true,
+    "demo_successful": true
+  }
+}

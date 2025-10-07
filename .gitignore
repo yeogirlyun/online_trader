@@ -31,3 +31,14 @@ data/processed/
 
 # Test outputs
 /test_output/
+
+# Large data files (>50MB)
+*.html
+data/tmp/qqq_full_signals.jsonl
+data/tradebooks/**/*.jsonl
+!data/tradebooks/**/spy_trades_20block.jsonl
+!data/tradebooks/**/spy_trades_sept.jsonl
+
+# Keep small tradebooks
+data/tradebooks/spy/spy_trades_20block.jsonl
+data/tradebooks/spy/spy_trades_20block_sds.jsonl

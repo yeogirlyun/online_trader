@@ -316,7 +316,10 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
                         double instrument_price = get_instrument_price(instrument_bars, symbol, i);
                         portfolio.cash_balance += sell_quantity * instrument_price;
 
-                        // Record trade BEFORE erasing
+                        // Erase position FIRST
+                        portfolio.positions.erase(symbol);
+
+                        // Now record trade with correct portfolio value
                         TradeRecord trade;
                         trade.bar_id = bar.bar_id;
                         trade.timestamp_ms = bar.timestamp_ms;
@@ -335,9 +338,6 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
                                      " -> " + psm.state_to_string(transition.target_state);
 
                         history.trades.push_back(trade);
-
-                        // Now erase the position
-                        portfolio.positions.erase(symbol);
 
                         if (verbose) {
                             std::cout << "  [" << i << "] " << symbol << " SELL "

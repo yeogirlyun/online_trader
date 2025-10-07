@@ -1,0 +1,17 @@
+=== Live Trading Monitor Started: Mon Oct  6 21:07:30 EDT 2025 ===
+
+
+=== Market Closed: Mon Oct  6 21:07:30 EDT 2025 ===
+
+Bars Received:
+  17 PSQ
+  58 QQQ
+  37 SQQQ
+  40 TQQQ
+
+Signals Generated:
+0 signals
+
+Trades Executed:
+0 trades
+

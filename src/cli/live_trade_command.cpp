@@ -1,8 +1,9 @@
 #include "cli/live_trade_command.hpp"
 #include "live/alpaca_client.hpp"
 #include "live/polygon_client.hpp"
-#include "strategy/online_ensemble_strategy.hpp"
-#include "backend/position_state_machine.hpp"
+#include "strategy/online_ensemble_strategy.h"
+#include "backend/position_state_machine.h"
+#include <nlohmann/json.hpp>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -11,6 +12,34 @@
 #include <ctime>
 
 namespace sentio {
+namespace cli {
+
+/**
+ * Create OnlineEnsemble v1.0 configuration with asymmetric thresholds
+ * Target: 0.6086% MRB (10.5% monthly, 125% annual)
+ */
+static OnlineEnsembleStrategy::OnlineEnsembleConfig create_v1_config() {
+    OnlineEnsembleStrategy::OnlineEnsembleConfig config;
+
+    // v1.0 asymmetric thresholds (from optimization)
+    config.buy_threshold = 0.55;
+    config.sell_threshold = 0.45;
+    config.neutral_zone = 0.10;
+
+    // EWRLS parameters
+    config.ewrls_lambda = 0.995;
+    config.warmup_samples = 960;  // 2 days of 1-min bars
+
+    // Enable BB amplification
+    config.enable_bb_amplification = true;
+    config.bb_amplification_factor = 0.10;
+
+    // Adaptive learning
+    config.enable_adaptive_learning = true;
+    config.enable_threshold_calibration = true;
+
+    return config;
+}
 
 /**
  * Live Trading Runner for OnlineEnsemble Strategy v1.0
@@ -29,7 +58,7 @@ public:
         : alpaca_(alpaca_key, alpaca_secret, true /* paper */)
         , polygon_(polygon_url, polygon_key)
         , log_dir_(log_dir)
-        , strategy_()
+        , strategy_(create_v1_config())
         , psm_()
         , current_state_(PositionStateMachine::State::CASH_ONLY)
         , bars_held_(0)
@@ -73,7 +102,7 @@ public:
         }
         log_system("✓ Connected to Polygon");
 
-        // Subscribe to symbols
+        // Subscribe to symbols (SPY instruments)
         std::vector<std::string> symbols = {"SPY", "SPXL", "SH", "SDS"};
         if (!polygon_.subscribe(symbols)) {
             log_error("Failed to subscribe to symbols");
@@ -91,7 +120,7 @@ public:
 
         // Start main trading loop
         polygon_.start([this](const std::string& symbol, const Bar& bar) {
-            if (symbol == "SPY") {  // Only process on SPY bars
+            if (symbol == "SPY") {  // Only process on SPY bars (trigger for multi-instrument PSM)
                 on_new_bar(bar);
             }
         });
@@ -163,16 +192,22 @@ private:
     bool is_regular_hours() const {
         auto now = std::chrono::system_clock::now();
         auto time_t_now = std::chrono::system_clock::to_time_t(now);
-        auto tm = *std::localtime(&time_t_now);
 
-        int hour = tm.tm_hour;
-        int minute = tm.tm_min;
-        int time_minutes = hour * 60 + minute;
+        // Use GMT time and convert to ET (GMT-4 for EDT, GMT-5 for EST)
+        // For simplicity, assuming EDT (GMT-4) - adjust for DST if needed
+        auto gmt_tm = *std::gmtime(&time_t_now);
+        int gmt_hour = gmt_tm.tm_hour;
+        int gmt_minute = gmt_tm.tm_min;
 
-        // Regular hours: 9:30am - 3:58pm ET (close 2 min before market close)
-        // Assuming local time is ET (adjust if needed)
+        // Convert GMT to ET (EDT = GMT-4)
+        int et_hour = gmt_hour - 4;
+        if (et_hour < 0) et_hour += 24;
+
+        int time_minutes = et_hour * 60 + gmt_minute;
+
+        // Regular hours: 9:30am - 3:58pm ET
         int market_open = 9 * 60 + 30;   // 9:30am = 570 minutes
-        int market_close = 15 * 60 + 58;  // 3:58pm = 958 minutes (2 min before 4:00pm)
+        int market_close = 15 * 60 + 58;  // 3:58pm = 958 minutes
 
         return time_minutes >= market_open && time_minutes < market_close;
     }
@@ -180,11 +215,17 @@ private:
     bool is_end_of_day_liquidation_time() const {
         auto now = std::chrono::system_clock::now();
         auto time_t_now = std::chrono::system_clock::to_time_t(now);
-        auto tm = *std::localtime(&time_t_now);
 
-        int hour = tm.tm_hour;
-        int minute = tm.tm_min;
-        int time_minutes = hour * 60 + minute;
+        // Use GMT time and convert to ET (EDT = GMT-4)
+        auto gmt_tm = *std::gmtime(&time_t_now);
+        int gmt_hour = gmt_tm.tm_hour;
+        int gmt_minute = gmt_tm.tm_min;
+
+        // Convert GMT to ET (EDT = GMT-4)
+        int et_hour = gmt_hour - 4;
+        if (et_hour < 0) et_hour += 24;
+
+        int time_minutes = et_hour * 60 + gmt_minute;
 
         // Liquidate at 3:58pm ET (2 minutes before close)
         int liquidation_time = 15 * 60 + 58;  // 3:58pm = 958 minutes
@@ -204,11 +245,61 @@ private:
     }
 
     void warmup_strategy() {
-        // Load recent historical data from CSV for warmup
-        // This ensures the EWRLS predictor has enough data
-        // TODO: Load last 960 bars of SPY from file
-        log_system("NOTE: Warmup using historical data not yet implemented");
-        log_system("      Strategy will learn from first few live bars");
+        // Load recent historical data from CSV for warmup (last 960 bars = 2 trading days)
+        std::string warmup_file = "data/equities/SPY_RTH_NH.csv";
+
+        std::ifstream file(warmup_file);
+        if (!file.is_open()) {
+            log_system("WARNING: Could not open warmup file: " + warmup_file);
+            log_system("         Strategy will learn from first few live bars");
+            return;
+        }
+
+        // Read all bars
+        std::vector<Bar> all_bars;
+        std::string line;
+        std::getline(file, line); // Skip header
+
+        while (std::getline(file, line)) {
+            std::istringstream iss(line);
+            std::string ts_utc, ts_epoch_str, open_str, high_str, low_str, close_str, volume_str;
+
+            if (std::getline(iss, ts_utc, ',') &&
+                std::getline(iss, ts_epoch_str, ',') &&
+                std::getline(iss, open_str, ',') &&
+                std::getline(iss, high_str, ',') &&
+                std::getline(iss, low_str, ',') &&
+                std::getline(iss, close_str, ',') &&
+                std::getline(iss, volume_str)) {
+
+                Bar bar;
+                bar.timestamp_ms = std::stoll(ts_epoch_str) * 1000LL; // Convert sec to ms
+                bar.open = std::stod(open_str);
+                bar.high = std::stod(high_str);
+                bar.low = std::stod(low_str);
+                bar.close = std::stod(close_str);
+                bar.volume = std::stoll(volume_str);
+                all_bars.push_back(bar);
+            }
+        }
+        file.close();
+
+        if (all_bars.empty()) {
+            log_system("WARNING: No bars loaded from warmup file");
+            return;
+        }
+
+        // Take last 960 bars
+        size_t warmup_count = std::min(size_t(960), all_bars.size());
+        size_t start_idx = all_bars.size() - warmup_count;
+
+        log_system("Warming up with " + std::to_string(warmup_count) + " historical bars...");
+
+        for (size_t i = start_idx; i < all_bars.size(); ++i) {
+            generate_signal(all_bars[i]); // Process bar through strategy (no trading)
+        }
+
+        log_system("✓ Warmup complete - processed " + std::to_string(warmup_count) + " bars");
     }
 
     void on_new_bar(const Bar& bar) {
@@ -388,13 +479,140 @@ private:
                    " → " + psm_.state_to_string(decision.target_state));
         log_system("Reason: " + decision.reason);
 
-        // TODO: Implement actual order execution
-        // For now, just update state
+        // Step 1: Close all current positions
+        log_system("Step 1: Closing current positions...");
+        if (!alpaca_.close_all_positions()) {
+            log_error("Failed to close positions - aborting transition");
+            return;
+        }
+        log_system("✓ All positions closed");
+
+        // Wait a moment for orders to settle
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        // Step 2: Get current account info
+        auto account = alpaca_.get_account();
+        if (!account) {
+            log_error("Failed to get account info - aborting transition");
+            return;
+        }
+
+        double available_capital = account->cash;
+        log_system("Available capital: $" + std::to_string(available_capital));
+
+        // Step 3: Calculate target positions based on PSM state
+        auto target_positions = calculate_target_allocations(decision.target_state, available_capital);
+
+        // Step 4: Execute buy orders for target positions
+        if (!target_positions.empty()) {
+            log_system("Step 2: Opening new positions...");
+            for (const auto& [symbol, quantity] : target_positions) {
+                if (quantity > 0) {
+                    log_system("  Buying " + std::to_string(quantity) + " shares of " + symbol);
+
+                    auto order = alpaca_.place_market_order(symbol, quantity, "gtc");
+                    if (order) {
+                        log_system("  ✓ Order placed: " + order->order_id + " (" + order->status + ")");
+                        log_trade(*order);
+                    } else {
+                        log_error("  ✗ Failed to place order for " + symbol);
+                    }
+
+                    // Small delay between orders
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                }
+            }
+        } else {
+            log_system("Target state is CASH_ONLY - no positions to open");
+        }
+
+        // Update state
         current_state_ = decision.target_state;
         bars_held_ = 0;
         entry_equity_ = decision.current_equity;
 
         log_system("✓ Transition complete");
+    }
+
+    // Calculate position allocations based on PSM state
+    std::map<std::string, double> calculate_target_allocations(
+        PositionStateMachine::State state, double capital) {
+
+        std::map<std::string, double> allocations;
+
+        // Map PSM states to SPY instrument allocations
+        switch (state) {
+            case PositionStateMachine::State::TQQQ_ONLY:
+                // 3x bull → SPXL only
+                allocations["SPXL"] = capital;
+                break;
+
+            case PositionStateMachine::State::QQQ_TQQQ:
+                // Blended long → SPY (50%) + SPXL (50%)
+                allocations["SPY"] = capital * 0.5;
+                allocations["SPXL"] = capital * 0.5;
+                break;
+
+            case PositionStateMachine::State::QQQ_ONLY:
+                // 1x base → SPY only
+                allocations["SPY"] = capital;
+                break;
+
+            case PositionStateMachine::State::CASH_ONLY:
+                // No positions
+                break;
+
+            case PositionStateMachine::State::PSQ_ONLY:
+                // -1x bear → SH only
+                allocations["SH"] = capital;
+                break;
+
+            case PositionStateMachine::State::PSQ_SQQQ:
+                // Blended short → SH (50%) + SDS (50%)
+                allocations["SH"] = capital * 0.5;
+                allocations["SDS"] = capital * 0.5;
+                break;
+
+            case PositionStateMachine::State::SQQQ_ONLY:
+                // -2x bear → SDS only
+                allocations["SDS"] = capital;
+                break;
+
+            default:
+                break;
+        }
+
+        // Convert dollar allocations to share quantities
+        std::map<std::string, double> quantities;
+        for (const auto& [symbol, dollar_amount] : allocations) {
+            // Get current price from recent bars
+            auto bars = polygon_.get_recent_bars(symbol, 1);
+            if (!bars.empty() && bars[0].close > 0) {
+                double shares = std::floor(dollar_amount / bars[0].close);
+                if (shares > 0) {
+                    quantities[symbol] = shares;
+                }
+            }
+        }
+
+        return quantities;
+    }
+
+    void log_trade(const AlpacaClient::Order& order) {
+        nlohmann::json j;
+        j["timestamp"] = get_timestamp_readable();
+        j["order_id"] = order.order_id;
+        j["symbol"] = order.symbol;
+        j["side"] = order.side;
+        j["quantity"] = order.quantity;
+        j["type"] = order.type;
+        j["time_in_force"] = order.time_in_force;
+        j["status"] = order.status;
+        j["filled_qty"] = order.filled_qty;
+        j["filled_avg_price"] = order.filled_avg_price;
+
+        log_trades_ << j.dump() << std::endl;
+        log_trades_.flush();
     }
 
     void log_signal(const Bar& bar, const Signal& signal) {
@@ -469,14 +687,13 @@ int LiveTradeCommand::execute(const std::vector<std::string>& args) {
 
     // Polygon API key from config.env
     const char* polygon_key_env = std::getenv("POLYGON_API_KEY");
-    const std::string POLYGON_KEY = polygon_key_env ? polygon_key_env : "fE68VnU8xUR7NQFMAM4yl3cULTHbigrb";
+    // Use Alpaca's IEX WebSocket for real-time market data (FREE tier)
+    // IEX provides ~3% of market volume, sufficient for paper trading
+    // Upgrade to SIP ($49/mo) for 100% market coverage in production
+    const std::string ALPACA_MARKET_DATA_URL = "wss://stream.data.alpaca.markets/v2/iex";
 
-    // Polygon Proxy (deployed by your engineer)
-    const std::string POLYGON_SECURE_KEY = "Izene@123";
-    const std::string POLYGON_PROXY_URL = "ws://polygon.beejay.kim/stream?secure-key=" + POLYGON_SECURE_KEY;
-
-    // Alternative: Official Polygon WebSocket (if proxy not available)
-    // const std::string POLYGON_WS_URL = "wss://socket.polygon.io/stocks";
+    // Polygon key (kept for future use, currently using Alpaca IEX)
+    const std::string POLYGON_KEY = polygon_key_env ? polygon_key_env : "";
 
     // NOTE: Only switch to LIVE credentials after paper trading success is confirmed!
     // LIVE credentials are in config.env (ALPACA_LIVE_API_KEY / ALPACA_LIVE_SECRET_KEY)
@@ -484,10 +701,30 @@ int LiveTradeCommand::execute(const std::vector<std::string>& args) {
     // Log directory
     std::string log_dir = "logs/live_trading";
 
-    LiveTrader trader(ALPACA_KEY, ALPACA_SECRET, POLYGON_PROXY_URL, POLYGON_KEY, log_dir);
+    LiveTrader trader(ALPACA_KEY, ALPACA_SECRET, ALPACA_MARKET_DATA_URL, POLYGON_KEY, log_dir);
     trader.run();
 
     return 0;
 }
 
+void LiveTradeCommand::show_help() const {
+    std::cout << "Usage: sentio_cli live-trade\n\n";
+    std::cout << "Run OnlineTrader v1.0 with paper account\n\n";
+    std::cout << "Trading Configuration:\n";
+    std::cout << "  Instruments: SPY, SPXL (3x), SH (-1x), SDS (-2x)\n";
+    std::cout << "  Hours: 9:30am - 3:58pm ET (regular hours only)\n";
+    std::cout << "  Strategy: OnlineEnsemble v1.0 with asymmetric thresholds\n";
+    std::cout << "  Data: Real-time via Alpaca (upgradeable to Polygon WebSocket)\n";
+    std::cout << "  Account: Paper trading (PK3NCBT07OJZJULDJR5V)\n\n";
+    std::cout << "Logs: logs/live_trading/\n";
+    std::cout << "  - system_*.log: Human-readable events\n";
+    std::cout << "  - signals_*.jsonl: Every prediction\n";
+    std::cout << "  - decisions_*.jsonl: Trading decisions\n";
+    std::cout << "  - trades_*.jsonl: Order executions\n";
+    std::cout << "  - positions_*.jsonl: Portfolio snapshots\n\n";
+    std::cout << "Example:\n";
+    std::cout << "  sentio_cli live-trade\n";
+}
+
+} // namespace cli
 } // namespace sentio

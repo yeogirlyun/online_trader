@@ -190,6 +190,25 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
         const auto& signal = signals[i];
         const auto& bar = bars[i];
 
+        // Check for End-of-Day (EOD) closing time: 15:58 ET (2 minutes before market close)
+        // Convert timestamp_ms to ET and extract hour/minute
+        std::time_t bar_time = static_cast<std::time_t>(bar.timestamp_ms / 1000);
+        std::tm tm_utc{};
+        #ifdef _WIN32
+            gmtime_s(&tm_utc, &bar_time);
+        #else
+            gmtime_r(&bar_time, &tm_utc);
+        #endif
+
+        // Convert UTC to ET (subtract 4 hours for EDT, 5 for EST)
+        // For simplicity, use 4 hours (EDT) since most trading happens in summer
+        int et_hour = tm_utc.tm_hour - 4;
+        if (et_hour < 0) et_hour += 24;
+        int et_minute = tm_utc.tm_min;
+
+        // Check if time >= 15:58 ET
+        bool is_eod_close = (et_hour == 15 && et_minute >= 58) || (et_hour >= 16);
+
         // Update position tracking
         current_position.bars_held++;
         double current_equity = portfolio.cash_balance + get_position_value_multi(portfolio, instrument_bars, i);
@@ -210,7 +229,11 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
         PositionStateMachine::State forced_target_state = PositionStateMachine::State::INVALID;
         std::string exit_reason = "";
 
-        if (should_take_profit) {
+        if (is_eod_close && current_position.state != PositionStateMachine::State::CASH_ONLY) {
+            // EOD close takes priority over all other conditions
+            forced_target_state = PositionStateMachine::State::CASH_ONLY;
+            exit_reason = "EOD_CLOSE (15:58 ET)";
+        } else if (should_take_profit) {
             forced_target_state = PositionStateMachine::State::CASH_ONLY;
             exit_reason = "PROFIT_TARGET (" + std::to_string(position_pnl_pct * 100) + "%)";
         } else if (should_stop_loss) {
@@ -226,7 +249,11 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
         // SHORT uses normal thresholds (<0.47) as it has better win rate
         PositionStateMachine::State target_state;
 
-        if (signal.probability >= 0.68) {
+        // Block new position entries after 15:58 ET (EOD close time)
+        if (is_eod_close) {
+            // Force CASH_ONLY - do not enter any new positions
+            target_state = PositionStateMachine::State::CASH_ONLY;
+        } else if (signal.probability >= 0.68) {
             // Very strong LONG - use 3x leverage
             target_state = PositionStateMachine::State::TQQQ_ONLY;
         } else if (signal.probability >= 0.60) {
@@ -334,9 +361,14 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
                         trade.portfolio_value = portfolio.cash_balance + get_position_value_multi(portfolio, instrument_bars, i);
                         trade.position_quantity = 0.0;
                         trade.position_avg_price = 0.0;
-                        trade.reason = "PSM: " + psm.state_to_string(transition.current_state) +
-                                     " -> " + psm.state_to_string(transition.target_state) +
-                                     " (p=" + std::to_string(signal.probability).substr(0, 6) + ")";
+                        // Use forced exit reason if set (EOD_CLOSE, PROFIT_TARGET, STOP_LOSS)
+                        if (!transition.optimal_action.empty()) {
+                            trade.reason = transition.optimal_action;
+                        } else {
+                            trade.reason = "PSM: " + psm.state_to_string(transition.current_state) +
+                                         " -> " + psm.state_to_string(transition.target_state) +
+                                         " (p=" + std::to_string(signal.probability).substr(0, 6) + ")";
+                        }
 
                         history.trades.push_back(trade);
 
@@ -384,9 +416,14 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
                         trade.portfolio_value = portfolio.cash_balance + get_position_value_multi(portfolio, instrument_bars, i);
                         trade.position_quantity = portfolio.positions.count(symbol) ? portfolio.positions[symbol].quantity : 0.0;
                         trade.position_avg_price = portfolio.positions.count(symbol) ? portfolio.positions[symbol].avg_price : 0.0;
-                        trade.reason = "PSM: " + psm.state_to_string(transition.current_state) +
-                                     " -> " + psm.state_to_string(transition.target_state) +
-                                     " (p=" + std::to_string(signal.probability).substr(0, 6) + ")";
+                        // Use forced exit reason if set (EOD_CLOSE, PROFIT_TARGET, STOP_LOSS)
+                        if (!transition.optimal_action.empty()) {
+                            trade.reason = transition.optimal_action;
+                        } else {
+                            trade.reason = "PSM: " + psm.state_to_string(transition.current_state) +
+                                         " -> " + psm.state_to_string(transition.target_state) +
+                                         " (p=" + std::to_string(signal.probability).substr(0, 6) + ")";
+                        }
 
                         history.trades.push_back(trade);
 
@@ -433,9 +470,14 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
                         trade.portfolio_value = portfolio.cash_balance + get_position_value_multi(portfolio, instrument_bars, i);
                         trade.position_quantity = portfolio.positions[symbol].quantity;
                         trade.position_avg_price = portfolio.positions[symbol].avg_price;
-                        trade.reason = "PSM: " + psm.state_to_string(transition.current_state) +
-                                     " -> " + psm.state_to_string(transition.target_state) +
-                                     " (p=" + std::to_string(signal.probability).substr(0, 6) + ")";
+                        // Use forced exit reason if set (EOD_CLOSE, PROFIT_TARGET, STOP_LOSS)
+                        if (!transition.optimal_action.empty()) {
+                            trade.reason = transition.optimal_action;
+                        } else {
+                            trade.reason = "PSM: " + psm.state_to_string(transition.current_state) +
+                                         " -> " + psm.state_to_string(transition.target_state) +
+                                         " (p=" + std::to_string(signal.probability).substr(0, 6) + ")";
+                        }
 
                         history.trades.push_back(trade);
 

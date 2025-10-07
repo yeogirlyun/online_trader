@@ -119,14 +119,16 @@ class TradingDashboard:
         if not os.path.exists(self.data_path):
             print(f"⚠️ Market data file not found: {self.data_path}")
             return None
-            
+
         df = pd.read_csv(self.data_path)
-        
-        # Convert timestamp to datetime (force UTC and convert to tz-naive)
+
+        # Convert timestamp to datetime in ET timezone, then make tz-naive
         if 'ts_utc' in df.columns:
-            df['datetime'] = pd.to_datetime(df['ts_utc'], utc=True).dt.tz_localize(None)
+            # Parse as UTC-aware, then convert to ET, then remove timezone
+            df['datetime'] = pd.to_datetime(df['ts_utc'], utc=True).dt.tz_convert('America/New_York').dt.tz_localize(None)
         elif 'ts_nyt_epoch' in df.columns:
-            df['datetime'] = pd.to_datetime(df['ts_nyt_epoch'], unit='s', utc=True).dt.tz_localize(None)
+            # Epoch is already in ET, so parse as UTC then treat as ET
+            df['datetime'] = pd.to_datetime(df['ts_nyt_epoch'], unit='s', utc=True).dt.tz_convert('America/New_York').dt.tz_localize(None)
         else:
             print("❌ No timestamp column found in market data")
             return None
@@ -171,36 +173,75 @@ class TradingDashboard:
         """Calculate comprehensive performance metrics"""
         if self.equity_curve is None or self.equity_curve.empty:
             return {}
-            
+
         equity = self.equity_curve['equity'].values
         returns = np.diff(equity) / equity[:-1]
-        
+
+        # Extract test period dates
+        start_date = None
+        end_date = None
+        if self.trades:
+            timestamps = [t.get('timestamp_ms', 0) for t in self.trades if t.get('timestamp_ms', 0) > 0]
+            if timestamps:
+                first_ts = min(timestamps)
+                last_ts = max(timestamps)
+                # Convert to ET timezone
+                start_dt = datetime.fromtimestamp(first_ts / 1000, tz=timezone.utc).astimezone(pytz.timezone('America/New_York'))
+                end_dt = datetime.fromtimestamp(last_ts / 1000, tz=timezone.utc).astimezone(pytz.timezone('America/New_York'))
+                start_date = start_dt.strftime('%b %d, %Y')
+                end_date = end_dt.strftime('%b %d, %Y')
+
+        # Calculate number of blocks and trading days
+        num_blocks = 0
+        num_trading_days = 0
+        if self.market_data is not None and not self.market_data.empty:
+            # Count unique days in market data
+            if 'datetime' in self.market_data.columns:
+                dates = pd.to_datetime(self.market_data['datetime']).dt.date
+                num_trading_days = dates.nunique()
+                # Calculate blocks: 480 bars per block, count total bars
+                total_bars = len(self.market_data)
+                num_blocks = max(1, round(total_bars / 480))
+
         # Basic metrics
         total_return = (equity[-1] - equity[0]) / equity[0] * 100
         total_trades = len(self.trades)
-        winning_trades = len([t for t in self.trades if t.get('pnl', 0) > 0])
-        losing_trades = total_trades - winning_trades
-        
+
+        # Calculate winning/losing trades from equity changes
+        winning_trades = 0
+        losing_trades = 0
+        for i in range(1, len(equity)):
+            if equity[i] > equity[i-1]:
+                winning_trades += 1
+            elif equity[i] < equity[i-1]:
+                losing_trades += 1
+
         # Risk metrics
         volatility = np.std(returns) * np.sqrt(252) * 100  # Annualized
         sharpe_ratio = np.mean(returns) / np.std(returns) * np.sqrt(252) if np.std(returns) > 0 else 0
-        
+
         # Drawdown analysis
         peak = np.maximum.accumulate(equity)
         drawdown = (equity - peak) / peak * 100
         max_drawdown = np.min(drawdown)
-        
-        # Trade analysis
-        pnls = [t.get('pnl', 0) for t in self.trades]
-        avg_win = np.mean([p for p in pnls if p > 0]) if any(p > 0 for p in pnls) else 0
-        avg_loss = np.mean([p for p in pnls if p < 0]) if any(p < 0 for p in pnls) else 0
-        
+
+        # Trade analysis - calculate PnL from equity changes
+        equity_changes = np.diff(equity)
+        avg_win = np.mean(equity_changes[equity_changes > 0]) if np.any(equity_changes > 0) else 0
+        avg_loss = np.mean(equity_changes[equity_changes < 0]) if np.any(equity_changes < 0) else 0
+
+        # Calculate MRB (Mean Return per Block)
+        mrb = (total_return / num_blocks) if num_blocks > 0 else 0
+
+        # Calculate daily trades
+        num_daily_trades = (total_trades / num_trading_days) if num_trading_days > 0 else 0
+
         return {
             'total_return': total_return,
             'total_trades': total_trades,
             'winning_trades': winning_trades,
             'losing_trades': losing_trades,
-            'win_rate': winning_trades / total_trades * 100 if total_trades > 0 else 0,
+            'win_rate': winning_trades / (winning_trades + losing_trades) * 100 if (winning_trades + losing_trades) > 0 else 0,
             'volatility': volatility,
             'sharpe_ratio': sharpe_ratio,
             'max_drawdown': max_drawdown,
@@ -208,7 +249,12 @@ class TradingDashboard:
             'avg_loss': avg_loss,
             'profit_factor': abs(avg_win / avg_loss) if avg_loss != 0 else float('inf'),
             'equity_curve': equity,
-            'drawdown': drawdown
+            'drawdown': drawdown,
+            'start_date': start_date,
+            'end_date': end_date,
+            'num_blocks': num_blocks,
+            'mrb': mrb,
+            'num_daily_trades': num_daily_trades
         }
 
     def _get_base_prices_for_trades(self, trades: List[Dict], market_data: pd.DataFrame) -> List[float]:
@@ -779,6 +825,12 @@ class TradingDashboard:
             text-align: right;
             font-family: 'Courier New', monospace;
         }
+        .trade-table .portfolio-value {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #003d82;
+        }
         .trade-table .reason {
             font-size: 11px;
             color: #6c757d;
@@ -792,37 +844,53 @@ class TradingDashboard:
         
         # Performance metrics summary
         if self.performance_metrics:
-            html_parts.append("""
+            # Build test period string
+            test_period_str = ""
+            start_date = self.performance_metrics.get('start_date')
+            end_date = self.performance_metrics.get('end_date')
+            num_blocks = self.performance_metrics.get('num_blocks', 0)
+
+            if start_date and end_date:
+                test_period_str = f"<p style='text-align: center; color: #7f8c8d; margin-top: 0;'>Test Period: {start_date} - {end_date}"
+                if num_blocks > 0:
+                    test_period_str += f" ({num_blocks} blocks)"
+                test_period_str += "</p>"
+
+            performance_html = f"""
         <div class="metrics-summary">
             <h2>📈 Performance Summary</h2>
+            {test_period_str}
             <div class="metric-item">
-                <div class="metric-value">{:.2f}%</div>
+                <div class="metric-value">{self.performance_metrics.get('mrb', 0):.3f}%</div>
+                <div class="metric-label">MRB</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value">{self.performance_metrics.get('total_return', 0):.2f}%</div>
                 <div class="metric-label">Total Return</div>
             </div>
             <div class="metric-item">
-                <div class="metric-value">{:.2f}%</div>
+                <div class="metric-value">{self.performance_metrics.get('max_drawdown', 0):.2f}%</div>
                 <div class="metric-label">Max Drawdown</div>
             </div>
             <div class="metric-item">
-                <div class="metric-value">{:.2f}%</div>
+                <div class="metric-value">{self.performance_metrics.get('win_rate', 0):.1f}%</div>
                 <div class="metric-label">Win Rate</div>
             </div>
             <div class="metric-item">
-                <div class="metric-value">{:.2f}</div>
+                <div class="metric-value">{self.performance_metrics.get('sharpe_ratio', 0):.2f}</div>
                 <div class="metric-label">Sharpe Ratio</div>
             </div>
             <div class="metric-item">
-                <div class="metric-value">{}</div>
+                <div class="metric-value">{self.performance_metrics.get('total_trades', 0)}</div>
                 <div class="metric-label">Total Trades</div>
             </div>
+            <div class="metric-item">
+                <div class="metric-value">{self.performance_metrics.get('num_daily_trades', 0):.1f}</div>
+                <div class="metric-label">Daily Trades</div>
+            </div>
         </div>
-        """.format(
-                self.performance_metrics.get('total_return', 0),
-                self.performance_metrics.get('max_drawdown', 0),
-                self.performance_metrics.get('win_rate', 0),
-                self.performance_metrics.get('sharpe_ratio', 0),
-                self.performance_metrics.get('total_trades', 0)
-            ))
+            """
+            html_parts.append(performance_html)
         
         # Add charts
         for chart_name, fig in charts.items():
@@ -885,7 +953,7 @@ class TradingDashboard:
                         <td class="number">${price:.2f}</td>
                         <td class="number">${trade_value:,.2f}</td>
                         <td class="number">${cash_balance:,.2f}</td>
-                        <td class="number">${portfolio_value:,.2f}</td>
+                        <td class="portfolio-value">${portfolio_value:,.2f}</td>
                         <td class="reason">{reason}</td>
                     </tr>
                 """)

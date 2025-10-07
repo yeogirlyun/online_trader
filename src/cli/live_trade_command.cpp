@@ -351,15 +351,28 @@ private:
     };
 
     Signal generate_signal(const Bar& bar) {
-        // TODO: Actually call strategy.generate_signal()
-        // For now, placeholder
+        // Call OnlineEnsemble strategy to generate real signal
+        auto strategy_signal = strategy_.generate_signal(bar);
+
         Signal signal;
-        signal.probability = 0.5;  // Neutral
-        signal.confidence = 0.0;
-        signal.prediction = "NEUTRAL";
-        signal.prob_1bar = 0.5;
-        signal.prob_5bar = 0.5;
-        signal.prob_10bar = 0.5;
+        signal.probability = strategy_signal.probability;
+
+        // Map signal type to prediction string
+        if (strategy_signal.signal_type == SignalType::LONG) {
+            signal.prediction = "LONG";
+        } else if (strategy_signal.signal_type == SignalType::SHORT) {
+            signal.prediction = "SHORT";
+        } else {
+            signal.prediction = "NEUTRAL";
+        }
+
+        // Set confidence based on distance from neutral (0.5)
+        signal.confidence = std::abs(strategy_signal.probability - 0.5) * 2.0;
+
+        // Use same probability for all horizons (OnlineEnsemble provides single probability)
+        signal.prob_1bar = strategy_signal.probability;
+        signal.prob_5bar = strategy_signal.probability;
+        signal.prob_10bar = strategy_signal.probability;
 
         return signal;
     }

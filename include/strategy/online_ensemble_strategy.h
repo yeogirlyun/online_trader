@@ -73,6 +73,11 @@ public:
         int performance_window = 200;          // Window for metrics
         double target_monthly_return = 0.10;   // Target 10% monthly return
 
+        // Volatility filter (prevent trading in flat markets)
+        bool enable_volatility_filter = false;  // Enable ATR-based volatility filter
+        int atr_period = 20;                    // ATR calculation period
+        double min_atr_ratio = 0.001;           // Minimum ATR as % of price (0.1%)
+
         OnlineEnsembleConfig() {
             name = "OnlineEnsemble";
             version = "2.0";
@@ -164,6 +169,10 @@ private:
     };
     BollingerBands calculate_bollinger_bands() const;
     double apply_bb_amplification(double base_probability, const BollingerBands& bb) const;
+
+    // Volatility filter
+    double calculate_atr(int period) const;
+    bool has_sufficient_volatility() const;
 
     // Constants
     static constexpr int MIN_FEATURES_BARS = 100;  // Minimum bars for features

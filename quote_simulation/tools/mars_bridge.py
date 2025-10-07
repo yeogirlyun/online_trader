@@ -35,14 +35,12 @@ try:
     from mlib.core.exchange_config import create_exchange_config_without_call_auction
     from mlib.core.trade_info import TradeInfo
     from pandas import Timestamp
-    MARS_AVAILABLE = True
 except ImportError as e:
-    print(f"Warning: MarS not available: {e}")
-    MARS_AVAILABLE = False
-    # Define dummy classes for type hints when MarS is not available
-    class Exchange: pass
-    class TradeInfo: pass
-    class Timestamp: pass
+    print(f"ERROR: MarS is required but not available: {e}")
+    print("Please install MarS dependencies:")
+    print("  cd quote_simulation/MarS")
+    print("  pip install -e .")
+    sys.exit(1)
 
 # Import our custom agent
 try:

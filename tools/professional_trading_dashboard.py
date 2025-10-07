@@ -455,12 +455,23 @@ class TradingDashboard:
                 'x': 0.5,
                 'xanchor': 'center'
             },
-            xaxis_rangeslider_visible=False,
+            xaxis_rangeslider_visible=True,  # Enable horizontal scrollbar
             height=1000,
             showlegend=True,
             template='plotly_white',
             hovermode='x unified'
         )
+
+        # Set initial x-axis range to show ~4 hours (240 minutes) for better detail
+        # User can scroll horizontally to see all data
+        if len(filtered_data) > 0:
+            first_time = filtered_data['datetime'].iloc[0]
+            # Show first 4 hours (240 minutes) initially
+            initial_range = [
+                first_time,
+                pd.to_datetime(first_time) + pd.Timedelta(hours=4)
+            ]
+            fig.update_xaxes(range=initial_range, row=1, col=1)
 
         # Configure x-axes to hide non-trading hours (removes overnight gaps)
         fig.update_xaxes(

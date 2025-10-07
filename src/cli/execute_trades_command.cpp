@@ -335,7 +335,8 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
                         trade.position_quantity = 0.0;
                         trade.position_avg_price = 0.0;
                         trade.reason = "PSM: " + psm.state_to_string(transition.current_state) +
-                                     " -> " + psm.state_to_string(transition.target_state);
+                                     " -> " + psm.state_to_string(transition.target_state) +
+                                     " (p=" + std::to_string(signal.probability).substr(0, 6) + ")";
 
                         history.trades.push_back(trade);
 
@@ -384,7 +385,8 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
                         trade.position_quantity = portfolio.positions.count(symbol) ? portfolio.positions[symbol].quantity : 0.0;
                         trade.position_avg_price = portfolio.positions.count(symbol) ? portfolio.positions[symbol].avg_price : 0.0;
                         trade.reason = "PSM: " + psm.state_to_string(transition.current_state) +
-                                     " -> " + psm.state_to_string(transition.target_state);
+                                     " -> " + psm.state_to_string(transition.target_state) +
+                                     " (p=" + std::to_string(signal.probability).substr(0, 6) + ")";
 
                         history.trades.push_back(trade);
 
@@ -432,7 +434,8 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
                         trade.position_quantity = portfolio.positions[symbol].quantity;
                         trade.position_avg_price = portfolio.positions[symbol].avg_price;
                         trade.reason = "PSM: " + psm.state_to_string(transition.current_state) +
-                                     " -> " + psm.state_to_string(transition.target_state);
+                                     " -> " + psm.state_to_string(transition.target_state) +
+                                     " (p=" + std::to_string(signal.probability).substr(0, 6) + ")";
 
                         history.trades.push_back(trade);
 

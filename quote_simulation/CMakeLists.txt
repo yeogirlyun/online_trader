@@ -78,8 +78,9 @@ add_executable(quote_simulation_example examples/quote_simulation_example.cpp)
 target_link_libraries(quote_simulation_example quote_simulation)
 
 # Create test executable
-add_executable(quote_simulation_test examples/quote_simulation_test.cpp)
-target_link_libraries(quote_simulation_test quote_simulation)
+# Commented out - file does not exist
+# add_executable(quote_simulation_test examples/quote_simulation_test.cpp)
+# target_link_libraries(quote_simulation_test quote_simulation)
 
 # Install targets
 install(TARGETS quote_simulation

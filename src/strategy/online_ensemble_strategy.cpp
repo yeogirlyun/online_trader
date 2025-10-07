@@ -75,6 +75,14 @@ SignalOutput OnlineEnsembleStrategy::generate_signal(const Bar& bar) {
         return output;
     }
 
+    // Check volatility filter (skip trading in flat markets)
+    if (config_.enable_volatility_filter && !has_sufficient_volatility()) {
+        output.signal_type = SignalType::NEUTRAL;
+        output.probability = 0.5;
+        output.metadata["skip_reason"] = "insufficient_volatility";
+        return output;
+    }
+
     // Get ensemble prediction
     auto prediction = ensemble_predictor_->predict(features);
 
@@ -478,6 +486,47 @@ double OnlineEnsembleStrategy::apply_bb_amplification(double base_probability, c
     amplified_prob = std::clamp(amplified_prob, 0.05, 0.95);
 
     return amplified_prob;
+}
+
+double OnlineEnsembleStrategy::calculate_atr(int period) const {
+    if (bar_history_.size() < static_cast<size_t>(period + 1)) {
+        return 0.0;
+    }
+
+    // Calculate True Range for each bar and average
+    double sum_tr = 0.0;
+    for (size_t i = bar_history_.size() - period; i < bar_history_.size(); ++i) {
+        const auto& curr = bar_history_[i];
+        const auto& prev = bar_history_[i - 1];
+
+        // True Range = max(high-low, |high-prev_close|, |low-prev_close|)
+        double hl = curr.high - curr.low;
+        double hc = std::abs(curr.high - prev.close);
+        double lc = std::abs(curr.low - prev.close);
+
+        double tr = std::max({hl, hc, lc});
+        sum_tr += tr;
+    }
+
+    return sum_tr / period;
+}
+
+bool OnlineEnsembleStrategy::has_sufficient_volatility() const {
+    if (bar_history_.empty()) {
+        return false;
+    }
+
+    // Calculate ATR
+    double atr = calculate_atr(config_.atr_period);
+
+    // Get current price
+    double current_price = bar_history_.back().close;
+
+    // Calculate ATR as percentage of price
+    double atr_ratio = (current_price > 0) ? (atr / current_price) : 0.0;
+
+    // Check if ATR ratio meets minimum threshold
+    return atr_ratio >= config_.min_atr_ratio;
 }
 
 } // namespace sentio

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <iostream>
 
 namespace sentio {
 namespace features {
@@ -83,6 +84,9 @@ double IncrementalRSI::get_value() const {
 UnifiedFeatureEngine::UnifiedFeatureEngine(const Config& config) : config_(config) {
     initialize_calculators();
     cached_features_.resize(config_.total_features(), 0.0);
+
+    // Initialize feature schema
+    initialize_feature_schema();
 }
 
 void UnifiedFeatureEngine::initialize_calculators() {
@@ -103,26 +107,57 @@ void UnifiedFeatureEngine::initialize_calculators() {
     // Initialize RSI calculators
     std::vector<int> rsi_periods = {14, 21};
     for (int period : rsi_periods) {
-        rsi_calculators_["rsi_" + std::to_string(period)] = 
+        rsi_calculators_["rsi_" + std::to_string(period)] =
             std::make_unique<IncrementalRSI>(period);
     }
 }
 
+void UnifiedFeatureEngine::initialize_feature_schema() {
+    // Initialize feature schema with all 126 feature names
+    feature_schema_.version = 3;  // Bump when changing feature set
+    feature_schema_.feature_names = get_feature_names();
+    feature_schema_.finalize();
+
+    std::cout << "[FeatureEngine] Initialized schema v" << feature_schema_.version
+              << " with " << feature_schema_.feature_names.size()
+              << " features, hash=" << feature_schema_.hash << std::endl;
+}
+
 void UnifiedFeatureEngine::update(const Bar& bar) {
+    // DEBUG: Track bar history size WITH INSTANCE POINTER
+    size_t size_before = bar_history_.size();
+
     // Add to history
     bar_history_.push_back(bar);
-    
+
+    size_t size_after_push = bar_history_.size();
+
     // Maintain max history size
     if (bar_history_.size() > config_.max_history_size) {
         bar_history_.pop_front();
     }
-    
+
+    size_t size_final = bar_history_.size();
+
+    // DEBUG: Log size changes (every 100 bars to avoid spam)
+    static int update_count = 0;
+    update_count++;
+    if (update_count <= 10 || update_count % 100 == 0 || size_final < 70) {
+        std::cout << "[UFE@" << (void*)this << "] update #" << update_count
+                  << ": before=" << size_before
+                  << " → after_push=" << size_after_push
+                  << " → final=" << size_final
+                  << " (max=" << config_.max_history_size
+                  << ", ready=" << (size_final >= 64 ? "YES" : "NO") << ")"
+                  << std::endl;
+    }
+
     // Update returns
     update_returns(bar);
-    
+
     // Update incremental calculators
     update_calculators(bar);
-    
+
     // Invalidate cache
     invalidate_cache();
 }
@@ -247,13 +282,24 @@ std::vector<double> UnifiedFeatureEngine::get_features() const {
     
     // Ensure we have the right number of features
     features.resize(config_.total_features(), 0.0);
-    
+
+    // CRITICAL: Apply NaN guards and clamping
+    sanitize_features(features);
+
+    // Validate feature count matches schema
+    if (!feature_schema_.feature_names.empty() &&
+        features.size() != feature_schema_.feature_names.size()) {
+        std::cerr << "[FeatureEngine] ERROR: Feature size mismatch: got "
+                  << features.size() << ", expected "
+                  << feature_schema_.feature_names.size() << std::endl;
+    }
+
     // Cache results
     if (config_.enable_caching) {
         cached_features_ = features;
         cache_valid_ = true;
     }
-    
+
     return features;
 }
 
@@ -625,7 +671,19 @@ void UnifiedFeatureEngine::reset() {
 bool UnifiedFeatureEngine::is_ready() const {
     // Need at least 64 bars to align with FeatureSequenceManager requirement
     // This ensures both feature engine and sequence manager become ready together
-    return bar_history_.size() >= 64;
+    bool ready = bar_history_.size() >= 64;
+
+    // DEBUG: Log first few checks and any checks that fail WITH INSTANCE POINTER
+    static int check_count = 0;
+    check_count++;
+    if (check_count <= 10 || !ready) {
+        std::cout << "[UFE@" << (void*)this << "] is_ready() check #" << check_count
+                  << ": bar_history_.size()=" << bar_history_.size()
+                  << " (need 64) → " << (ready ? "READY" : "NOT_READY")
+                  << std::endl;
+    }
+
+    return ready;
 }
 
 std::vector<std::string> UnifiedFeatureEngine::get_feature_names() const {

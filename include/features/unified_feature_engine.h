@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/types.h"
+#include "features/feature_schema.h"
 #include <vector>
 #include <deque>
 #include <memory>
@@ -185,9 +186,17 @@ public:
      */
     size_t get_bar_count() const { return bar_history_.size(); }
 
+    /**
+     * @brief Get feature schema for validation
+     */
+    const FeatureSchema& get_schema() const { return feature_schema_; }
+
 private:
     Config config_;
-    
+
+    // Initialization methods
+    void initialize_feature_schema();
+
     // Data storage
     std::deque<Bar> bar_history_;
     std::deque<double> returns_;
@@ -200,6 +209,9 @@ private:
     
     // Cached features
     mutable std::vector<double> cached_features_;
+
+    // Feature schema for validation
+    FeatureSchema feature_schema_;
     mutable bool cache_valid_ = false;
     
     // Normalization parameters

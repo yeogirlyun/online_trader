@@ -1,8 +1,12 @@
 #include "cli/live_trade_command.hpp"
 #include "live/alpaca_client.hpp"
 #include "live/polygon_client.hpp"
+#include "live/position_book.h"
 #include "strategy/online_ensemble_strategy.h"
 #include "backend/position_state_machine.h"
+#include "common/time_utils.h"
+#include "common/bar_validator.h"
+#include "common/exceptions.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <fstream>
@@ -10,6 +14,7 @@
 #include <chrono>
 #include <thread>
 #include <ctime>
+#include <optional>
 
 namespace sentio {
 namespace cli {
@@ -111,9 +116,11 @@ public:
         log_system("✓ Subscribed to SPY, SPXL, SH, SDS");
         log_system("");
 
+        // Reconcile existing positions on startup (seamless continuation)
+        reconcile_startup_positions();
+
         // Initialize strategy with warmup
         log_system("Initializing OnlineEnsemble strategy...");
-        log_system("Loading warmup data (960 bars = 2 trading days)...");
         warmup_strategy();
         log_system("✓ Strategy initialized and ready");
         log_system("");
@@ -141,6 +148,12 @@ private:
     OnlineEnsembleStrategy strategy_;
     PositionStateMachine psm_;
     std::map<std::string, std::string> symbol_map_;
+
+    // NEW: Production safety infrastructure
+    PositionBook position_book_;
+    TradingSession session_{"America/New_York"};
+    std::optional<Bar> previous_bar_;  // For bar-to-bar learning
+    uint64_t bar_count_{0};
 
     // State tracking
     PositionStateMachine::State current_state_;
@@ -190,26 +203,9 @@ private:
     }
 
     bool is_regular_hours() const {
+        // NEW: Use DST-aware TradingSession
         auto now = std::chrono::system_clock::now();
-        auto time_t_now = std::chrono::system_clock::to_time_t(now);
-
-        // Use GMT time and convert to ET (GMT-4 for EDT, GMT-5 for EST)
-        // For simplicity, assuming EDT (GMT-4) - adjust for DST if needed
-        auto gmt_tm = *std::gmtime(&time_t_now);
-        int gmt_hour = gmt_tm.tm_hour;
-        int gmt_minute = gmt_tm.tm_min;
-
-        // Convert GMT to ET (EDT = GMT-4)
-        int et_hour = gmt_hour - 4;
-        if (et_hour < 0) et_hour += 24;
-
-        int time_minutes = et_hour * 60 + gmt_minute;
-
-        // Regular hours: 9:30am - 3:58pm ET
-        int market_open = 9 * 60 + 30;   // 9:30am = 570 minutes
-        int market_close = 15 * 60 + 58;  // 3:58pm = 958 minutes
-
-        return time_minutes >= market_open && time_minutes < market_close;
+        return session_.is_trading_day(now) && session_.is_regular_hours(now);
     }
 
     bool is_end_of_day_liquidation_time() const {
@@ -244,18 +240,82 @@ private:
         log_system("ERROR: " + message);
     }
 
-    void warmup_strategy() {
-        // Load recent historical data from CSV for warmup (last 960 bars = 2 trading days)
-        std::string warmup_file = "data/equities/SPY_RTH_NH.csv";
+    void reconcile_startup_positions() {
+        // Get current broker positions and cash
+        auto account = alpaca_.get_account();
+        if (!account) {
+            log_error("Failed to get account info for startup reconciliation");
+            return;
+        }
 
+        auto broker_positions = get_broker_positions();
+
+        log_system("=== Startup Position Reconciliation ===");
+        log_system("  Cash: $" + std::to_string(account->cash));
+        log_system("  Portfolio Value: $" + std::to_string(account->portfolio_value));
+
+        if (broker_positions.empty()) {
+            log_system("  Current Positions: NONE (starting flat)");
+            current_state_ = PositionStateMachine::State::CASH_ONLY;
+            log_system("  Initial State: CASH_ONLY");
+        } else {
+            log_system("  Current Positions:");
+            for (const auto& pos : broker_positions) {
+                log_system("    " + pos.symbol + ": " +
+                          std::to_string(pos.qty) + " shares @ $" +
+                          std::to_string(pos.avg_entry_price) +
+                          " (P&L: $" + std::to_string(pos.unrealized_pnl) + ")");
+
+                // Initialize position book with existing positions
+                position_book_.set_position(pos.symbol, pos.qty, pos.avg_entry_price);
+            }
+
+            // Infer current PSM state from positions
+            current_state_ = infer_state_from_positions(broker_positions);
+            log_system("  Inferred PSM State: " + psm_.state_to_string(current_state_));
+        }
+
+        log_system("✓ Startup reconciliation complete - resuming trading seamlessly");
+        log_system("");
+    }
+
+    PositionStateMachine::State infer_state_from_positions(
+        const std::vector<BrokerPosition>& positions) {
+
+        // Map SPY instruments to equivalent QQQ PSM states
+        // SPY/SPXL/SH/SDS → QQQ/TQQQ/PSQ/SQQQ
+        for (const auto& pos : positions) {
+            if (pos.qty > 0) {
+                if (pos.symbol == "SPXL") return PositionStateMachine::State::TQQQ_ONLY;  // 3x bull
+                if (pos.symbol == "SPY") return PositionStateMachine::State::QQQ_ONLY;    // 1x base
+                if (pos.symbol == "SH") return PositionStateMachine::State::PSQ_ONLY;     // -1x bear
+                if (pos.symbol == "SDS") return PositionStateMachine::State::SQQQ_ONLY;   // -2x bear
+            }
+        }
+
+        return PositionStateMachine::State::CASH_ONLY;
+    }
+
+    void warmup_strategy() {
+        // Load warmup data created by warmup_live_trading.sh script
+        // This file contains: 960 warmup bars + all of today's bars up to now
+        std::string warmup_file = "data/equities/SPY_warmup_latest.csv";
+
+        // Try relative path first, then from parent directory
         std::ifstream file(warmup_file);
         if (!file.is_open()) {
+            warmup_file = "../data/equities/SPY_warmup_latest.csv";
+            file.open(warmup_file);
+        }
+
+        if (!file.is_open()) {
             log_system("WARNING: Could not open warmup file: " + warmup_file);
+            log_system("         Run tools/warmup_live_trading.sh first!");
             log_system("         Strategy will learn from first few live bars");
             return;
         }
 
-        // Read all bars
+        // Read all bars from warmup file
         std::vector<Bar> all_bars;
         std::string line;
         std::getline(file, line); // Skip header
@@ -264,6 +324,7 @@ private:
             std::istringstream iss(line);
             std::string ts_utc, ts_epoch_str, open_str, high_str, low_str, close_str, volume_str;
 
+            // CSV format: ts_utc,ts_nyt_epoch,open,high,low,close,volume
             if (std::getline(iss, ts_utc, ',') &&
                 std::getline(iss, ts_epoch_str, ',') &&
                 std::getline(iss, open_str, ',') &&
@@ -273,7 +334,7 @@ private:
                 std::getline(iss, volume_str)) {
 
                 Bar bar;
-                bar.timestamp_ms = std::stoll(ts_epoch_str) * 1000LL; // Convert sec to ms
+                bar.timestamp_ms = std::stoll(ts_epoch_str) * 1000LL;  // Convert sec to ms
                 bar.open = std::stod(open_str);
                 bar.high = std::stod(high_str);
                 bar.low = std::stod(low_str);
@@ -289,47 +350,133 @@ private:
             return;
         }
 
-        // Take last 960 bars
-        size_t warmup_count = std::min(size_t(960), all_bars.size());
-        size_t start_idx = all_bars.size() - warmup_count;
+        log_system("Loaded " + std::to_string(all_bars.size()) + " bars from warmup file");
 
-        log_system("Warming up with " + std::to_string(warmup_count) + " historical bars...");
+        // Feed ALL bars (960 warmup + today's bars)
+        // This ensures we're caught up to the current time
+        log_system("Feeding all warmup bars to strategy (warmup + today's bars)...");
 
-        for (size_t i = start_idx; i < all_bars.size(); ++i) {
-            generate_signal(all_bars[i]); // Process bar through strategy (no trading)
+        int predictor_training_count = 0;
+        for (size_t i = 0; i < all_bars.size(); ++i) {
+            strategy_.on_bar(all_bars[i]);
+
+            // Train predictor on bar-to-bar returns (after feature engine is ready at bar 64)
+            if (i > 64 && i + 1 < all_bars.size()) {
+                auto features = strategy_.extract_features(all_bars[i]);
+                if (!features.empty()) {
+                    double current_close = all_bars[i].close;
+                    double next_close = all_bars[i + 1].close;
+                    double realized_return = (next_close - current_close) / current_close;
+
+                    strategy_.train_predictor(features, realized_return);
+                    predictor_training_count++;
+                }
+            }
+
+            // Update bar_count_ and previous_bar_ for seamless transition to live
+            bar_count_++;
+            previous_bar_ = all_bars[i];
         }
 
-        log_system("✓ Warmup complete - processed " + std::to_string(warmup_count) + " bars");
+        log_system("✓ Warmup complete - processed " + std::to_string(all_bars.size()) + " bars");
+        log_system("  Strategy is_ready() = " + std::string(strategy_.is_ready() ? "YES" : "NO"));
+        log_system("  Predictor trained on " + std::to_string(predictor_training_count) + " historical returns");
+        log_system("  Last warmup bar: " + format_bar_time(all_bars.back()));
+    }
+
+    std::string format_bar_time(const Bar& bar) const {
+        time_t time_t_val = static_cast<time_t>(bar.timestamp_ms / 1000);
+        std::stringstream ss;
+        ss << std::put_time(std::localtime(&time_t_val), "%Y-%m-%d %H:%M:%S");
+        return ss.str();
     }
 
     void on_new_bar(const Bar& bar) {
         auto timestamp = get_timestamp_readable();
+        bar_count_++;
 
-        // Check for end-of-day liquidation (3:58pm ET)
+        // =====================================================================
+        // STEP 1: Bar Validation (NEW - P4)
+        // =====================================================================
+        if (!is_valid_bar(bar)) {
+            log_error("[" + timestamp + "] Invalid bar dropped: " +
+                     BarValidator::get_error_message(bar));
+            return;
+        }
+
+        // =====================================================================
+        // STEP 2: Feed to Strategy (ALWAYS - for continuous learning)
+        // =====================================================================
+        strategy_.on_bar(bar);
+
+        // =====================================================================
+        // STEP 3: Continuous Bar-to-Bar Learning (NEW - P1-1 fix)
+        // =====================================================================
+        if (previous_bar_.has_value()) {
+            auto features = strategy_.extract_features(*previous_bar_);
+            if (!features.empty()) {
+                double return_1bar = (bar.close - previous_bar_->close) /
+                                    previous_bar_->close;
+                strategy_.train_predictor(features, return_1bar);
+            }
+        }
+        previous_bar_ = bar;
+
+        // =====================================================================
+        // STEP 4: Periodic Position Reconciliation (NEW - P0-3)
+        // =====================================================================
+        if (bar_count_ % 60 == 0) {  // Every 60 bars (60 minutes)
+            try {
+                auto broker_positions = get_broker_positions();
+                position_book_.reconcile_with_broker(broker_positions);
+            } catch (const PositionReconciliationError& e) {
+                log_error("[" + timestamp + "] RECONCILIATION FAILED: " +
+                         std::string(e.what()));
+                log_error("[" + timestamp + "] Initiating emergency flatten");
+                liquidate_all_positions();
+                throw;  // Exit for supervisor restart
+            }
+        }
+
+        // =====================================================================
+        // STEP 5: Check End-of-Day Liquidation
+        // =====================================================================
         if (is_end_of_day_liquidation_time()) {
             log_system("[" + timestamp + "] END OF DAY - Liquidating all positions");
             liquidate_all_positions();
             return;
         }
 
-        // Check if we should be trading
+        // =====================================================================
+        // STEP 6: Trading Hours Gate (NEW - only trade during RTH)
+        // =====================================================================
         if (!is_regular_hours()) {
-            log_system("[" + timestamp + "] Outside regular hours - skipping");
-            return;
+            // Log less frequently to avoid spam
+            if (bar_count_ % 60 == 1) {
+                log_system("[" + timestamp + "] After-hours - learning only, no trading");
+            }
+            return;  // Learning continues, but no trading
         }
 
-        log_system("[" + timestamp + "] New bar received - processing...");
+        log_system("[" + timestamp + "] RTH bar - processing for trading...");
 
-        // Generate signal using OnlineEnsemble strategy
+        // =====================================================================
+        // STEP 7: Generate Signal and Trade (RTH only)
+        // =====================================================================
         auto signal = generate_signal(bar);
 
-        // Log signal
+        // Log signal to console
+        std::cout << "[" << timestamp << "] Signal: "
+                  << signal.prediction << " "
+                  << "(p=" << std::fixed << std::setprecision(4) << signal.probability
+                  << ", conf=" << std::setprecision(2) << signal.confidence << ")"
+                  << " [DBG: ready=" << (strategy_.is_ready() ? "YES" : "NO") << "]"
+                  << std::endl;
+
         log_signal(bar, signal);
 
         // Make trading decision
         auto decision = make_decision(signal, bar);
-
-        // Log decision
         log_decision(decision);
 
         // Execute if needed
@@ -353,6 +500,15 @@ private:
     Signal generate_signal(const Bar& bar) {
         // Call OnlineEnsemble strategy to generate real signal
         auto strategy_signal = strategy_.generate_signal(bar);
+
+        // DEBUG: Check why we're getting 0.5
+        if (strategy_signal.probability == 0.5) {
+            std::string reason = "unknown";
+            if (strategy_signal.metadata.count("skip_reason")) {
+                reason = strategy_signal.metadata.at("skip_reason");
+            }
+            std::cout << "  [DBG: p=0.5 reason=" << reason << "]" << std::endl;
+        }
 
         Signal signal;
         signal.probability = strategy_signal.probability;
@@ -689,6 +845,24 @@ private:
 
         log_positions_ << j.dump() << std::endl;
         log_positions_.flush();
+    }
+
+    // NEW: Convert Alpaca positions to BrokerPosition format for reconciliation
+    std::vector<BrokerPosition> get_broker_positions() {
+        auto alpaca_positions = alpaca_.get_positions();
+        std::vector<BrokerPosition> broker_positions;
+
+        for (const auto& pos : alpaca_positions) {
+            BrokerPosition bp;
+            bp.symbol = pos.symbol;
+            bp.qty = static_cast<int64_t>(pos.quantity);
+            bp.avg_entry_price = pos.avg_entry_price;
+            bp.current_price = pos.current_price;
+            bp.unrealized_pnl = pos.unrealized_pl;
+            broker_positions.push_back(bp);
+        }
+
+        return broker_positions;
     }
 };
 

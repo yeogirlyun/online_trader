@@ -44,6 +44,7 @@ add_library(online_common
     src/common/json_utils.cpp
     src/common/trade_event.cpp
     src/common/binary_data.cpp
+    src/common/time_utils.cpp
     src/core/data_io.cpp
     src/core/data_manager.cpp
 )
@@ -189,6 +190,7 @@ endif()
 add_library(online_live
     src/live/alpaca_client.cpp
     src/live/polygon_websocket.cpp
+    src/live/position_book.cpp
 )
 target_link_libraries(online_live PRIVATE
     online_common
@@ -222,13 +224,12 @@ add_executable(sentio_cli
 )
 
 # Link all required libraries
+# Note: online_strategy, online_backend, and online_common are transitively included
+# via online_learning and online_testing_framework, so we don't list them explicitly
 target_link_libraries(sentio_cli PRIVATE
-    online_learning
-    online_strategy
-    online_backend
-    online_common
-    online_testing_framework
-    online_live
+    online_learning          # brings in online_strategy + online_common
+    online_testing_framework # brings in online_strategy + online_backend + online_common
+    online_live             # brings in online_common
 )
 
 # Add nlohmann/json include for CLI

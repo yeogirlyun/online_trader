@@ -176,15 +176,18 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
     PositionTracking current_position;
     current_position.entry_equity = starting_capital;
 
-    // Risk management parameters (Phase 1 & 2 baseline)
-    const double PROFIT_TARGET = 0.02;      // 2% profit target
-    const double STOP_LOSS = -0.015;        // -1.5% stop loss
+    // Risk management parameters - SPY CALIBRATED (v1.5)
+    // Based on 5-year SPY analysis: typical 10-bar move = ±0.10%
+    // QQQ targets (2%/-1.5%) are 20× too large for SPY
+    const double PROFIT_TARGET = 0.003;     // 0.3% profit target (SPY-calibrated)
+    const double STOP_LOSS = -0.004;        // -0.4% stop loss (SPY-calibrated)
     const int MIN_HOLD_BARS = 3;            // Minimum 3-bar hold (prevent whipsaws)
     const int MAX_HOLD_BARS = 100;          // Maximum hold (force re-evaluation)
 
     std::cout << "Executing trades with Position State Machine...\n";
-    std::cout << "Version 1.0: Asymmetric thresholds + 3-bar min hold + 2%/-1.5% targets\n";
-    std::cout << "  (0.6086% MRB, 10.5% monthly, 125% annual on QQQ 1-min)\n\n";
+    std::cout << "Version 1.5: SPY-CALIBRATED thresholds + 3-bar min hold + 0.3%/-0.4% targets\n";
+    std::cout << "  (Calibrated from 5-year SPY data: 1,018 blocks, Oct 2020-Oct 2025)\n";
+    std::cout << "  QQQ v1.0: 2%/-1.5% targets | SPY v1.5: 0.3%/-0.4% targets (6.7× reduction)\n\n";
 
     for (size_t i = 0; i < std::min(signals.size(), bars.size()); ++i) {
         const auto& signal = signals[i];

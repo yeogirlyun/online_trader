@@ -185,31 +185,38 @@ void OnlineEnsembleStrategy::track_prediction(int bar_index, int horizon,
     pred.entry_price = entry_price;
     pred.is_long = is_long;
 
-    pending_updates_[pred.target_bar_index] = pred;
+    auto& vec = pending_updates_[pred.target_bar_index];
+    if (vec.empty()) {
+        vec.reserve(3);  // Reserve space for 3 horizons (1, 5, 10)
+    }
+    vec.push_back(pred);
 }
 
 void OnlineEnsembleStrategy::process_pending_updates(const Bar& current_bar) {
+    // Process ALL predictions that target the current bar
     auto it = pending_updates_.find(samples_seen_);
     if (it != pending_updates_.end()) {
-        const auto& pred = it->second;
+        const auto& predictions = it->second;  // vector of predictions
 
-        // Calculate actual return
-        double actual_return = (current_bar.close - pred.entry_price) / pred.entry_price;
-        if (!pred.is_long) {
-            actual_return = -actual_return;  // Invert for short
+        for (const auto& pred : predictions) {
+            // Calculate actual return
+            double actual_return = (current_bar.close - pred.entry_price) / pred.entry_price;
+            if (!pred.is_long) {
+                actual_return = -actual_return;  // Invert for short
+            }
+
+            // Update the appropriate horizon predictor
+            ensemble_predictor_->update(pred.horizon, pred.features, actual_return);
         }
-
-        // Update the appropriate horizon predictor
-        ensemble_predictor_->update(pred.horizon, pred.features, actual_return);
 
         // Debug logging
         if (samples_seen_ % 100 == 0) {
-            utils::log_debug("Processed update for horizon " + std::to_string(pred.horizon) +
-                           ", return=" + std::to_string(actual_return) +
+            utils::log_debug("Processed " + std::to_string(predictions.size()) +
+                           " updates at bar " + std::to_string(samples_seen_) +
                            ", pending_count=" + std::to_string(pending_updates_.size()));
         }
 
-        // Remove processed prediction
+        // Remove all processed predictions for this bar
         pending_updates_.erase(it);
     }
 }

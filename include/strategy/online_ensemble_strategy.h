@@ -134,7 +134,7 @@ private:
         double entry_price;
         bool is_long;
     };
-    std::map<int, HorizonPrediction> pending_updates_;
+    std::map<int, std::vector<HorizonPrediction>> pending_updates_;
 
     // Performance tracking
     struct TradeResult {

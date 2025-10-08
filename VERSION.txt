@@ -1,0 +1,58 @@
+OnlineTrader v2.1.0 - Min Hold Period Fix
+
+Release Date: October 9, 2025
+
+CRITICAL BUG FIXES:
+===================
+
+1. Min Hold Period Counter (bars_held_)
+   - FIXED: Counter was never incremented, permanently blocking all position exits
+   - Impact: System could not execute ANY state transitions after entering positions
+   - Root Cause: Missing bars_held_++ increment in bar processing loop
+   - Solution: Added increment logic after each bar (line 560-563)
+
+2. Startup Position Reconciliation
+   - FIXED: Reconciled broker positions had bars_held_=0, preventing exits
+   - Impact: Positions held from previous session were untouchable
+   - Root Cause: bars_held_ never initialized during startup reconciliation
+   - Solution: Set bars_held_ = MIN_HOLD_BARS to allow immediate management
+
+3. Multi-Instrument Position State Inference
+   - FIXED: Only checked first position, misidentified dual-instrument states
+   - Impact: SPY+SPXL incorrectly detected as TQQQ_ONLY instead of BASE_BULL_3X
+   - Root Cause: Early return in position checking loop
+   - Solution: Check ALL positions, prioritize dual-instrument states
+
+ENHANCEMENTS:
+=============
+
+4. Comprehensive PSM Decision Logging
+   - Added log_enhanced_decision() with detailed analysis box
+   - Shows: signal mapping, threshold logic, min hold status, decision reasoning
+   - Visual formatting for easy debugging and audit trail
+
+LIVE TRADING VALIDATION:
+=========================
+
+Before Fix:
+- 44 consecutive bars stuck with bars_held=0
+- 37 signals to exit/flip positions, ALL blocked
+- System permanently frozen in BASE_BULL_3X state
+
+After Fix:
+- bars_held properly increments each bar
+- Min hold period enforced correctly
+- Position transitions execute as designed
+
+FILES MODIFIED:
+===============
+- src/cli/live_trade_command.cpp: +402 lines (core fixes)
+- src/backend/position_state_machine.cpp: +13 lines (SPY support)
+
+UPGRADE PATH:
+=============
+This is a CRITICAL security fix. All v2.0 deployments must upgrade immediately.
+The min hold period mechanism was completely non-functional in v2.0.
+
+🤖 Generated with Claude Code (https://claude.com/claude-code)
+Co-Authored-By: Claude <noreply@anthropic.com>

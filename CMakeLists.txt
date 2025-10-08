@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(online_trader VERSION 0.1.0)
+project(online_trader VERSION 2.1.0)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -67,6 +67,8 @@ set(STRATEGY_SOURCES
     src/strategy/signal_output.cpp
     src/strategy/trading_state.cpp
     src/strategy/online_ensemble_strategy.cpp
+    src/strategy/market_regime_detector.cpp
+    src/strategy/regime_parameter_manager.cpp
 )
 
 # Add unified feature engine for online learning
@@ -78,6 +80,10 @@ target_link_libraries(online_strategy PUBLIC Eigen3::Eigen)
 target_include_directories(online_strategy PUBLIC
     ${EIGEN3_INCLUDE_DIR}
 )
+
+# Link OpenSSL for SHA1 hashing in feature engine V2
+find_package(OpenSSL REQUIRED)
+target_link_libraries(online_strategy PRIVATE OpenSSL::Crypto)
 
 # Link nlohmann/json if available
 if(nlohmann_json_FOUND)
@@ -181,29 +187,22 @@ endif()
 # =============================================================================
 find_package(CURL REQUIRED)
 
-# Find libwebsockets for real-time Polygon data
-find_library(WEBSOCKETS_LIB websockets HINTS /opt/homebrew/lib)
-if(WEBSOCKETS_LIB)
-    message(STATUS "libwebsockets found: ${WEBSOCKETS_LIB}")
-else()
-    message(FATAL_ERROR "libwebsockets not found - install with: brew install libwebsockets")
-endif()
-
+# Live trading library (Alpaca REST API + Python WebSocket bridge via FIFO)
+# Note: Uses Python bridge for real-time data (tools/alpaca_websocket_bridge.py)
 add_library(online_live
     src/live/alpaca_client.cpp
-    src/live/polygon_websocket.cpp
+    src/live/polygon_websocket_fifo.cpp
     src/live/position_book.cpp
 )
 target_link_libraries(online_live PRIVATE
     online_common
     CURL::libcurl
-    ${WEBSOCKETS_LIB}
 )
 target_include_directories(online_live PRIVATE /opt/homebrew/include)
 if(nlohmann_json_FOUND)
     target_link_libraries(online_live PRIVATE nlohmann_json::nlohmann_json)
 endif()
-message(STATUS "Created online_live library for live trading (Alpaca + Polygon WebSocket)")
+message(STATUS "Created online_live library for live trading (Alpaca REST + Python WebSocket bridge)")
 
 # =============================================================================
 # CLI Executable (sentio_cli for online learning)
@@ -221,6 +220,10 @@ add_executable(sentio_cli
     src/cli/generate_signals_command.cpp
     src/cli/execute_trades_command.cpp
     src/cli/analyze_trades_command.cpp
+    # Feature extraction (for Optuna caching)
+    src/cli/extract_features_command.cpp
+    # Workflow commands
+    src/cli/backtest_command.cpp
     # Live trading command
     src/cli/live_trade_command.cpp
 )
@@ -244,13 +247,23 @@ message(STATUS "Created sentio_cli executable with online learning support")
 
 # Create standalone test executable for online learning
 add_executable(test_online_trade tools/test_online_trade.cpp)
-target_link_libraries(test_online_trade PRIVATE 
+target_link_libraries(test_online_trade PRIVATE
     online_learning
     online_strategy
     online_backend
     online_common
 )
 message(STATUS "Created test_online_trade executable")
+
+# Create test executable for regime detector validation
+if(EXISTS "${CMAKE_SOURCE_DIR}/tests/test_regime_detector.cpp")
+    add_executable(test_regime_detector tests/test_regime_detector.cpp)
+    target_link_libraries(test_regime_detector PRIVATE
+        online_strategy
+        online_common
+    )
+    message(STATUS "Created test_regime_detector executable")
+endif()
 
 # =============================================================================
 # Utility Tools

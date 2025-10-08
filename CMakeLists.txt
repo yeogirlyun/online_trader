@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(online_trader VERSION 0.1.0)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Performance optimization flags for Release builds
@@ -45,6 +45,8 @@ add_library(online_common
     src/common/trade_event.cpp
     src/common/binary_data.cpp
     src/common/time_utils.cpp
+    src/common/eod_state.cpp
+    src/common/nyse_calendar.cpp
     src/core/data_io.cpp
     src/core/data_manager.cpp
 )

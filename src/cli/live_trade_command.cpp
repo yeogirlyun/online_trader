@@ -7,6 +7,8 @@
 #include "common/time_utils.h"
 #include "common/bar_validator.h"
 #include "common/exceptions.h"
+#include "common/eod_state.h"
+#include "common/nyse_calendar.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <fstream>
@@ -68,6 +70,9 @@ public:
         , current_state_(PositionStateMachine::State::CASH_ONLY)
         , bars_held_(0)
         , entry_equity_(100000.0)
+        , et_time_()  // Initialize ET time manager
+        , eod_state_(log_dir + "/eod_state.txt")  // Persistent EOD tracking
+        , nyse_calendar_()  // NYSE holiday calendar
     {
         // Initialize log files
         init_logs();
@@ -119,6 +124,9 @@ public:
         // Reconcile existing positions on startup (seamless continuation)
         reconcile_startup_positions();
 
+        // Check for missed EOD and startup catch-up liquidation
+        check_startup_eod_catch_up();
+
         // Initialize strategy with warmup
         log_system("Initializing OnlineEnsemble strategy...");
         warmup_strategy();
@@ -151,7 +159,9 @@ private:
 
     // NEW: Production safety infrastructure
     PositionBook position_book_;
-    TradingSession session_{"America/New_York"};
+    ETTimeManager et_time_;  // Centralized ET time management
+    EodStateStore eod_state_;  // Idempotent EOD tracking
+    NyseCalendar nyse_calendar_;  // Holiday and half-day calendar
     std::optional<Bar> previous_bar_;  // For bar-to-bar learning
     uint64_t bar_count_{0};
 
@@ -195,38 +205,15 @@ private:
     }
 
     std::string get_timestamp_readable() const {
-        auto now = std::chrono::system_clock::now();
-        auto time_t_now = std::chrono::system_clock::to_time_t(now);
-        std::stringstream ss;
-        ss << std::put_time(std::localtime(&time_t_now), "%Y-%m-%d %H:%M:%S");
-        return ss.str();
+        return et_time_.get_current_et_string();
     }
 
     bool is_regular_hours() const {
-        // NEW: Use DST-aware TradingSession
-        auto now = std::chrono::system_clock::now();
-        return session_.is_trading_day(now) && session_.is_regular_hours(now);
+        return et_time_.is_regular_hours();
     }
 
     bool is_end_of_day_liquidation_time() const {
-        auto now = std::chrono::system_clock::now();
-        auto time_t_now = std::chrono::system_clock::to_time_t(now);
-
-        // Use GMT time and convert to ET (EDT = GMT-4)
-        auto gmt_tm = *std::gmtime(&time_t_now);
-        int gmt_hour = gmt_tm.tm_hour;
-        int gmt_minute = gmt_tm.tm_min;
-
-        // Convert GMT to ET (EDT = GMT-4)
-        int et_hour = gmt_hour - 4;
-        if (et_hour < 0) et_hour += 24;
-
-        int time_minutes = et_hour * 60 + gmt_minute;
-
-        // Liquidate at 3:58pm ET (2 minutes before close)
-        int liquidation_time = 15 * 60 + 58;  // 3:58pm = 958 minutes
-
-        return time_minutes == liquidation_time;
+        return et_time_.is_eod_liquidation_window();
     }
 
     void log_system(const std::string& message) {
@@ -277,6 +264,79 @@ private:
 
         log_system("✓ Startup reconciliation complete - resuming trading seamlessly");
         log_system("");
+    }
+
+    void check_startup_eod_catch_up() {
+        log_system("=== Startup EOD Catch-Up Check ===");
+
+        auto et_tm = et_time_.get_current_et_tm();
+        std::string today_et = format_et_date(et_tm);
+        std::string prev_trading_day = get_previous_trading_day(et_tm);
+
+        log_system("  Current ET Time: " + et_time_.get_current_et_string());
+        log_system("  Today (ET): " + today_et);
+        log_system("  Previous Trading Day: " + prev_trading_day);
+
+        // Check 1: Did we miss previous trading day's EOD?
+        if (!eod_state_.is_eod_complete(prev_trading_day)) {
+            log_system("  ⚠️  WARNING: Previous trading day's EOD not completed");
+
+            auto broker_positions = get_broker_positions();
+            if (!broker_positions.empty()) {
+                log_system("  ⚠️  Open positions detected - executing catch-up liquidation");
+                liquidate_all_positions();
+                eod_state_.mark_eod_complete(prev_trading_day);
+                log_system("  ✓ Catch-up liquidation complete for " + prev_trading_day);
+            } else {
+                log_system("  ✓ No open positions - marking previous EOD as complete");
+                eod_state_.mark_eod_complete(prev_trading_day);
+            }
+        } else {
+            log_system("  ✓ Previous trading day EOD already complete");
+        }
+
+        // Check 2: Started outside trading hours with positions?
+        if (et_time_.should_liquidate_on_startup(has_open_positions())) {
+            log_system("  ⚠️  Started outside trading hours with open positions");
+            log_system("  ⚠️  Executing immediate liquidation");
+            liquidate_all_positions();
+            eod_state_.mark_eod_complete(today_et);
+            log_system("  ✓ Startup liquidation complete");
+        }
+
+        log_system("✓ Startup EOD check complete");
+        log_system("");
+    }
+
+    std::string format_et_date(const std::tm& tm) const {
+        char buffer[11];
+        std::strftime(buffer, sizeof(buffer), "%Y-%m-%d", &tm);
+        return std::string(buffer);
+    }
+
+    std::string get_previous_trading_day(const std::tm& current_tm) const {
+        // Walk back day-by-day until we find a trading day
+        std::tm tm = current_tm;
+        for (int i = 1; i <= 10; ++i) {
+            // Subtract i days (approximate - good enough for recent history)
+            std::time_t t = std::mktime(&tm) - (i * 86400);
+            std::tm* prev_tm = std::localtime(&t);
+            std::string prev_date = format_et_date(*prev_tm);
+
+            // Check if weekday and not holiday
+            if (prev_tm->tm_wday >= 1 && prev_tm->tm_wday <= 5) {
+                if (nyse_calendar_.is_trading_day(prev_date)) {
+                    return prev_date;
+                }
+            }
+        }
+        // Fallback: return today if can't find previous trading day
+        return format_et_date(current_tm);
+    }
+
+    bool has_open_positions() {
+        auto broker_positions = get_broker_positions();
+        return !broker_positions.empty();
     }
 
     PositionStateMachine::State infer_state_from_positions(
@@ -439,11 +499,24 @@ private:
         }
 
         // =====================================================================
-        // STEP 5: Check End-of-Day Liquidation
+        // STEP 5: Check End-of-Day Liquidation (IDEMPOTENT)
         // =====================================================================
-        if (is_end_of_day_liquidation_time()) {
+        std::string today_et = timestamp.substr(0, 10);  // Extract YYYY-MM-DD from timestamp
+
+        // Check if today is a trading day
+        if (!nyse_calendar_.is_trading_day(today_et)) {
+            if (bar_count_ % 60 == 1) {
+                log_system("[" + timestamp + "] Holiday/Weekend - no trading");
+            }
+            return;
+        }
+
+        // Idempotent EOD check: only liquidate once per trading day
+        if (is_end_of_day_liquidation_time() && !eod_state_.is_eod_complete(today_et)) {
             log_system("[" + timestamp + "] END OF DAY - Liquidating all positions");
             liquidate_all_positions();
+            eod_state_.mark_eod_complete(today_et);
+            log_system("[" + timestamp + "] EOD complete for " + today_et);
             return;
         }
 

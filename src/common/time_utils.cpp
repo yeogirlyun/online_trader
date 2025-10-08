@@ -2,34 +2,75 @@
 #include <sstream>
 #include <iomanip>
 #include <cstring>
+#include <chrono>
 
 namespace sentio {
 
 std::tm TradingSession::to_local_time(const std::chrono::system_clock::time_point& tp) const {
-    // Convert to time_t
-    auto tt = std::chrono::system_clock::to_time_t(tp);
+    // C++20 thread-safe timezone conversion using zoned_time
+    // This replaces the unsafe setenv("TZ") approach
 
-    // For "America/New_York", we need to handle DST
-    // This is a simplified implementation using system timezone
-    // In production, use Howard Hinnant's date library or similar
+    #if defined(__cpp_lib_chrono) && __cpp_lib_chrono >= 201907L
+        // Use C++20 timezone database
+        try {
+            const auto* tz = std::chrono::locate_zone(timezone_name);
+            std::chrono::zoned_time zt{tz, tp};
 
-    // Set timezone environment variable temporarily
-    const char* old_tz = getenv("TZ");
-    setenv("TZ", timezone_name.c_str(), 1);
-    tzset();
+            // Convert zoned_time to std::tm
+            auto local_time = zt.get_local_time();
+            auto local_dp = std::chrono::floor<std::chrono::days>(local_time);
+            auto ymd = std::chrono::year_month_day{local_dp};
+            auto tod = std::chrono::hh_mm_ss{local_time - local_dp};
 
-    std::tm local_tm;
-    localtime_r(&tt, &local_tm);
+            std::tm result{};
+            result.tm_year = static_cast<int>(ymd.year()) - 1900;
+            result.tm_mon = static_cast<unsigned>(ymd.month()) - 1;
+            result.tm_mday = static_cast<unsigned>(ymd.day());
+            result.tm_hour = tod.hours().count();
+            result.tm_min = tod.minutes().count();
+            result.tm_sec = tod.seconds().count();
 
-    // Restore original timezone
-    if (old_tz) {
-        setenv("TZ", old_tz, 1);
-    } else {
-        unsetenv("TZ");
-    }
-    tzset();
+            // Calculate day of week
+            auto dp_sys = std::chrono::sys_days{ymd};
+            auto weekday = std::chrono::weekday{dp_sys};
+            result.tm_wday = weekday.c_encoding();
 
-    return local_tm;
+            // DST info
+            auto info = zt.get_info();
+            result.tm_isdst = (info.save != std::chrono::minutes{0}) ? 1 : 0;
+
+            return result;
+
+        } catch (const std::exception& e) {
+            // Fallback: if timezone not found, use UTC
+            auto tt = std::chrono::system_clock::to_time_t(tp);
+            std::tm result;
+            gmtime_r(&tt, &result);
+            return result;
+        }
+    #else
+        // Fallback for C++17: use old setenv approach (NOT thread-safe)
+        // This should not happen since we require C++20
+        #warning "C++20 chrono timezone database not available - using unsafe setenv fallback"
+
+        auto tt = std::chrono::system_clock::to_time_t(tp);
+
+        const char* old_tz = getenv("TZ");
+        setenv("TZ", timezone_name.c_str(), 1);
+        tzset();
+
+        std::tm local_tm;
+        localtime_r(&tt, &local_tm);
+
+        if (old_tz) {
+            setenv("TZ", old_tz, 1);
+        } else {
+            unsetenv("TZ");
+        }
+        tzset();
+
+        return local_tm;
+    #endif
 }
 
 bool TradingSession::is_regular_hours(const std::chrono::system_clock::time_point& tp) const {

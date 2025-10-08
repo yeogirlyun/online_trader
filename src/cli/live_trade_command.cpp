@@ -887,6 +887,15 @@ private:
         // Step 3: Calculate target positions based on PSM state
         auto target_positions = calculate_target_allocations(decision.target_state, available_capital);
 
+        // CRITICAL: If target is not CASH_ONLY but we got empty positions, something is wrong
+        bool position_entry_failed = false;
+        if (target_positions.empty() && decision.target_state != PositionStateMachine::State::CASH_ONLY) {
+            log_error("❌ CRITICAL: Target state is " + psm_.state_to_string(decision.target_state) +
+                     " but failed to calculate positions (likely price fetch failure)");
+            log_error("   Staying in CASH_ONLY for safety");
+            position_entry_failed = true;
+        }
+
         // Step 4: Execute buy orders for target positions
         if (!target_positions.empty()) {
             log_system("");
@@ -915,8 +924,14 @@ private:
             log_system("💵 Target state is CASH_ONLY - no positions to open");
         }
 
-        // Update state
-        current_state_ = decision.target_state;
+        // Update state - CRITICAL FIX: Only update to target state if we successfully entered positions
+        // or if target was CASH_ONLY
+        if (position_entry_failed) {
+            current_state_ = PositionStateMachine::State::CASH_ONLY;
+            log_system("⚠️  State forced to CASH_ONLY due to position entry failure");
+        } else {
+            current_state_ = decision.target_state;
+        }
         bars_held_ = 0;
         entry_equity_ = decision.current_equity;
 

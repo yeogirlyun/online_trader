@@ -417,11 +417,12 @@ sentio::PositionStateMachine::State sentio::PositionStateMachine::determine_curr
     if (symbols.empty()) {
         return State::CASH_ONLY;
     }
-    
-    bool has_qqq = symbols.count("QQQ");
-    bool has_tqqq = symbols.count("TQQQ");
-    bool has_psq = symbols.count("PSQ");
-    bool has_sqqq = symbols.count("SQQQ");
+
+    // Support both QQQ-family and SPY-family instruments
+    bool has_qqq = symbols.count("QQQ") || symbols.count("SPY");
+    bool has_tqqq = symbols.count("TQQQ") || symbols.count("SPXL");
+    bool has_psq = symbols.count("PSQ") || symbols.count("SH");
+    bool has_sqqq = symbols.count("SQQQ") || symbols.count("SDS") || symbols.count("SPXS");
 
     // Single Instrument States
     if (symbols.size() == 1) {
@@ -438,7 +439,7 @@ sentio::PositionStateMachine::State sentio::PositionStateMachine::determine_curr
     }
 
     // Any other combination is considered invalid (e.g., QQQ + PSQ, TQQQ + SQQQ)
-    utils::log_warning("Invalid portfolio state detected with symbols: " + 
+    utils::log_warning("Invalid portfolio state detected with symbols: " +
                       [&symbols]() {
                           std::string result;
                           for (const auto& s : symbols) {

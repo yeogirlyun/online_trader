@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(online_trader VERSION 2.1.0)
+project(online_trader VERSION 2.2.0)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -46,6 +46,7 @@ add_library(online_common
     src/common/binary_data.cpp
     src/common/time_utils.cpp
     src/common/eod_state.cpp
+    src/common/eod_guardian.cpp
     src/common/nyse_calendar.cpp
     src/core/data_io.cpp
     src/core/data_manager.cpp
@@ -192,17 +193,27 @@ find_package(CURL REQUIRED)
 add_library(online_live
     src/live/alpaca_client.cpp
     src/live/polygon_websocket_fifo.cpp
+    src/live/alpaca_rest_bar_feed.cpp
     src/live/position_book.cpp
+    src/live/state_persistence.cpp
+    # Mock trading infrastructure
+    src/live/mock_broker.cpp
+    src/live/mock_bar_feed_replay.cpp
+    src/live/mock_session_state.cpp
+    src/live/alpaca_client_adapter.cpp
+    src/live/polygon_client_adapter.cpp
+    src/live/mock_config.cpp
 )
 target_link_libraries(online_live PRIVATE
     online_common
     CURL::libcurl
+    OpenSSL::Crypto
 )
 target_include_directories(online_live PRIVATE /opt/homebrew/include)
 if(nlohmann_json_FOUND)
     target_link_libraries(online_live PRIVATE nlohmann_json::nlohmann_json)
 endif()
-message(STATUS "Created online_live library for live trading (Alpaca REST + Python WebSocket bridge)")
+message(STATUS "Created online_live library for live trading (Alpaca REST + Python WebSocket bridge + Mock Infrastructure)")
 
 # =============================================================================
 # CLI Executable (sentio_cli for online learning)

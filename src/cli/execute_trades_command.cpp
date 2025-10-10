@@ -64,7 +64,7 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
     // PSM Risk Management Parameters (CLI overrides, defaults from v1.5 SPY calibration)
     double profit_target = std::stod(get_arg(args, "--profit-target", "0.003"));
     double stop_loss = std::stod(get_arg(args, "--stop-loss", "-0.004"));
-    int min_hold_bars = std::stoi(get_arg(args, "--min-hold-bars", "3"));
+    int min_hold_bars = std::stoi(get_arg(args, "--min-hold-bars", "0"));  // Changed from 3 to 0 for faster exits
     int max_hold_bars = std::stoi(get_arg(args, "--max-hold-bars", "100"));
 
     if (signal_path.empty() || data_path.empty()) {
@@ -268,13 +268,17 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
         if (is_eod_close) {
             // Force CASH_ONLY - do not enter any new positions
             target_state = PositionStateMachine::State::CASH_ONLY;
+        } else if (signal.probability >= 0.65) {
+            // ULTRA BULLISH (>= 0.65) - Use 3x leverage bull ETF
+            target_state = PositionStateMachine::State::TQQQ_ONLY;
         } else if (signal.probability >= buy_threshold) {
-            // LONG signal (probability >= buy_threshold)
-            // Use base instrument only (conservative, no leverage)
+            // LONG signal (>= buy_threshold) - Use base instrument (1x)
             target_state = PositionStateMachine::State::QQQ_ONLY;
+        } else if (signal.probability <= 0.35) {
+            // ULTRA BEARISH (<= 0.35) - Use 3x leverage bear ETF
+            target_state = PositionStateMachine::State::SQQQ_ONLY;
         } else if (signal.probability <= sell_threshold) {
-            // SHORT signal (probability <= sell_threshold)
-            // Use inverse ETF (conservative, -1x)
+            // SHORT signal (<= sell_threshold) - Use inverse ETF (-1x)
             target_state = PositionStateMachine::State::PSQ_ONLY;
         } else {
             // NEUTRAL (between thresholds) - stay in cash

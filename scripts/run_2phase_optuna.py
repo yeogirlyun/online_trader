@@ -233,7 +233,7 @@ class TwoPhaseOptuna:
 
         # Constants
         BARS_PER_DAY = 391  # 9:30 AM - 4:00 PM inclusive
-        TEST_DAYS = 30  # Test on 30 trading days (~1.5 months)
+        TEST_DAYS = 10  # Test on 10 trading days for faster iteration (~2 weeks)
 
         # Calculate indices for continuous test period
         warmup_bars = warmup_blocks * BARS_PER_DAY
@@ -364,7 +364,22 @@ class TwoPhaseOptuna:
         final_trade = trades[-1]
         ending_equity = final_trade.get('portfolio_value', starting_equity)
         total_return = (ending_equity - starting_equity) / starting_equity
-        mrd = (total_return / TEST_DAYS) * 100  # Daily return percentage
+        base_mrd = (total_return / TEST_DAYS) * 100  # Daily return percentage
+
+        # Add trade frequency bonus (reward active trading)
+        # Expected: ~50-100 trades/day for 10 days = 500-1000 trades
+        min_trades = 50 * TEST_DAYS  # 50 trades/day minimum
+        target_trades = 100 * TEST_DAYS  # 100 trades/day target
+
+        if len(trades) < min_trades:
+            # Penalize low trade frequency severely
+            trade_penalty = -0.5  # -0.5% penalty
+        else:
+            # Reward trade frequency (up to 0.1% bonus)
+            trade_bonus = min((len(trades) - min_trades) / (target_trades - min_trades), 1.0) * 0.1
+            trade_penalty = trade_bonus
+
+        mrd = base_mrd + trade_penalty
 
         # Report cache statistics
         if signal_cache.stats.hits + signal_cache.stats.misses > 0:
@@ -641,37 +656,37 @@ class MarketRegimeDetector:
         """Get parameter ranges based on market regime"""
 
         if regime == "HIGH_VOLATILITY":
-            # Require 0.08 gap: buy_min=0.53, sell_max=0.45 → gap=0.08
+            # AGGRESSIVE: Tight thresholds for high-frequency trading
             return {
-                'buy_threshold': (0.53, 0.70),
-                'sell_threshold': (0.30, 0.45),
-                'ewrls_lambda': (0.980, 0.995),  # Faster adaptation
-                'bb_amplification_factor': (0.05, 0.30),
-                'bb_period': (10, 30),  # Shorter periods
-                'bb_std_dev': (1.5, 3.0),
+                'buy_threshold': (0.51, 0.60),
+                'sell_threshold': (0.40, 0.49),
+                'ewrls_lambda': (0.975, 0.990),  # Much faster adaptation
+                'bb_amplification_factor': (0.20, 0.50),  # Strong amplification
+                'bb_period': (10, 30),
+                'bb_std_dev': (1.0, 2.0),  # Tighter bands → more signals
                 'regularization': (0.01, 0.10)
             }
         elif regime == "TRENDING":
-            # Require 0.04 gap: buy_min=0.52, sell_max=0.48 → gap=0.04
-            return {
-                'buy_threshold': (0.52, 0.62),
-                'sell_threshold': (0.38, 0.48),
-                'ewrls_lambda': (0.990, 0.999),  # Slower adaptation
-                'bb_amplification_factor': (0.00, 0.15),
-                'bb_period': (20, 40),
-                'bb_std_dev': (2.0, 2.5),
-                'regularization': (0.00, 0.05)
-            }
-        else:  # CHOPPY
-            # More balanced ranges: buy_min=0.505, sell_max=0.495 → gap=0.01 minimum
-            # Allows tighter spreads around 0.50 while remaining conservative
+            # AGGRESSIVE: Tighter thresholds for momentum capture
             return {
                 'buy_threshold': (0.505, 0.55),
                 'sell_threshold': (0.45, 0.495),
-                'ewrls_lambda': (0.985, 0.997),
-                'bb_amplification_factor': (0.10, 0.25),
+                'ewrls_lambda': (0.980, 0.995),  # Faster than before
+                'bb_amplification_factor': (0.15, 0.35),
                 'bb_period': (15, 35),
-                'bb_std_dev': (1.75, 2.5),
+                'bb_std_dev': (1.0, 2.0),  # Tighter bands
+                'regularization': (0.00, 0.05)
+            }
+        else:  # CHOPPY - MOST AGGRESSIVE (most common regime)
+            # RECOMMENDED: Minimal gap (0.002-0.03) for maximum trading opportunities
+            # buy_min=0.501, sell_max=0.499 → gap=0.002 minimum
+            return {
+                'buy_threshold': (0.501, 0.53),   # Tight around 0.5
+                'sell_threshold': (0.47, 0.499),  # Tight around 0.5
+                'ewrls_lambda': (0.980, 0.995),   # Faster adaptation
+                'bb_amplification_factor': (0.15, 0.40),  # Strong amplification
+                'bb_period': (15, 30),
+                'bb_std_dev': (1.0, 2.0),  # Much tighter for more signals
                 'regularization': (0.005, 0.08)
             }
 

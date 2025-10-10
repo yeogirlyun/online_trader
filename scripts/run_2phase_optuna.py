@@ -226,13 +226,15 @@ class TwoPhaseOptuna:
                 except:
                     pass  # Don't fail if logging fails
 
-            # Execute trades with EOD enforcement
+            # Execute trades with EOD enforcement (pass thresholds!)
             cmd_execute = [
                 self.sentio_cli, "execute-trades",
                 "--signals", day_signals_file,
                 "--data", day_data_file,
                 "--output", day_trades_file,
-                "--warmup", str(warmup_blocks * BARS_PER_DAY)
+                "--warmup", str(warmup_blocks * BARS_PER_DAY),
+                "--buy-threshold", str(params['buy_threshold']),
+                "--sell-threshold", str(params['sell_threshold'])
             ]
 
             try:

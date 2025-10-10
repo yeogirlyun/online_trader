@@ -159,6 +159,221 @@ load_leveraged_prices(const std::string& base_path) {
 }
 
 /**
+ * Micro-Adaptation State Tracker
+ *
+ * Tracks and applies small parameter adjustments during live trading
+ * based on recent performance and market conditions.
+ *
+ * Key Features:
+ * - Hourly threshold drift (±0.002 max per hour, ±1% max total drift)
+ * - Volatility-based lambda adaptation (every 30 bars)
+ * - Performance-based adjustments (win rate tracking)
+ * - Saves baseline from morning optimization
+ */
+struct MicroAdaptationState {
+    // Baseline parameters from morning optimization
+    double baseline_buy_threshold{0.511};
+    double baseline_sell_threshold{0.47};
+    double baseline_lambda{0.984};
+
+    // Current adapted values
+    double current_buy_threshold{0.511};
+    double current_sell_threshold{0.47};
+    double current_lambda{0.984};
+
+    // Adaptation tracking
+    int bars_since_last_threshold_adapt{0};
+    int bars_since_last_lambda_adapt{0};
+    int adaptation_hour{0};  // Track which hour we're in
+
+    // Performance tracking for adaptation
+    int recent_wins{0};
+    int recent_losses{0};
+    int trades_this_period{0};
+    std::vector<double> recent_returns;  // Last 30 bars for volatility calc
+
+    // Adaptation limits
+    static constexpr double MAX_HOURLY_DRIFT = 0.002;  // ±0.2% per hour
+    static constexpr double MAX_TOTAL_DRIFT = 0.01;     // ±1% total drift from baseline
+    static constexpr int THRESHOLD_ADAPT_INTERVAL = 60; // 60 bars = 1 hour
+    static constexpr int LAMBDA_ADAPT_INTERVAL = 30;     // 30 bars = 30 minutes
+
+    bool enabled{false};  // Micro-adaptations on/off
+
+    /**
+     * Load baseline parameters from morning optimization
+     */
+    bool load_baseline(const std::string& filepath) {
+        std::ifstream file(filepath);
+        if (!file.is_open()) {
+            std::cerr << "⚠️  Could not load baseline params from: " << filepath << std::endl;
+            return false;
+        }
+
+        try {
+            nlohmann::json j;
+            file >> j;
+            file.close();
+
+            baseline_buy_threshold = j.value("buy_threshold", 0.511);
+            baseline_sell_threshold = j.value("sell_threshold", 0.47);
+            baseline_lambda = j.value("ewrls_lambda", 0.984);
+
+            // Initialize current values to baseline
+            current_buy_threshold = baseline_buy_threshold;
+            current_sell_threshold = baseline_sell_threshold;
+            current_lambda = baseline_lambda;
+
+            std::cout << "✅ Loaded baseline parameters for micro-adaptation:" << std::endl;
+            std::cout << "   buy_threshold: " << baseline_buy_threshold << std::endl;
+            std::cout << "   sell_threshold: " << baseline_sell_threshold << std::endl;
+            std::cout << "   lambda: " << baseline_lambda << std::endl;
+
+            return true;
+        } catch (const std::exception& e) {
+            std::cerr << "⚠️  Failed to parse baseline params: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
+    /**
+     * Perform hourly threshold micro-adaptation
+     * Adjusts thresholds by ±0.002 based on recent win rate
+     */
+    void adapt_thresholds_hourly() {
+        if (!enabled) return;
+
+        bars_since_last_threshold_adapt = 0;
+        adaptation_hour++;
+
+        // Calculate win rate from recent trades
+        int total_trades = recent_wins + recent_losses;
+        if (total_trades < 5) {
+            // Not enough data - no adaptation
+            return;
+        }
+
+        double win_rate = static_cast<double>(recent_wins) / total_trades;
+
+        // Adaptation logic:
+        // - High win rate (>60%) → tighten thresholds (more aggressive)
+        // - Low win rate (<40%) → widen thresholds (more conservative)
+        // - Neutral (40-60%) → small random walk
+
+        double drift_amount = 0.0;
+        if (win_rate > 0.60) {
+            // Winning strategy - tighten thresholds
+            drift_amount = -MAX_HOURLY_DRIFT;  // Move closer together
+        } else if (win_rate < 0.40) {
+            // Losing strategy - widen thresholds
+            drift_amount = +MAX_HOURLY_DRIFT;  // Move further apart
+        } else {
+            // Neutral - small random exploration (±0.001)
+            drift_amount = ((std::rand() % 2) * 2 - 1) * (MAX_HOURLY_DRIFT * 0.5);
+        }
+
+        // Apply drift with max total drift limit
+        double new_buy = current_buy_threshold + drift_amount;
+        double new_sell = current_sell_threshold - drift_amount;
+
+        // Enforce max total drift from baseline
+        if (std::abs(new_buy - baseline_buy_threshold) <= MAX_TOTAL_DRIFT) {
+            current_buy_threshold = new_buy;
+        }
+        if (std::abs(new_sell - baseline_sell_threshold) <= MAX_TOTAL_DRIFT) {
+            current_sell_threshold = new_sell;
+        }
+
+        // Ensure thresholds don't cross
+        if (current_buy_threshold <= current_sell_threshold) {
+            current_buy_threshold = baseline_buy_threshold;
+            current_sell_threshold = baseline_sell_threshold;
+        }
+
+        // Reset performance counters for next period
+        recent_wins = 0;
+        recent_losses = 0;
+        trades_this_period = 0;
+    }
+
+    /**
+     * Perform volatility-based lambda adaptation
+     * Higher volatility → lower lambda (faster adaptation)
+     */
+    void adapt_lambda_on_volatility() {
+        if (!enabled) return;
+        if (recent_returns.size() < 20) return;  // Need minimum data
+
+        bars_since_last_lambda_adapt = 0;
+
+        // Calculate recent return volatility
+        double mean = 0.0;
+        for (double ret : recent_returns) {
+            mean += ret;
+        }
+        mean /= recent_returns.size();
+
+        double variance = 0.0;
+        for (double ret : recent_returns) {
+            variance += (ret - mean) * (ret - mean);
+        }
+        double volatility = std::sqrt(variance / recent_returns.size());
+
+        // Adaptation logic:
+        // - High volatility (>0.015) → lower lambda (0.980-0.985) for fast adaptation
+        // - Low volatility (<0.005) → higher lambda (0.990-0.995) for stability
+        // - Normal volatility → baseline lambda
+
+        if (volatility > 0.015) {
+            // High volatility - fast adaptation
+            current_lambda = std::max(baseline_lambda - 0.005, 0.980);
+        } else if (volatility < 0.005) {
+            // Low volatility - stable learning
+            current_lambda = std::min(baseline_lambda + 0.005, 0.995);
+        } else {
+            // Normal volatility - use baseline
+            current_lambda = baseline_lambda;
+        }
+    }
+
+    /**
+     * Update adaptation state after each bar
+     */
+    void update_on_bar(double bar_return) {
+        bars_since_last_threshold_adapt++;
+        bars_since_last_lambda_adapt++;
+
+        // Track recent returns for volatility calculation
+        recent_returns.push_back(bar_return);
+        if (recent_returns.size() > 30) {
+            recent_returns.erase(recent_returns.begin());
+        }
+
+        // Trigger hourly threshold adaptation
+        if (bars_since_last_threshold_adapt >= THRESHOLD_ADAPT_INTERVAL) {
+            adapt_thresholds_hourly();
+        }
+
+        // Trigger volatility-based lambda adaptation
+        if (bars_since_last_lambda_adapt >= LAMBDA_ADAPT_INTERVAL) {
+            adapt_lambda_on_volatility();
+        }
+    }
+
+    /**
+     * Record trade outcome for performance tracking
+     */
+    void record_trade(bool won) {
+        if (won) {
+            recent_wins++;
+        } else {
+            recent_losses++;
+        }
+        trades_this_period++;
+    }
+};
+
+/**
  * Live Trading Runner for OnlineEnsemble Strategy v1.0
  *
  * - Trades SPY/SDS/SPXL/SH during regular hours (9:30am - 4:00pm ET)
@@ -270,6 +485,25 @@ public:
         log_system("✓ Strategy initialized and ready");
         log_system("");
 
+        // Initialize micro-adaptation system (load baseline from morning optimization)
+        std::string baseline_file = "/Volumes/ExternalSSD/Dev/C++/online_trader/data/tmp/morning_baseline_params.json";
+        if (std::ifstream(baseline_file).good()) {
+            if (micro_adaptation_.load_baseline(baseline_file)) {
+                micro_adaptation_.enabled = true;
+                log_system("✅ Micro-adaptation system enabled");
+                log_system("   Baseline buy: " + std::to_string(micro_adaptation_.baseline_buy_threshold));
+                log_system("   Baseline sell: " + std::to_string(micro_adaptation_.baseline_sell_threshold));
+                log_system("   Hourly drift: ±" + std::to_string(MicroAdaptationState::MAX_HOURLY_DRIFT * 100) + "%");
+                log_system("   Max total drift: ±" + std::to_string(MicroAdaptationState::MAX_TOTAL_DRIFT * 100) + "%");
+            } else {
+                log_system("⚠️  Micro-adaptation baseline load failed - using static params");
+            }
+        } else {
+            log_system("ℹ️  No baseline params found - micro-adaptation disabled");
+            log_system("   (Run morning optimization to enable micro-adaptations)");
+        }
+        log_system("");
+
         // Start main trading loop
         bar_feed_->start([this](const std::string& symbol, const Bar& bar) {
             if (symbol == "SPY") {  // Only process on SPY bars (trigger for multi-instrument PSM)
@@ -331,6 +565,9 @@ private:
 
     // Mock mode: Leveraged ETF prices loaded from CSV
     std::unordered_map<uint64_t, std::unordered_map<std::string, double>> leveraged_prices_;
+
+    // Micro-adaptation system (NEW v2.6)
+    MicroAdaptationState micro_adaptation_;
 
     // Log file streams
     std::ofstream log_system_;
@@ -985,6 +1222,36 @@ private:
                 strategy_.train_predictor(features, return_1bar);
                 log_system("✓ Predictor updated (learning from previous bar return: " +
                           std::to_string(return_1bar * 100) + "%)");
+
+                // Update micro-adaptation state with bar return
+                if (micro_adaptation_.enabled) {
+                    micro_adaptation_.update_on_bar(return_1bar);
+
+                    // Log threshold adaptations when they occur
+                    if (micro_adaptation_.bars_since_last_threshold_adapt == 1) {
+                        log_system("🔧 MICRO-ADAPTATION: Hourly threshold update (hour " +
+                                  std::to_string(micro_adaptation_.adaptation_hour) + ")");
+                        log_system("   Adapted buy threshold: " +
+                                  std::to_string(micro_adaptation_.current_buy_threshold) +
+                                  " (drift: " +
+                                  std::to_string((micro_adaptation_.current_buy_threshold -
+                                                micro_adaptation_.baseline_buy_threshold) * 100) + "%)");
+                        log_system("   Adapted sell threshold: " +
+                                  std::to_string(micro_adaptation_.current_sell_threshold) +
+                                  " (drift: " +
+                                  std::to_string((micro_adaptation_.current_sell_threshold -
+                                                micro_adaptation_.baseline_sell_threshold) * 100) + "%)");
+                    }
+
+                    // Log lambda adaptations when they occur
+                    if (micro_adaptation_.bars_since_last_lambda_adapt == 1) {
+                        log_system("🔧 MICRO-ADAPTATION: Lambda update");
+                        log_system("   Adapted lambda: " +
+                                  std::to_string(micro_adaptation_.current_lambda) +
+                                  " (baseline: " +
+                                  std::to_string(micro_adaptation_.baseline_lambda) + ")");
+                    }
+                }
             }
         }
         previous_bar_ = bar;
@@ -1218,21 +1485,32 @@ private:
         }
 
         // Map signal probability to PSM state (v1.0 asymmetric thresholds)
+        // Use micro-adapted thresholds if enabled, otherwise use defaults
+        double buy_threshold = micro_adaptation_.enabled ? micro_adaptation_.current_buy_threshold : 0.55;
+        double sell_threshold = micro_adaptation_.enabled ? micro_adaptation_.current_sell_threshold : 0.45;
+
+        // Calculate derived thresholds (maintain relative spacing)
+        double ultra_bull_threshold = buy_threshold + 0.13;  // 0.55 + 0.13 = 0.68
+        double mixed_bull_threshold = buy_threshold + 0.05;  // 0.55 + 0.05 = 0.60
+        double ultra_bear_threshold = sell_threshold - 0.10; // 0.45 - 0.10 = 0.35
+        double mixed_bear_threshold = sell_threshold - 0.13; // 0.45 - 0.13 = 0.32
+        double cash_high = 0.49;  // Fixed narrow band around 0.5
+
         PositionStateMachine::State target_state;
 
-        if (signal.probability >= 0.68) {
+        if (signal.probability >= ultra_bull_threshold) {
             target_state = PositionStateMachine::State::TQQQ_ONLY;  // Maps to SPXL
-        } else if (signal.probability >= 0.60) {
+        } else if (signal.probability >= mixed_bull_threshold) {
             target_state = PositionStateMachine::State::QQQ_TQQQ;   // Mixed
-        } else if (signal.probability >= 0.55) {
+        } else if (signal.probability >= buy_threshold) {
             target_state = PositionStateMachine::State::QQQ_ONLY;   // Maps to SPY
-        } else if (signal.probability >= 0.49) {
+        } else if (signal.probability >= cash_high) {
             target_state = PositionStateMachine::State::CASH_ONLY;
-        } else if (signal.probability >= 0.45) {
+        } else if (signal.probability >= sell_threshold) {
             target_state = PositionStateMachine::State::PSQ_ONLY;   // Maps to SH
-        } else if (signal.probability >= 0.35) {
+        } else if (signal.probability >= ultra_bear_threshold) {
             target_state = PositionStateMachine::State::PSQ_SQQQ;   // Mixed
-        } else if (signal.probability < 0.32) {
+        } else if (signal.probability < mixed_bear_threshold) {
             target_state = PositionStateMachine::State::SQQQ_ONLY;  // Maps to SDS
         } else {
             target_state = PositionStateMachine::State::CASH_ONLY;

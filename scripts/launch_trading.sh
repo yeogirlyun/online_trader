@@ -173,6 +173,7 @@ fi
 OPTUNA_SCRIPT="$PROJECT_ROOT/scripts/run_2phase_optuna.py"
 WARMUP_SCRIPT="$PROJECT_ROOT/scripts/comprehensive_warmup.sh"
 DASHBOARD_SCRIPT="$PROJECT_ROOT/scripts/professional_trading_dashboard.py"
+EMAIL_SCRIPT="$PROJECT_ROOT/scripts/send_dashboard_email.py"
 BEST_PARAMS_FILE="$PROJECT_ROOT/config/best_params.json"
 LOG_DIR="logs/${MODE}_trading"
 
@@ -230,22 +231,93 @@ function cleanup() {
     fi
 }
 
-function run_optimization() {
+function ensure_optimization_data() {
     log_info "========================================================================"
-    log_info "2-Phase Optuna Optimization"
+    log_info "Data Availability Check"
     log_info "========================================================================"
-    log_info "Phase 1: Primary params (buy/sell thresholds, lambda, BB amp) - $N_TRIALS trials"
-    log_info "Phase 2: Secondary params (horizon weights, BB, regularization) - $N_TRIALS trials"
-    log_info ""
 
-    # Use appropriate data file
-    local opt_data_file="data/equities/SPY_warmup_latest.csv"
-    if [ ! -f "$opt_data_file" ]; then
-        opt_data_file="data/equities/SPY_4blocks.csv"
+    local target_file="data/equities/SPY_RTH_NH_5years.csv"
+    local min_days=30  # Minimum 30 trading days for meaningful optimization
+
+    # Check if 5-year data exists and is recent
+    if [ -f "$target_file" ]; then
+        local file_age_days=$(( ($(date +%s) - $(stat -f %m "$target_file" 2>/dev/null || stat -c %Y "$target_file" 2>/dev/null)) / 86400 ))
+        local line_count=$(wc -l < "$target_file")
+        local trading_days=$((line_count / 391))
+
+        log_info "Found 5-year data: $trading_days trading days (file age: $file_age_days days)"
+
+        if [ "$trading_days" -ge "$min_days" ] && [ "$file_age_days" -le 7 ]; then
+            log_info "✓ Data is sufficient and recent"
+            echo "$target_file"
+            return 0
+        fi
+
+        if [ "$file_age_days" -gt 7 ]; then
+            log_warn "Data is older than 7 days - will continue with existing data"
+            echo "$target_file"
+            return 0
+        fi
+    else
+        log_warn "5-year data file not found"
     fi
 
-    if [ ! -f "$opt_data_file" ]; then
-        log_error "No data file available for optimization"
+    # Fallback: Check for existing files with sufficient data
+    for fallback_file in "data/equities/SPY_100blocks.csv" "data/equities/SPY_30blocks.csv" "data/equities/SPY_20blocks.csv"; do
+        if [ -f "$fallback_file" ]; then
+            local fallback_days=$(($(wc -l < "$fallback_file") / 391))
+            if [ "$fallback_days" -ge "$min_days" ]; then
+                log_warn "Using fallback: $fallback_file ($fallback_days days)"
+                echo "$fallback_file"
+                return 0
+            fi
+        fi
+    done
+
+    # Last resort: Try to generate from existing data
+    if [ -f "data/equities/SPY_RTH_NH.csv" ]; then
+        local existing_days=$(($(wc -l < "data/equities/SPY_RTH_NH.csv") / 391))
+        if [ "$existing_days" -ge "$min_days" ]; then
+            log_warn "Using existing RTH file: $existing_days days"
+            echo "data/equities/SPY_RTH_NH.csv"
+            return 0
+        fi
+    fi
+
+    log_error "CRITICAL: Cannot find or generate sufficient data for optimization"
+    log_error "Need at least $min_days trading days (~$((min_days * 391)) bars)"
+    log_error "To fix: Run tools/data_downloader.py to generate SPY_RTH_NH_5years.csv"
+    return 1
+}
+
+function run_morning_optimization() {
+    log_info "========================================================================"
+    log_info "Morning Pre-Market Optimization (6-10 AM ET)"
+    log_info "========================================================================"
+    log_info "Phase 1: Primary params (buy/sell thresholds, lambda, BB amp) - $N_TRIALS trials"
+    log_info "Phase 2: DISABLED (using Phase 1 only for speed)"
+    log_info ""
+
+    local current_hour=$(TZ='America/New_York' date '+%H')
+    local current_min=$(TZ='America/New_York' date '+%M')
+
+    # Only run optimization during morning hours (6-10 AM ET)
+    if [ "$current_hour" -lt 6 ] || [ "$current_hour" -ge 10 ]; then
+        log_info "⚠️  Outside morning optimization window (6-10 AM ET)"
+        log_info "   Current time: $current_hour:$current_min ET"
+        log_info "   Skipping optimization - using existing parameters"
+        return 0
+    fi
+
+    log_info "✓ Within morning optimization window (${current_hour}:${current_min} ET)"
+
+    # Ensure we have sufficient data - never compromise!
+    local opt_data_file
+    opt_data_file=$(ensure_optimization_data 2>&1 | tail -1)
+    local check_result=$?
+
+    if [ $check_result -ne 0 ] || [ -z "$opt_data_file" ] || [ ! -f "$opt_data_file" ]; then
+        log_error "Data availability check failed"
         return 1
     fi
 
@@ -255,11 +327,17 @@ function run_optimization() {
         --data "$opt_data_file" \
         --output "$BEST_PARAMS_FILE" \
         --n-trials-phase1 "$N_TRIALS" \
-        --n-trials-phase2 "$N_TRIALS" \
+        --n-trials-phase2 0 \
         --n-jobs 4
 
     if [ $? -eq 0 ]; then
         log_info "✓ Optimization complete - params saved to $BEST_PARAMS_FILE"
+
+        # Save morning baseline for micro-adaptations
+        local baseline_file="data/tmp/morning_baseline_params.json"
+        cp "$BEST_PARAMS_FILE" "$baseline_file"
+        log_info "✓ Morning baseline saved to $baseline_file (for micro-adaptation)"
+
         # Copy to location where live trader reads from
         cp "$BEST_PARAMS_FILE" "data/tmp/midday_selected_params.json" 2>/dev/null || true
         return 0
@@ -267,6 +345,11 @@ function run_optimization() {
         log_error "Optimization failed"
         return 1
     fi
+}
+
+function run_optimization() {
+    # Wrapper for backward compatibility - calls morning optimization
+    run_morning_optimization
 }
 
 function run_warmup() {
@@ -596,6 +679,27 @@ function generate_dashboard() {
         ln -sf "$(basename $output_file)" "data/dashboards/latest_${MODE}.html"
         log_info "✓ Latest: data/dashboards/latest_${MODE}.html"
 
+        # Send email notification
+        log_info ""
+        log_info "Sending email notification..."
+
+        # Source config.env for GMAIL credentials
+        if [ -f "$PROJECT_ROOT/config.env" ]; then
+            source "$PROJECT_ROOT/config.env"
+        fi
+
+        # Send email with dashboard
+        python3 "$EMAIL_SCRIPT" \
+            --dashboard "$output_file" \
+            --trades "$latest_trades" \
+            --recipient "${GMAIL_USER:-yeogirl@gmail.com}"
+
+        if [ $? -eq 0 ]; then
+            log_info "✓ Email notification sent"
+        else
+            log_warn "⚠️  Email notification failed (check GMAIL_APP_PASSWORD in config.env)"
+        fi
+
         # Open in browser for mock mode
         if [ "$MODE" = "mock" ]; then
             open "$output_file"
@@ -652,29 +756,101 @@ function main() {
 
     trap cleanup EXIT INT TERM
 
-    # Step 0: Mock Data Extraction (if needed)
-    if [ "$MODE" = "mock" ] && [ "$DATA_FILE" = "auto" ]; then
-        log_info "========================================================================"
-        log_info "Extracting Session Data for Mock Mode"
-        log_info "========================================================================"
+    # Step 0: Data Preparation
+    log_info "========================================================================"
+    log_info "Data Preparation"
+    log_info "========================================================================"
+
+    # Determine target session date
+    if [ -n "$MOCK_DATE" ]; then
+        TARGET_DATE="$MOCK_DATE"
+        log_info "Target session: $TARGET_DATE (specified)"
+    else
+        # Auto-detect most recent trading session from current date/time
+        # Use Python for reliable date/time handling
+        TARGET_DATE=$(python3 -c "
+import os
+os.environ['TZ'] = 'America/New_York'
+import time
+time.tzset()
+
+from datetime import datetime, timedelta
+
+now = datetime.now()
+current_date = now.date()
+current_hour = now.hour
+current_weekday = now.weekday()  # 0=Mon, 4=Fri, 5=Sat, 6=Sun
+
+# Determine most recent complete trading session
+if current_weekday == 5:  # Saturday
+    target_date = current_date - timedelta(days=1)  # Friday
+elif current_weekday == 6:  # Sunday
+    target_date = current_date - timedelta(days=2)  # Friday
+elif current_weekday == 0:  # Monday
+    if current_hour < 16:  # Before market close
+        target_date = current_date - timedelta(days=3)  # Previous Friday
+    else:  # After market close
+        target_date = current_date  # Today (Monday)
+else:  # Tuesday-Friday
+    if current_hour >= 16:  # After market close (4 PM ET)
+        target_date = current_date  # Today is complete
+    else:  # Before market close
+        target_date = current_date - timedelta(days=1)  # Yesterday
+
+print(target_date.strftime('%Y-%m-%d'))
+")
+
+        log_info "Target session: $TARGET_DATE (auto-detected - market closed)"
+    fi
+
+    # Check if data exists for target date
+    DATA_EXISTS=$(grep "^$TARGET_DATE" data/equities/SPY_RTH_NH.csv 2>/dev/null | wc -l | tr -d ' ')
+
+    if [ "$DATA_EXISTS" -eq 0 ]; then
+        log_info "⚠️  Data for $TARGET_DATE not found in SPY_RTH_NH.csv"
+        log_info "Downloading data from Polygon.io..."
+
+        # Check for API key
+        if [ -z "$POLYGON_API_KEY" ]; then
+            log_error "POLYGON_API_KEY not set - cannot download data"
+            log_error "Please set POLYGON_API_KEY in your environment or config.env"
+            exit 1
+        fi
+
+        # Download data for target date (include a few days before for safety)
+        # Use Python for cross-platform date arithmetic
+        START_DATE=$(python3 -c "from datetime import datetime, timedelta; target = datetime.strptime('$TARGET_DATE', '%Y-%m-%d'); print((target - timedelta(days=7)).strftime('%Y-%m-%d'))")
+        END_DATE=$(python3 -c "from datetime import datetime, timedelta; target = datetime.strptime('$TARGET_DATE', '%Y-%m-%d'); print((target + timedelta(days=1)).strftime('%Y-%m-%d'))")
+
+        log_info "Downloading SPY data from $START_DATE to $END_DATE..."
+        python3 tools/data_downloader.py SPY \
+            --start "$START_DATE" \
+            --end "$END_DATE" \
+            --outdir data/equities
+
+        if [ $? -ne 0 ]; then
+            log_error "Data download failed"
+            exit 1
+        fi
+
+        log_info "✓ Data downloaded and saved to data/equities/SPY_RTH_NH.csv"
+    else
+        log_info "✓ Data for $TARGET_DATE exists ($DATA_EXISTS bars)"
+    fi
+
+    # Extract warmup and session data
+    if [ "$MODE" = "mock" ]; then
+        log_info ""
+        log_info "Extracting session data for mock replay..."
 
         WARMUP_FILE="data/equities/SPY_warmup_latest.csv"
         SESSION_FILE="/tmp/SPY_session.csv"
 
-        if [ -n "$MOCK_DATE" ]; then
-            log_info "Target date: $MOCK_DATE"
-            python3 tools/extract_session_data.py \
-                --input data/equities/SPY_RTH_NH.csv \
-                --date "$MOCK_DATE" \
-                --output-warmup "$WARMUP_FILE" \
-                --output-session "$SESSION_FILE"
-        else
-            log_info "Target date: Most recent (auto-detect)"
-            python3 tools/extract_session_data.py \
-                --input data/equities/SPY_RTH_NH.csv \
-                --output-warmup "$WARMUP_FILE" \
-                --output-session "$SESSION_FILE"
-        fi
+        python3 tools/extract_session_data.py \
+            --input data/equities/SPY_RTH_NH.csv \
+            --date "$TARGET_DATE" \
+            --output-warmup "$WARMUP_FILE" \
+            --output-session "$SESSION_FILE"
 
         if [ $? -ne 0 ]; then
             log_error "Failed to extract session data"
@@ -685,8 +861,53 @@ function main() {
         log_info "✓ Session data extracted"
         log_info "  Warmup: $WARMUP_FILE (for optimization)"
         log_info "  Session: $DATA_FILE (for mock replay)"
+
+        # Generate leveraged ETF data from SPY
         log_info ""
+        log_info "Generating leveraged ETF price data..."
+        if [ -f "tools/generate_spy_leveraged_data.py" ]; then
+            python3 tools/generate_spy_leveraged_data.py \
+                --spy data/equities/SPY_RTH_NH.csv \
+                --output-dir data/equities 2>&1 | grep -E "✓|✅|Generated|ERROR" || true
+            log_info "✓ Leveraged ETF data ready"
+
+            # Copy leveraged ETF files to /tmp for mock broker
+            log_info "Copying leveraged ETF data to /tmp for mock broker..."
+            for symbol in SH SDS SPXL; do
+                if [ -f "data/equities/${symbol}_RTH_NH.csv" ]; then
+                    cp "data/equities/${symbol}_RTH_NH.csv" "/tmp/${symbol}_yesterday.csv"
+                fi
+            done
+            log_info "✓ Leveraged ETF data copied to /tmp"
+        else
+            log_warn "generate_spy_leveraged_data.py not found - skipping"
+        fi
+
+    elif [ "$MODE" = "live" ]; then
+        log_info ""
+        log_info "Preparing warmup data for live trading..."
+
+        WARMUP_FILE="data/equities/SPY_warmup_latest.csv"
+
+        # For live mode: extract all data UP TO yesterday (exclude today)
+        YESTERDAY=$(python3 -c "from datetime import datetime, timedelta; print((datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d'))")
+
+        python3 tools/extract_session_data.py \
+            --input data/equities/SPY_RTH_NH.csv \
+            --date "$YESTERDAY" \
+            --output-warmup "$WARMUP_FILE" \
+            --output-session /tmp/dummy.csv  # Not used in live mode
+
+        if [ $? -ne 0 ]; then
+            log_error "Failed to extract warmup data"
+            exit 1
+        fi
+
+        log_info "✓ Warmup data prepared"
+        log_info "  Warmup: $WARMUP_FILE (up to $YESTERDAY)"
     fi
+
+    log_info ""
 
     # Step 1: Optimization (if enabled)
     if [ "$RUN_OPTIMIZATION" = "yes" ]; then

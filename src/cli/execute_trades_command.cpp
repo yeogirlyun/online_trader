@@ -61,6 +61,12 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
     bool verbose = has_flag(args, "--verbose") || has_flag(args, "-v");
     bool csv_output = has_flag(args, "--csv");
 
+    // PSM Risk Management Parameters (CLI overrides, defaults from v1.5 SPY calibration)
+    double profit_target = std::stod(get_arg(args, "--profit-target", "0.003"));
+    double stop_loss = std::stod(get_arg(args, "--stop-loss", "-0.004"));
+    int min_hold_bars = std::stoi(get_arg(args, "--min-hold-bars", "3"));
+    int max_hold_bars = std::stoi(get_arg(args, "--max-hold-bars", "100"));
+
     if (signal_path.empty() || data_path.empty()) {
         std::cerr << "Error: --signals and --data are required\n";
         show_help();
@@ -72,7 +78,9 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
     std::cout << "Data: " << data_path << "\n";
     std::cout << "Output: " << output_path << "\n";
     std::cout << "Starting Capital: $" << std::fixed << std::setprecision(2) << starting_capital << "\n";
-    std::cout << "Kelly Sizing: " << (enable_kelly ? "Enabled" : "Disabled") << "\n\n";
+    std::cout << "Kelly Sizing: " << (enable_kelly ? "Enabled" : "Disabled") << "\n";
+    std::cout << "PSM Parameters: profit=" << (profit_target*100) << "%, stop=" << (stop_loss*100)
+              << "%, hold=" << min_hold_bars << "-" << max_hold_bars << " bars\n\n";
 
     // Load signals
     std::cout << "Loading signals...\n";
@@ -95,8 +103,8 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
     // Auto-detect base symbol (QQQ or SPY) from data file path
     std::cout << "Loading market data for all instruments...\n";
 
-    // Extract base directory and symbol from data_path
-    std::string base_dir = data_path.substr(0, data_path.find_last_of("/\\"));
+    // Always use data/equities for instrument files (SPY, SH, SDS, SPXL, etc.)
+    std::string instruments_dir = "data/equities";
 
     // Detect base symbol from filename (QQQ_RTH_NH.csv or SPY_RTH_NH.csv)
     std::string filename = data_path.substr(data_path.find_last_of("/\\") + 1);
@@ -111,7 +119,7 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
         base_symbol = "SPY";
 
         // Check if SPXS (-3x) exists, otherwise use SDS (-2x)
-        std::string spxs_path = base_dir + "/SPXS_RTH_NH.csv";
+        std::string spxs_path = instruments_dir + "/SPXS_RTH_NH.csv";
         std::ifstream spxs_check(spxs_path);
 
         if (spxs_check.good()) {
@@ -128,11 +136,11 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
         return 1;
     }
 
-    // Load all 4 instruments
+    // Load all 4 instruments from data/equities directory
     std::map<std::string, std::vector<Bar>> instrument_bars;
 
     for (const auto& symbol : symbols) {
-        std::string instrument_path = base_dir + "/" + symbol + "_RTH_NH.csv";
+        std::string instrument_path = instruments_dir + "/" + symbol + "_RTH_NH.csv";
         auto bars = utils::read_csv_data(instrument_path);
         if (bars.empty()) {
             std::cerr << "Error: Could not load " << symbol << " data from " << instrument_path << "\n";
@@ -176,13 +184,13 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
     PositionTracking current_position;
     current_position.entry_equity = starting_capital;
 
-    // Risk management parameters - SPY CALIBRATED (v1.5)
-    // Based on 5-year SPY analysis: typical 10-bar move = ±0.10%
-    // QQQ targets (2%/-1.5%) are 20× too large for SPY
-    const double PROFIT_TARGET = 0.003;     // 0.3% profit target (SPY-calibrated)
-    const double STOP_LOSS = -0.004;        // -0.4% stop loss (SPY-calibrated)
-    const int MIN_HOLD_BARS = 3;            // Minimum 3-bar hold (prevent whipsaws)
-    const int MAX_HOLD_BARS = 100;          // Maximum hold (force re-evaluation)
+    // Risk management parameters - Now configurable via CLI
+    // Defaults from v1.5 SPY calibration (5-year analysis)
+    // Use: --profit-target, --stop-loss, --min-hold-bars, --max-hold-bars
+    const double PROFIT_TARGET = profit_target;
+    const double STOP_LOSS = stop_loss;
+    const int MIN_HOLD_BARS = min_hold_bars;
+    const int MAX_HOLD_BARS = max_hold_bars;
 
     std::cout << "Executing trades with Position State Machine...\n";
     std::cout << "Version 1.5: SPY-CALIBRATED thresholds + 3-bar min hold + 0.3%/-0.4% targets\n";
@@ -803,6 +811,12 @@ OPTIONS:
     --csv                      Output in CSV format
     --verbose, -v              Show each trade
 
+PSM RISK MANAGEMENT (Optuna-optimizable):
+    --profit-target <val>      Profit target % (default: 0.003 = 0.3%)
+    --stop-loss <val>          Stop loss % (default: -0.004 = -0.4%)
+    --min-hold-bars <n>        Min holding period (default: 3 bars)
+    --max-hold-bars <n>        Max holding period (default: 100 bars)
+
 EXAMPLES:
     # Execute trades with default settings
     sentio_cli execute-trades --signals signals.jsonl --data data/SPY.csv
@@ -814,6 +828,10 @@ EXAMPLES:
     # Verbose mode with CSV output
     sentio_cli execute-trades --signals signals.jsonl --data data/futures.bin \
         --verbose --csv --output trades.csv
+
+    # Custom PSM parameters (for Optuna optimization)
+    sentio_cli execute-trades --signals signals.jsonl --data data/SPY.csv \
+        --profit-target 0.005 --stop-loss -0.006 --min-hold-bars 5
 
 OUTPUT FILES:
     - trades.jsonl (or .csv)   Trade-by-trade history

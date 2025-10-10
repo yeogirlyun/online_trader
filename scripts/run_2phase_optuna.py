@@ -51,138 +51,222 @@ class TwoPhaseOptuna:
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
         # Load data
-        self.df = pd.read_csv(data_file)
+        full_df = pd.read_csv(data_file)
+        total_bars = len(full_df)
+        total_blocks = total_bars // 391
+
+        # Limit to most recent 100 blocks (~6 months) for optimization speed
+        # Recent data is more relevant and EOD validation is computationally expensive
+        max_blocks = 100
+        if total_blocks > max_blocks:
+            start_idx = total_bars - (max_blocks * 391)
+            self.df = full_df.iloc[start_idx:].reset_index(drop=True)
+            print(f"[2PhaseOptuna] Full dataset: {total_bars} bars ({total_blocks} blocks)")
+            print(f"[2PhaseOptuna] Using recent {len(self.df)} bars ({max_blocks} blocks) for optimization")
+        else:
+            self.df = full_df
+            print(f"[2PhaseOptuna] Loaded {total_bars} bars ({total_blocks} blocks)")
+
         self.total_bars = len(self.df)
-        self.bars_per_block = 391  # Complete trading day (9:30 AM - 4:00 PM inclusive)
+        self.bars_per_block = 391
         self.total_blocks = self.total_bars // self.bars_per_block
 
-        print(f"[2PhaseOptuna] Loaded {self.total_bars} bars ({self.total_blocks} blocks)")
         print(f"[2PhaseOptuna] Phase 1 trials: {self.n_trials_phase1}")
         print(f"[2PhaseOptuna] Phase 2 trials: {self.n_trials_phase2}")
         print(f"[2PhaseOptuna] Parallel jobs: {self.n_jobs}")
         print()
 
-    def run_backtest(self, params: Dict, warmup_blocks: int = 10) -> Dict:
-        """Run backtest with given parameters."""
-        signals_file = os.path.join(self.output_dir, "temp_signals.jsonl")
-        trades_file = os.path.join(self.output_dir, "temp_trades.jsonl")
-        equity_file = os.path.join(self.output_dir, "temp_equity.csv")
+    def run_backtest_with_eod_validation(self, params: Dict, warmup_blocks: int = 10) -> Dict:
+        """Run backtest with strict EOD enforcement between blocks."""
 
-        warmup_bars = warmup_blocks * self.bars_per_block
+        # Constants
+        BARS_PER_DAY = 391  # 9:30 AM - 4:00 PM inclusive
+        BARS_PER_BLOCK = 391  # Ensure blocks align with trading days
 
-        # Step 1: Generate signals
-        cmd_generate = [
-            self.sentio_cli, "generate-signals",
-            "--data", self.data_file,
-            "--output", signals_file,
-            "--warmup", str(warmup_bars),
-            # Phase 1 parameters
-            "--buy-threshold", str(params['buy_threshold']),
-            "--sell-threshold", str(params['sell_threshold']),
-            "--lambda", str(params['ewrls_lambda']),
-            "--bb-amp", str(params['bb_amplification_factor'])
-        ]
+        # Parse data to identify trading days
+        if 'timestamp_dt' not in self.df.columns:
+            # Check which timestamp column exists
+            if 'timestamp' in self.df.columns:
+                self.df['timestamp_dt'] = pd.to_datetime(self.df['timestamp'], unit='ms')
+            elif 'ts_nyt_epoch' in self.df.columns:
+                self.df['timestamp_dt'] = pd.to_datetime(self.df['ts_nyt_epoch'], unit='s')
+            elif 'ts_utc' in self.df.columns:
+                self.df['timestamp_dt'] = pd.to_datetime(self.df['ts_utc'])
+            else:
+                return {'mrd': -999.0, 'error': 'No timestamp column found'}
 
-        # Phase 2 parameters (if present)
-        if 'h1_weight' in params:
-            cmd_generate.extend(["--h1-weight", str(params['h1_weight'])])
-        if 'h5_weight' in params:
-            cmd_generate.extend(["--h5-weight", str(params['h5_weight'])])
-        if 'h10_weight' in params:
-            cmd_generate.extend(["--h10-weight", str(params['h10_weight'])])
-        if 'bb_period' in params:
-            cmd_generate.extend(["--bb-period", str(params['bb_period'])])
-        if 'bb_std_dev' in params:
-            cmd_generate.extend(["--bb-std-dev", str(params['bb_std_dev'])])
-        if 'bb_proximity' in params:
-            cmd_generate.extend(["--bb-proximity", str(params['bb_proximity'])])
-        if 'regularization' in params:
-            cmd_generate.extend(["--regularization", str(params['regularization'])])
+        if 'trading_date' not in self.df.columns:
+            self.df['trading_date'] = self.df['timestamp_dt'].dt.date
 
-        try:
-            result = subprocess.run(
-                cmd_generate,
-                capture_output=True,
-                text=True,
-                timeout=300
-            )
-            if result.returncode != 0:
-                return {'mrb': -999.0, 'error': result.stderr}
-        except subprocess.TimeoutExpired:
-            return {'mrb': -999.0, 'error': 'timeout'}
+        # Group by trading days
+        daily_groups = self.df.groupby('trading_date')
+        trading_days = sorted(daily_groups.groups.keys())
 
-        # Step 2: Execute trades
-        cmd_execute = [
-            self.sentio_cli, "execute-trades",
-            "--signals", signals_file,
-            "--data", self.data_file,
-            "--output", trades_file,
-            "--warmup", str(warmup_bars)
-        ]
+        # Skip warmup days
+        warmup_days = warmup_blocks
+        test_days = trading_days[warmup_days:]
 
-        try:
-            result = subprocess.run(cmd_execute, capture_output=True, text=True, timeout=60)
-            if result.returncode != 0:
-                return {'mrb': -999.0, 'error': result.stderr}
-        except subprocess.TimeoutExpired:
-            return {'mrb': -999.0, 'error': 'timeout'}
+        if len(test_days) == 0:
+            print(f"ERROR: Insufficient data - have {len(trading_days)} days, need >{warmup_blocks}")
+            return {'mrd': -999.0, 'error': 'Insufficient data after warmup'}
 
-        # Step 3: Analyze performance
-        num_blocks = self.total_blocks - warmup_blocks
-        cmd_analyze = [
-            self.sentio_cli, "analyze-trades",
-            "--trades", trades_file,
-            "--data", self.data_file,
-            "--output", equity_file,
-            "--blocks", str(num_blocks)
-        ]
+        print(f"  Processing {len(test_days)} test days (warmup={warmup_days} days)", end="... ")
 
-        try:
-            result = subprocess.run(cmd_analyze, capture_output=True, text=True, timeout=60)
-            if result.returncode != 0:
-                return {'mrb': -999.0, 'error': result.stderr}
+        # Track daily returns for MRD calculation
+        daily_returns = []
+        cumulative_trades = []
+        errors = {'signal_gen': 0, 'trade_exec': 0, 'no_trades': 0, 'eod_check': 0}
 
-            # Parse MRD (Mean Return per Day) from output - primary metric
-            import re
-            mrd = None
-            mrb = None
+        for day_idx, trading_date in enumerate(test_days):
+            day_data = daily_groups.get_group(trading_date)
+            day_bars = len(day_data)
 
-            for line in result.stdout.split('\n'):
-                if 'Mean Return per Day' in line and 'MRD' in line:
-                    match = re.search(r'([+-]?\d+\.\d+)%', line)
-                    if match:
-                        mrd = float(match.group(1))
+            # Create temporary files for this day's backtest (include SPY in filename for symbol detection)
+            day_signals_file = f"{self.output_dir}/day_{day_idx}_SPY_signals.jsonl"
+            day_trades_file = f"{self.output_dir}/day_{day_idx}_SPY_trades.jsonl"
+            day_data_file = f"{self.output_dir}/day_{day_idx}_SPY_data.csv"
 
-                if 'Mean Return per Block' in line and 'MRB' in line:
-                    match = re.search(r'([+-]?\d+\.\d+)%', line)
-                    if match:
-                        mrb = float(match.group(1))
+            # Include warmup data + current day
+            warmup_start_idx = max(0, day_data.index[0] - warmup_blocks * BARS_PER_DAY)
+            day_with_warmup = self.df.iloc[warmup_start_idx:day_data.index[-1] + 1]
+            day_with_warmup.to_csv(day_data_file, index=False)
 
-            # Primary metric is MRD (for daily reset strategies)
-            if mrd is not None:
-                return {
-                    'mrd': mrd,
-                    'mrb': mrb if mrb is not None else 0.0
-                }
+            # Generate signals for the day
+            cmd_generate = [
+                self.sentio_cli, "generate-signals",
+                "--data", day_data_file,
+                "--output", day_signals_file,
+                "--warmup", str(warmup_blocks * BARS_PER_DAY),
+                "--buy-threshold", str(params['buy_threshold']),
+                "--sell-threshold", str(params['sell_threshold']),
+                "--lambda", str(params['ewrls_lambda']),
+                "--bb-amp", str(params['bb_amplification_factor'])
+            ]
 
-            # Fallback: calculate from equity file
-            if os.path.exists(equity_file):
-                equity_df = pd.read_csv(equity_file)
-                if len(equity_df) > 0:
-                    total_return = (equity_df['equity'].iloc[-1] - 100000) / 100000
-                    mrb = (total_return / num_blocks) * 100 if num_blocks > 0 else 0.0
-                    return {'mrd': mrb, 'mrb': mrb}  # Use MRB as fallback
+            # Add phase 2 parameters if present
+            if 'h1_weight' in params:
+                cmd_generate.extend(["--h1-weight", str(params['h1_weight'])])
+            if 'h5_weight' in params:
+                cmd_generate.extend(["--h5-weight", str(params['h5_weight'])])
+            if 'h10_weight' in params:
+                cmd_generate.extend(["--h10-weight", str(params['h10_weight'])])
+            if 'bb_period' in params:
+                cmd_generate.extend(["--bb-period", str(params['bb_period'])])
+            if 'bb_std_dev' in params:
+                cmd_generate.extend(["--bb-std-dev", str(params['bb_std_dev'])])
+            if 'bb_proximity' in params:
+                cmd_generate.extend(["--bb-proximity", str(params['bb_proximity'])])
+            if 'regularization' in params:
+                cmd_generate.extend(["--regularization", str(params['regularization'])])
 
-            return {'mrd': 0.0, 'mrb': 0.0, 'error': 'MRD not found'}
+            try:
+                result = subprocess.run(cmd_generate, capture_output=True, text=True, timeout=60)
+                if result.returncode != 0:
+                    errors['signal_gen'] += 1
+                    continue  # Skip failed days
+            except subprocess.TimeoutExpired:
+                errors['signal_gen'] += 1
+                continue
 
-        except subprocess.TimeoutExpired:
-            return {'mrb': -999.0, 'error': 'timeout'}
+            # Execute trades with EOD enforcement
+            cmd_execute = [
+                self.sentio_cli, "execute-trades",
+                "--signals", day_signals_file,
+                "--data", day_data_file,
+                "--output", day_trades_file,
+                "--warmup", str(warmup_blocks * BARS_PER_DAY)
+            ]
+
+            try:
+                result = subprocess.run(cmd_execute, capture_output=True, text=True, timeout=60)
+                if result.returncode != 0:
+                    errors['trade_exec'] += 1
+                    continue
+            except subprocess.TimeoutExpired:
+                errors['trade_exec'] += 1
+                continue
+
+            # Validate EOD closure - parse trades and check final position
+            try:
+                with open(day_trades_file, 'r') as f:
+                    trades = [json.loads(line) for line in f if line.strip()]
+            except:
+                errors['no_trades'] += 1
+                trades = []
+
+            if trades:
+                last_trade = trades[-1]
+                final_bar_index = last_trade.get('bar_index', 0)
+
+                # Verify last trade is near EOD (within last 3 bars of day)
+                expected_last_bar = warmup_blocks * BARS_PER_DAY + day_bars - 1
+                if final_bar_index < expected_last_bar - 3:
+                    print(f"WARNING: Day {trading_date} - Last trade at bar {final_bar_index}, "
+                          f"expected near {expected_last_bar}")
+
+                # Check position is flat (cash only)
+                final_positions = last_trade.get('positions', {})
+                has_open_position = False
+                if final_positions:
+                    for pos in (final_positions.values() if isinstance(final_positions, dict) else final_positions):
+                        if isinstance(pos, dict) and pos.get('quantity', 0) != 0:
+                            has_open_position = True
+                            break
+
+                if has_open_position:
+                    print(f"ERROR: Day {trading_date} - Positions not closed at EOD!")
+                    print(f"  Remaining positions: {final_positions}")
+                    # Force return 0 for this day
+                    daily_returns.append(0.0)
+                else:
+                    # Calculate day's return
+                    starting_equity = 100000.0  # Reset each day
+                    ending_equity = last_trade.get('portfolio_value', starting_equity)
+                    day_return = (ending_equity - starting_equity) / starting_equity
+                    daily_returns.append(day_return)
+
+                    # Store trades for analysis
+                    cumulative_trades.extend(trades)
+            else:
+                daily_returns.append(0.0)  # No trades = 0 return
+
+            # Clean up temporary files
+            for temp_file in [day_signals_file, day_trades_file, day_data_file]:
+                if os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                    except:
+                        pass
+
+        # Calculate MRD (Mean Return per Day)
+        if daily_returns:
+            mrd = np.mean(daily_returns) * 100  # Convert to percentage
+            print(f"✓ ({len(daily_returns)} days, {len(cumulative_trades)} trades)")
+
+            # Sanity check
+            if abs(mrd) > 5.0:  # Flag if > 5% daily return
+                print(f"WARNING: Unrealistic MRD detected: {mrd:.2f}%")
+                print(f"  Daily returns: {[f'{r*100:.2f}%' for r in daily_returns[:5]]}")
+
+            return {
+                'mrd': mrd,
+                'daily_returns': daily_returns,
+                'num_days': len(daily_returns),
+                'total_trades': len(cumulative_trades)
+            }
+        else:
+            print(f"✗ All days failed!")
+            print(f"  Signal gen errors: {errors['signal_gen']}")
+            print(f"  Trade exec errors: {errors['trade_exec']}")
+            print(f"  Parse errors: {errors['no_trades']}")
+            print(f"  EOD errors: {errors['eod_check']}")
+            return {'mrd': -999.0, 'error': 'No valid trading days'}
 
     def phase1_optimize(self) -> Dict:
         """
         Phase 1: Optimize primary parameters on full dataset.
 
-        Returns best parameters and MRB.
+        Returns best parameters and MRD.
         """
         print("=" * 80)
         print("PHASE 1: PRIMARY PARAMETER OPTIMIZATION")
@@ -204,7 +288,7 @@ class TwoPhaseOptuna:
             if params['buy_threshold'] <= params['sell_threshold']:
                 return -999.0
 
-            result = self.run_backtest(params, warmup_blocks=10)
+            result = self.run_backtest_with_eod_validation(params, warmup_blocks=10)
 
             mrd = result.get('mrd', result.get('mrb', 0.0))
             mrb = result.get('mrb', 0.0)
@@ -223,23 +307,23 @@ class TwoPhaseOptuna:
         elapsed = time.time() - start_time
 
         best_params = study.best_params
-        best_mrb = study.best_value
+        best_mrd = study.best_value
 
         print()
         print(f"✓ Phase 1 Complete in {elapsed:.1f}s ({elapsed/60:.1f} min)")
-        print(f"✓ Best MRB: {best_mrb:.4f}%")
+        print(f"✓ Best MRD: {best_mrd:.4f}%")
         print(f"✓ Best params:")
         for key, value in best_params.items():
             print(f"    {key:25s} = {value}")
         print()
 
-        return best_params, best_mrb
+        return best_params, best_mrd
 
     def phase2_optimize(self, phase1_params: Dict) -> Dict:
         """
         Phase 2: Optimize secondary parameters using Phase 1 best params.
 
-        Returns best parameters and MRB.
+        Returns best parameters and MRD.
         """
         print("=" * 80)
         print("PHASE 2: SECONDARY PARAMETER OPTIMIZATION")
@@ -278,7 +362,7 @@ class TwoPhaseOptuna:
                 'regularization': trial.suggest_float('regularization', 0.0, 0.10, step=0.005)
             }
 
-            result = self.run_backtest(params, warmup_blocks=10)
+            result = self.run_backtest_with_eod_validation(params, warmup_blocks=10)
 
             mrd = result.get('mrd', result.get('mrb', 0.0))
             mrb = result.get('mrb', 0.0)
@@ -313,7 +397,7 @@ class TwoPhaseOptuna:
 
         return best_params, best_mrd
 
-    def save_best_params(self, params: Dict, mrb: float, output_file: str):
+    def save_best_params(self, params: Dict, mrd: float, output_file: str):
         """Save best parameters to JSON file for live trading."""
         output = {
             "last_updated": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -322,7 +406,7 @@ class TwoPhaseOptuna:
             "data_used": os.path.basename(self.data_file),
             "n_trials_phase1": self.n_trials_phase1,
             "n_trials_phase2": self.n_trials_phase2,
-            "best_mrb": round(mrb, 4),
+            "best_mrd": round(mrd, 4),
             "parameters": {
                 "buy_threshold": params['buy_threshold'],
                 "sell_threshold": params['sell_threshold'],
@@ -349,13 +433,13 @@ class TwoPhaseOptuna:
         total_start = time.time()
 
         # Phase 1: Primary parameters
-        phase1_params, phase1_mrb = self.phase1_optimize()
+        phase1_params, phase1_mrd = self.phase1_optimize()
 
         # Phase 2: Secondary parameters
-        final_params, final_mrb = self.phase2_optimize(phase1_params)
+        final_params, final_mrd = self.phase2_optimize(phase1_params)
 
         # Save to output file
-        self.save_best_params(final_params, final_mrb, output_file)
+        self.save_best_params(final_params, final_mrd, output_file)
 
         total_elapsed = time.time() - total_start
 
@@ -363,13 +447,181 @@ class TwoPhaseOptuna:
         print("2-PHASE OPTIMIZATION COMPLETE")
         print("=" * 80)
         print(f"Total time: {total_elapsed/60:.1f} minutes")
-        print(f"Phase 1 MRB: {phase1_mrb:.4f}%")
-        print(f"Phase 2 MRB: {final_mrb:.4f}%")
-        print(f"Improvement: {(final_mrb - phase1_mrb):.4f}%")
+        print(f"Phase 1 MRD: {phase1_mrd:.4f}%")
+        print(f"Phase 2 MRD: {final_mrd:.4f}%")
+        print(f"Improvement: {(final_mrd - phase1_mrd):.4f}%")
         print(f"Parameters saved to: {output_file}")
         print("=" * 80)
 
         return final_params
+
+
+class MarketRegimeDetector:
+    """Detect market regime for adaptive parameter ranges"""
+
+    def __init__(self, lookback_periods: int = 20):
+        self.lookback_periods = lookback_periods
+
+    def detect_regime(self, data: pd.DataFrame) -> str:
+        """Detect current market regime based on recent data"""
+
+        # Calculate recent volatility (20-bar rolling std of returns)
+        data_copy = data.copy()
+        data_copy['returns'] = data_copy['close'].pct_change()
+        recent_vol = data_copy['returns'].tail(self.lookback_periods).std()
+
+        # Calculate trend strength (linear regression slope)
+        recent_prices = data_copy['close'].tail(self.lookback_periods).values
+        x = np.arange(len(recent_prices))
+        slope, _ = np.polyfit(x, recent_prices, 1)
+        normalized_slope = slope / np.mean(recent_prices)
+
+        # Classify regime
+        if recent_vol > 0.02:
+            return "HIGH_VOLATILITY"
+        elif abs(normalized_slope) > 0.001:
+            return "TRENDING"
+        else:
+            return "CHOPPY"
+
+    def get_adaptive_ranges(self, regime: str) -> Dict:
+        """Get parameter ranges based on market regime"""
+
+        if regime == "HIGH_VOLATILITY":
+            # Require 0.08 gap: buy_min=0.53, sell_max=0.45 → gap=0.08
+            return {
+                'buy_threshold': (0.53, 0.70),
+                'sell_threshold': (0.30, 0.45),
+                'ewrls_lambda': (0.980, 0.995),  # Faster adaptation
+                'bb_amplification_factor': (0.05, 0.30),
+                'bb_period': (10, 30),  # Shorter periods
+                'bb_std_dev': (1.5, 3.0),
+                'regularization': (0.01, 0.10)
+            }
+        elif regime == "TRENDING":
+            # Require 0.04 gap: buy_min=0.52, sell_max=0.48 → gap=0.04
+            return {
+                'buy_threshold': (0.52, 0.62),
+                'sell_threshold': (0.38, 0.48),
+                'ewrls_lambda': (0.990, 0.999),  # Slower adaptation
+                'bb_amplification_factor': (0.00, 0.15),
+                'bb_period': (20, 40),
+                'bb_std_dev': (2.0, 2.5),
+                'regularization': (0.00, 0.05)
+            }
+        else:  # CHOPPY
+            # Require 0.04 gap: buy_min=0.52, sell_max=0.48 → gap=0.04
+            return {
+                'buy_threshold': (0.52, 0.60),
+                'sell_threshold': (0.40, 0.48),
+                'ewrls_lambda': (0.985, 0.997),
+                'bb_amplification_factor': (0.10, 0.25),
+                'bb_period': (15, 35),
+                'bb_std_dev': (1.75, 2.5),
+                'regularization': (0.005, 0.08)
+            }
+
+
+class AdaptiveTwoPhaseOptuna(TwoPhaseOptuna):
+    """Enhanced optimizer with adaptive parameter ranges"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.regime_detector = MarketRegimeDetector()
+
+    def phase1_optimize(self) -> Dict:
+        """Phase 1 with adaptive ranges based on market regime"""
+
+        # Detect current market regime
+        current_regime = self.regime_detector.detect_regime(self.df)
+        adaptive_ranges = self.regime_detector.get_adaptive_ranges(current_regime)
+
+        print("=" * 80)
+        print("PHASE 1: ADAPTIVE PRIMARY PARAMETER OPTIMIZATION")
+        print("=" * 80)
+        print(f"Detected Market Regime: {current_regime}")
+        print(f"Adaptive Ranges:")
+        for param, range_val in adaptive_ranges.items():
+            if param in ['buy_threshold', 'sell_threshold', 'ewrls_lambda', 'bb_amplification_factor']:
+                print(f"  {param:25s}: {range_val}")
+        print()
+
+        def objective(trial):
+            # Use adaptive ranges
+            params = {
+                'buy_threshold': trial.suggest_float(
+                    'buy_threshold',
+                    adaptive_ranges['buy_threshold'][0],
+                    adaptive_ranges['buy_threshold'][1],
+                    step=0.01
+                ),
+                'sell_threshold': trial.suggest_float(
+                    'sell_threshold',
+                    adaptive_ranges['sell_threshold'][0],
+                    adaptive_ranges['sell_threshold'][1],
+                    step=0.01
+                ),
+                'ewrls_lambda': trial.suggest_float(
+                    'ewrls_lambda',
+                    adaptive_ranges['ewrls_lambda'][0],
+                    adaptive_ranges['ewrls_lambda'][1],
+                    step=0.001
+                ),
+                'bb_amplification_factor': trial.suggest_float(
+                    'bb_amplification_factor',
+                    adaptive_ranges['bb_amplification_factor'][0],
+                    adaptive_ranges['bb_amplification_factor'][1],
+                    step=0.01
+                )
+            }
+
+            # Ensure asymmetric thresholds with regime-specific gap
+            min_gap = 0.08 if current_regime == "HIGH_VOLATILITY" else 0.04
+            if params['buy_threshold'] - params['sell_threshold'] < min_gap:
+                return -999.0
+
+            # Use EOD-enforced backtest
+            result = self.run_backtest_with_eod_validation(params, warmup_blocks=10)
+
+            mrd = result.get('mrd', -999.0)
+
+            # Penalize extreme MRD values
+            if abs(mrd) > 2.0:  # More than 2% daily is suspicious
+                print(f"  WARNING: Trial {trial.number} has extreme MRD: {mrd:.4f}%")
+                return -999.0
+
+            print(f"  Trial {trial.number:3d}: MRD={mrd:+7.4f}% | "
+                  f"buy={params['buy_threshold']:.2f} sell={params['sell_threshold']:.2f}")
+
+            return mrd
+
+        # Run optimization
+        start_time = time.time()
+        study = optuna.create_study(
+            direction='maximize',
+            sampler=optuna.samplers.TPESampler(seed=42),
+            pruner=optuna.pruners.MedianPruner()  # Add pruning for efficiency
+        )
+        study.optimize(
+            objective,
+            n_trials=self.n_trials_phase1,
+            n_jobs=self.n_jobs,
+            show_progress_bar=True
+        )
+        elapsed = time.time() - start_time
+
+        best_params = study.best_params
+        best_mrd = study.best_value
+
+        print()
+        print(f"✓ Phase 1 Complete in {elapsed:.1f}s ({elapsed/60:.1f} min)")
+        print(f"✓ Best MRD: {best_mrd:.4f}%")
+        print(f"✓ Best params:")
+        for key, value in best_params.items():
+            print(f"    {key:25s} = {value}")
+        print()
+
+        return best_params, best_mrd
 
 
 def main():
@@ -398,8 +650,8 @@ def main():
     print("=" * 80)
     print()
 
-    # Run optimization
-    optimizer = TwoPhaseOptuna(
+    # Run optimization with adaptive regime-aware optimizer
+    optimizer = AdaptiveTwoPhaseOptuna(
         data_file=args.data,
         build_dir=str(build_dir),
         output_dir=str(output_dir),

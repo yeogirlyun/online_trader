@@ -559,7 +559,16 @@ try:
 except Exception as e:
     print(f'ERROR: Failed to fetch morning bars: {e}', file=sys.stderr)
     sys.exit(1)
-" || log_info "⚠️  Failed to fetch morning bars - continuing without"
+"
+                # CRASH FAST: If morning bars fetch fails, EXIT immediately
+                if [ $? -ne 0 ]; then
+                    log_error "❌ FATAL: Failed to fetch morning bars for midday optimization"
+                    log_error "   Cannot proceed with midday optimization without fresh data"
+                    log_error "   Stopping trader and exiting..."
+                    kill -TERM $TRADER_PID 2>/dev/null || true
+                    kill -TERM $BRIDGE_PID 2>/dev/null || true
+                    exit 1
+                fi
 
                 # Append morning bars to warmup file for seamless continuation
                 if [ -f "$morning_bars_file" ]; then
@@ -580,13 +589,17 @@ except Exception as e:
                     --n-trials-phase2 "$midday_trials" \
                     --n-jobs 4
 
-                if [ $? -eq 0 ]; then
-                    log_info "✓ Midday optimization complete"
-                    cp "$BEST_PARAMS_FILE" "data/tmp/midday_selected_params.json"
-                    log_info "✓ New parameters deployed"
-                else
-                    log_info "⚠️  Midday optimization failed - keeping current params"
+                # CRASH FAST: Midday optimization must succeed
+                if [ $? -ne 0 ]; then
+                    log_error "❌ FATAL: Midday optimization failed"
+                    log_error "   Cannot restart trading with unoptimized parameters"
+                    log_error "   This is a CRITICAL error - exiting immediately"
+                    exit 1
                 fi
+
+                log_info "✓ Midday optimization complete"
+                cp "$BEST_PARAMS_FILE" "data/tmp/midday_selected_params.json"
+                log_info "✓ New parameters deployed"
 
                 # Restart bridge and trader immediately with new params and seamless warmup
                 log_info "Restarting bridge and trader with optimized params and seamless warmup..."
@@ -969,9 +982,15 @@ print(target_date.strftime('%Y-%m-%d'))
     log_info ""
 
     # Step 1: Optimization (if enabled)
+    # CRASH FAST PRINCIPLE: If optimization fails, STOP IMMEDIATELY
     if [ "$RUN_OPTIMIZATION" = "yes" ]; then
         if ! run_optimization; then
-            log_info "⚠️  Optimization failed - continuing with existing params"
+            log_error "❌ FATAL: Optimization failed"
+            log_error "   Reason: Optimization is REQUIRED before trading"
+            log_error "   Action: Script will EXIT immediately (no fallback)"
+            log_error ""
+            log_error "CRASH FAST PRINCIPLE: Never trade with unoptimized or stale parameters"
+            exit 1
         fi
         log_info ""
     fi

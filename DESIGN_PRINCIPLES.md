@@ -77,12 +77,34 @@ Every operation should be idempotent:
 
 ---
 
-## Core Principle #3: Fail-Safe Defaults
+## Core Principle #3: CRASH FAST, NO FALLBACK ⚠️
 
-- If optimization fails → use existing parameters
-- If data missing → download it automatically
-- If credentials missing → clear error message
-- If outside trading hours → wait or exit gracefully
+**CRITICAL SAFETY PRINCIPLE: If anything is not perfect, NEVER trade**
+
+- If optimization fails → **EXIT IMMEDIATELY** (no fallback to old params)
+- If data fetch fails → **EXIT IMMEDIATELY** (don't continue with stale data)
+- If credentials missing → **EXIT with clear error** (don't attempt workarounds)
+- If outside trading hours → Wait or exit gracefully (safe exception)
+
+### Why NO FALLBACK?
+Trading with unoptimized or stale parameters is **UNSAFE**:
+- Market conditions change constantly
+- Old parameters may cause significant losses
+- Better to miss a trading day than lose money with bad parameters
+
+### Examples of CRASH FAST:
+```bash
+# ✅ CORRECT - Crash immediately on failure
+if ! run_optimization; then
+    log_error "❌ FATAL: Optimization failed"
+    exit 1
+fi
+
+# ❌ WRONG - DO NOT continue with fallback
+if ! run_optimization; then
+    log_info "⚠️  Using old parameters..."  # NEVER DO THIS!
+fi
+```
 
 ---
 

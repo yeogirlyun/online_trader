@@ -80,6 +80,87 @@ class TwoPhaseOptuna:
         print(f"[2PhaseOptuna] Parallel jobs: {self.n_jobs}")
         print()
 
+    def _generate_leveraged_data_for_day(self, spy_file: str, day_idx: int):
+        """Generate SPXL, SH, SDS data from SPY data for a specific day."""
+        import csv
+
+        # Read SPY data
+        spy_bars = []
+        with open(spy_file) as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                spy_bars.append({
+                    'ts_utc': row['ts_utc'],
+                    'ts_nyt_epoch': row['ts_nyt_epoch'],
+                    'open': float(row['open']),
+                    'high': float(row['high']),
+                    'low': float(row['low']),
+                    'close': float(row['close']),
+                    'volume': float(row['volume'])
+                })
+
+        # Initialize starting prices
+        spy_start = spy_bars[0]['close']
+        instruments = {
+            'SPXL': {'leverage': 3.0, 'prev_close': 100.0, 'bars': []},  # 3x bull
+            'SH': {'leverage': -1.0, 'prev_close': 50.0, 'bars': []},   # -1x bear
+            'SDS': {'leverage': -2.0, 'prev_close': 50.0, 'bars': []}   # -2x bear (asymmetric)
+        }
+
+        spy_prev_close = spy_start
+
+        for spy_bar in spy_bars:
+            # Calculate SPY returns
+            spy_open_ret = (spy_bar['open'] - spy_prev_close) / spy_prev_close
+            spy_high_ret = (spy_bar['high'] - spy_prev_close) / spy_prev_close
+            spy_low_ret = (spy_bar['low'] - spy_prev_close) / spy_prev_close
+            spy_close_ret = (spy_bar['close'] - spy_prev_close) / spy_prev_close
+
+            # Generate leveraged bars
+            for symbol, inst in instruments.items():
+                leverage = inst['leverage']
+                prev_close = inst['prev_close']
+
+                # Apply leverage
+                open_price = prev_close * (1 + spy_open_ret * leverage)
+                high_price = prev_close * (1 + spy_high_ret * leverage)
+                low_price = prev_close * (1 + spy_low_ret * leverage)
+                close_price = prev_close * (1 + spy_close_ret * leverage)
+
+                # Ensure valid OHLC
+                if high_price < low_price:
+                    high_price, low_price = low_price, high_price
+                open_price = max(low_price, min(high_price, open_price))
+                close_price = max(low_price, min(high_price, close_price))
+
+                inst['bars'].append({
+                    'ts_utc': spy_bar['ts_utc'],
+                    'ts_nyt_epoch': spy_bar['ts_nyt_epoch'],
+                    'open': open_price,
+                    'high': high_price,
+                    'low': low_price,
+                    'close': close_price,
+                    'volume': spy_bar['volume']
+                })
+
+                inst['prev_close'] = close_price
+
+            spy_prev_close = spy_bar['close']
+
+        # Write output files
+        for symbol, inst in instruments.items():
+            output_file = f"{self.output_dir}/day_{day_idx}_{symbol}_data.csv"
+            with open(output_file, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['ts_utc', 'ts_nyt_epoch', 'open', 'high', 'low', 'close', 'volume'])
+                for bar in inst['bars']:
+                    writer.writerow([
+                        bar['ts_utc'], bar['ts_nyt_epoch'],
+                        f"{bar['open']:.4f}", f"{bar['high']:.4f}",
+                        f"{bar['low']:.4f}", f"{bar['close']:.4f}",
+                        f"{bar['volume']:.1f}"
+                    ])
+
     def run_backtest_with_eod_validation(self, params: Dict, warmup_blocks: int = 10) -> Dict:
         """Run backtest with strict EOD enforcement between blocks."""
 
@@ -140,6 +221,9 @@ class TwoPhaseOptuna:
             warmup_start_idx = max(0, day_data.index[0] - warmup_blocks * BARS_PER_DAY)
             day_with_warmup = self.df.iloc[warmup_start_idx:day_data.index[-1] + 1]
             day_with_warmup.to_csv(day_data_file, index=False)
+
+            # Generate leveraged ETF data for this day (SPXL, SH, SDS)
+            self._generate_leveraged_data_for_day(day_data_file, day_idx)
 
             # Generate cache key for signal lookup
             cache_key = signal_cache.generate_cache_key(
@@ -291,7 +375,13 @@ class TwoPhaseOptuna:
                 daily_returns.append(0.0)  # No trades = 0 return
 
             # Clean up temporary files
-            for temp_file in [day_signals_file, day_trades_file, day_data_file]:
+            temp_files = [
+                day_signals_file, day_trades_file, day_data_file,
+                f"{self.output_dir}/day_{day_idx}_SPXL_data.csv",
+                f"{self.output_dir}/day_{day_idx}_SH_data.csv",
+                f"{self.output_dir}/day_{day_idx}_SDS_data.csv"
+            ]
+            for temp_file in temp_files:
                 if os.path.exists(temp_file):
                     try:
                         os.remove(temp_file)

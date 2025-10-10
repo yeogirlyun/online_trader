@@ -255,38 +255,24 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
             // Don't force cash, but allow PSM to reevaluate
         }
 
-        // Direct state mapping from probability with ASYMMETRIC thresholds
-        // LONG requires higher confidence (>0.55) due to lower win rate
-        // SHORT uses normal thresholds (<0.47) as it has better win rate
+        // USE OPTIMIZED THRESHOLDS - Simple binary model
+        // This allows Optuna to directly control trading behavior
         PositionStateMachine::State target_state;
 
         // Block new position entries after 15:58 ET (EOD close time)
         if (is_eod_close) {
             // Force CASH_ONLY - do not enter any new positions
             target_state = PositionStateMachine::State::CASH_ONLY;
-        } else if (signal.probability >= 0.68) {
-            // Very strong LONG - use 3x leverage
-            target_state = PositionStateMachine::State::TQQQ_ONLY;
-        } else if (signal.probability >= 0.60) {
-            // Strong LONG - use blended (1x + 3x)
-            target_state = PositionStateMachine::State::QQQ_TQQQ;
-        } else if (signal.probability >= 0.55) {
-            // Moderate LONG (ASYMMETRIC: higher threshold for LONG)
+        } else if (signal.probability >= buy_threshold) {
+            // LONG signal (probability >= buy_threshold)
+            // Use base instrument only (conservative, no leverage)
             target_state = PositionStateMachine::State::QQQ_ONLY;
-        } else if (signal.probability >= 0.49) {
-            // Uncertain - stay in cash
-            target_state = PositionStateMachine::State::CASH_ONLY;
-        } else if (signal.probability >= 0.45) {
-            // Moderate SHORT - use -1x
+        } else if (signal.probability <= sell_threshold) {
+            // SHORT signal (probability <= sell_threshold)
+            // Use inverse ETF (conservative, -1x)
             target_state = PositionStateMachine::State::PSQ_ONLY;
-        } else if (signal.probability >= 0.35) {
-            // Strong SHORT - use blended (-1x + -2x)
-            target_state = PositionStateMachine::State::PSQ_SQQQ;
-        } else if (signal.probability < 0.32) {
-            // Very strong SHORT - use -2x only
-            target_state = PositionStateMachine::State::SQQQ_ONLY;
         } else {
-            // Default to cash
+            // NEUTRAL (between thresholds) - stay in cash
             target_state = PositionStateMachine::State::CASH_ONLY;
         }
 

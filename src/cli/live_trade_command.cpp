@@ -42,7 +42,7 @@ static std::atomic<bool> g_shutdown_requested{false};
  *
  * Now loads optimized parameters from midday_selected_params.json if available
  */
-static OnlineEnsembleStrategy::OnlineEnsembleConfig create_v1_config() {
+static OnlineEnsembleStrategy::OnlineEnsembleConfig create_v1_config(bool is_mock = false) {
     OnlineEnsembleStrategy::OnlineEnsembleConfig config;
 
     // Default v1.0 parameters
@@ -50,7 +50,7 @@ static OnlineEnsembleStrategy::OnlineEnsembleConfig create_v1_config() {
     config.sell_threshold = 0.45;
     config.neutral_zone = 0.10;
     config.ewrls_lambda = 0.995;
-    config.warmup_samples = 7800;  // 20 blocks @ 390 bars/block
+    config.warmup_samples = is_mock ? 780 : 7800;  // Mock: 2 blocks, Live: 20 blocks
     config.enable_bb_amplification = true;
     config.bb_amplification_factor = 0.10;
     config.bb_period = 20;
@@ -123,7 +123,13 @@ load_leveraged_prices(const std::string& base_path) {
         std::string line;
         int line_count = 0;
         while (std::getline(file, line)) {
-            if (line.empty()) continue;
+            // Skip empty lines or header-like lines
+            if (line.empty() ||
+                line.find("timestamp") != std::string::npos ||
+                line.find("ts_utc") != std::string::npos ||
+                line.find("ts_nyt_epoch") != std::string::npos) {
+                continue;
+            }
 
             std::istringstream iss(line);
             std::string date_str, ts_str, o, h, l, close_str, v;
@@ -171,7 +177,7 @@ public:
         , log_dir_(log_dir)
         , is_mock_mode_(is_mock_mode)
         , data_file_(data_file)
-        , strategy_(create_v1_config())
+        , strategy_(create_v1_config(is_mock_mode))
         , psm_()
         , current_state_(PositionStateMachine::State::CASH_ONLY)
         , bars_held_(0)
@@ -788,11 +794,20 @@ private:
         std::getline(file, line); // Skip header
 
         while (std::getline(file, line)) {
-            std::istringstream iss(line);
-            std::string ts_str, open_str, high_str, low_str, close_str, volume_str;
+            // Skip empty lines or header-like lines
+            if (line.empty() ||
+                line.find("timestamp") != std::string::npos ||
+                line.find("ts_utc") != std::string::npos ||
+                line.find("ts_nyt_epoch") != std::string::npos) {
+                continue;
+            }
 
-            // CSV format: timestamp,open,high,low,close,volume
-            if (std::getline(iss, ts_str, ',') &&
+            std::istringstream iss(line);
+            std::string ts_utc_str, ts_epoch_str, open_str, high_str, low_str, close_str, volume_str;
+
+            // CSV format: ts_utc,ts_nyt_epoch,open,high,low,close,volume
+            if (std::getline(iss, ts_utc_str, ',') &&
+                std::getline(iss, ts_epoch_str, ',') &&
                 std::getline(iss, open_str, ',') &&
                 std::getline(iss, high_str, ',') &&
                 std::getline(iss, low_str, ',') &&
@@ -800,7 +815,7 @@ private:
                 std::getline(iss, volume_str)) {
 
                 Bar bar;
-                bar.timestamp_ms = std::stoll(ts_str);  // Already in milliseconds
+                bar.timestamp_ms = std::stoll(ts_epoch_str) * 1000ULL;  // Convert seconds to milliseconds
                 bar.open = std::stod(open_str);
                 bar.high = std::stod(high_str);
                 bar.low = std::stod(low_str);

@@ -75,13 +75,13 @@ def extract_session_data(input_file, target_date=None, output_warmup=None, outpu
     warmup_df = warmup_df.drop(['datetime', 'date'], axis=1)
     session_df = session_df.drop(['datetime', 'date'], axis=1)
 
-    # Save files
+    # Save files with headers (required for dashboard script)
     if output_warmup:
-        warmup_df.to_csv(output_warmup, index=False, header=False)
+        warmup_df.to_csv(output_warmup, index=False, header=True)
         print(f"✓ Warmup saved: {output_warmup} ({warmup_bars} bars)")
 
     if output_session:
-        session_df.to_csv(output_session, index=False, header=False)
+        session_df.to_csv(output_session, index=False, header=True)
         print(f"✓ Session saved: {output_session} ({session_bars} bars)")
 
     return output_warmup, output_session, target_date

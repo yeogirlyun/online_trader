@@ -144,20 +144,32 @@ class TradingDashboard:
         """Calculate equity curve from trades"""
         if not self.trades:
             return None
-            
+
         # Create equity curve data
         equity_data = []
         current_equity = self.start_equity
-        
+
         for trade in self.trades:
-            # Extract trade information
-            timestamp = trade.get('timestamp_ms', trade.get('timestamp', trade.get('time', '')))
+            # Extract trade information - handle both C++ string format and Python ms format
+            if 'timestamp' in trade and isinstance(trade['timestamp'], str):
+                # C++ format: "2025-10-07 09:30:00 America/New_York"
+                ts_str = trade['timestamp'].replace(' America/New_York', '')
+                timestamp_dt = pd.to_datetime(ts_str)
+            elif 'timestamp_ms' in trade:
+                # Python format: milliseconds
+                timestamp_dt = pd.to_datetime(trade['timestamp_ms'], unit='ms') - pd.Timedelta(hours=4)
+            else:
+                timestamp_dt = pd.NaT
+
             equity_after = trade.get('portfolio_value', trade.get('equity_after', current_equity))
+            cash_balance = trade.get('cash_balance', trade.get('cash', equity_after))
             pnl = equity_after - current_equity
 
             equity_data.append({
-                'timestamp': timestamp,
+                'timestamp': timestamp_dt,
                 'equity': equity_after,
+                'portfolio_value': equity_after,
+                'cash': cash_balance,
                 'pnl': pnl,
                 'trade_type': trade.get('action', trade.get('side', 'unknown')),
                 'symbol': trade.get('symbol', 'unknown'),
@@ -166,7 +178,7 @@ class TradingDashboard:
             })
 
             current_equity = equity_after
-            
+
         return pd.DataFrame(equity_data)
     
     def _calculate_performance_metrics(self) -> Dict[str, Any]:
@@ -294,12 +306,26 @@ class TradingDashboard:
 
         # Filter market data to trading period only
         if self.trades:
-            first_trade_ts = min(t.get('timestamp_ms', 0) for t in self.trades)
-            last_trade_ts = max(t.get('timestamp_ms', 0) for t in self.trades)
+            # Parse trade timestamps - handle both string and millisecond formats
+            trade_dates = []
+            for t in self.trades:
+                if 'timestamp' in t:
+                    # String format from C++: "2025-10-07 09:30:00 America/New_York"
+                    ts_str = t['timestamp'].replace(' America/New_York', '')
+                    dt = pd.to_datetime(ts_str)
+                    trade_dates.append(dt)
+                elif 'timestamp_ms' in t:
+                    # Millisecond timestamp
+                    dt = pd.to_datetime(t['timestamp_ms'], unit='ms') - pd.Timedelta(hours=4)
+                    trade_dates.append(dt)
 
-            # Convert to datetime for filtering (convert UTC to ET to match market data)
-            first_dt = pd.to_datetime(first_trade_ts, unit='ms') - pd.Timedelta(hours=4)  # UTC to ET
-            last_dt = pd.to_datetime(last_trade_ts, unit='ms') - pd.Timedelta(hours=4)    # UTC to ET
+            if trade_dates:
+                first_dt = min(trade_dates)
+                last_dt = max(trade_dates)
+            else:
+                # No valid timestamps, use all market data
+                first_dt = self.market_data['datetime'].min()
+                last_dt = self.market_data['datetime'].max()
 
             # Ensure market data datetime is also tz-naive
             if hasattr(self.market_data['datetime'], 'dt'):
@@ -372,39 +398,70 @@ class TradingDashboard:
         
         # Add trade markers
         if self.trades:
-            buy_trades = [t for t in self.trades if t.get('action', '').lower() in ['buy', 'long']]
-            sell_trades = [t for t in self.trades if t.get('action', '').lower() in ['sell', 'short']]
-            
+            # Check both 'side' (C++) and 'action' (Python) fields
+            buy_trades = [t for t in self.trades if t.get('side', t.get('action', '')).lower() == 'buy']
+            sell_trades = [t for t in self.trades if t.get('side', t.get('action', '')).lower() == 'sell']
+
             # Buy trades (green triangles) with enhanced info
             if buy_trades:
-                # Convert UTC timestamps to ET to match portfolio curve and market data
-                buy_times = [pd.to_datetime(t.get('timestamp_ms', 0), unit='ms') - pd.Timedelta(hours=4) for t in buy_trades]
-                # Use SPY price for Y-coordinate (where the trade appears on the chart)
-                buy_prices = self._get_base_prices_for_trades(buy_trades, filtered_data)
+                print(f"   Processing {len(buy_trades)} BUY trades for markers...")
+                # Parse timestamps from C++ format
+                buy_times = []
+                for t in buy_trades:
+                    if 'timestamp' in t:
+                        ts_str = t['timestamp'].replace(' America/New_York', '')
+                        buy_times.append(pd.to_datetime(ts_str))
+                    elif 'timestamp_ms' in t:
+                        buy_times.append(pd.to_datetime(t['timestamp_ms'], unit='ms') - pd.Timedelta(hours=4))
+                print(f"   Parsed {len(buy_times)} BUY timestamps")
+
+                # Get SPY price at trade time for Y-coordinate (so all trades appear on chart)
+                buy_spy_prices = []
                 buy_hover = []
                 for t in buy_trades:
-                    signal = self.signals.get(t.get('bar_id'))
+                    # Handle both C++ and Python field names
+                    symbol = t.get('symbol', 'N/A')
+                    price = t.get('filled_avg_price', t.get('price', 0))
+                    quantity = t.get('filled_qty', t.get('quantity', 0))
+                    trade_value = t.get('trade_value', price * quantity)
+                    cash = t.get('cash_balance', 0)
+                    portfolio = t.get('portfolio_value', 0)
+                    trade_pnl = t.get('trade_pnl', 0.0)
+                    reason = t.get('reason', 'N/A')
+                    bar_idx = t.get('bar_index', 'N/A')
+
+                    # Find SPY price at this trade's timestamp for chart positioning
+                    trade_time = buy_times[len(buy_spy_prices)]  # Current trade's timestamp
+                    closest_spy_price = filtered_data[filtered_data['datetime'] == trade_time]['close'].values
+                    if len(closest_spy_price) > 0:
+                        buy_spy_prices.append(closest_spy_price[0])
+                    else:
+                        # Fallback: find nearest time
+                        time_diffs = abs(filtered_data['datetime'] - trade_time)
+                        nearest_idx = time_diffs.idxmin()
+                        buy_spy_prices.append(filtered_data.loc[nearest_idx, 'close'])
+
                     hover_text = (
-                        f"<b>BUY {t.get('symbol', 'N/A')}</b><br>" +
-                        f"Price: ${t.get('price', 0):.2f}<br>" +
-                        f"Quantity: {t.get('quantity', 0):.2f}<br>" +
-                        f"Value: ${t.get('trade_value', 0):,.2f}<br>" +
-                        f"Reason: {t.get('reason', 'N/A')}<br>"
+                        f"<b>BUY {symbol}</b><br>" +
+                        f"Bar: {bar_idx}<br>" +
+                        f"Price: ${price:.2f}<br>" +
+                        f"Qty: {quantity:.0f}<br>" +
+                        f"Value: ${trade_value:,.2f}<br>" +
+                        f"Cash: ${cash:,.2f}<br>" +
+                        f"Portfolio: ${portfolio:,.2f}<br>" +
+                        f"Trade P&L: ${trade_pnl:+.2f}<br>" +
+                        f"Reason: {reason}"
                     )
-                    if signal:
-                        hover_text += (
-                            f"Signal: {signal.get('signal_type', 'N/A')}<br>" +
-                            f"Probability: {signal.get('probability', 0):.3f}<br>" +
-                            f"Ensemble: {signal.get('ensemble_agreement', 0):.2f}<br>"
-                        )
-                    hover_text += f"Portfolio: ${t.get('portfolio_value', 0):,.2f}"
                     buy_hover.append(hover_text)
+                print(f"   Adding {len(buy_spy_prices)} BUY markers to chart")
+                print(f"   BUY times range: {min(buy_times)} to {max(buy_times)}")
+                print(f"   BUY prices range: ${min(buy_spy_prices):.2f} to ${max(buy_spy_prices):.2f}")
                 fig.add_trace(
                     go.Scatter(
                         x=buy_times,
-                        y=buy_prices,
+                        y=buy_spy_prices,
                         mode='markers',
-                        marker=dict(symbol='triangle-up', size=14, color='#26a69a', line=dict(width=1, color='white')),
+                        marker=dict(symbol='triangle-up', size=20, color='#00ff00', line=dict(width=2, color='darkgreen')),
                         name='Buy Trades',
                         text=buy_hover,
                         hovertemplate='%{text}<extra></extra>'
@@ -414,34 +471,64 @@ class TradingDashboard:
             
             # Sell trades (red triangles) with enhanced info
             if sell_trades:
-                # Convert UTC timestamps to ET to match portfolio curve and market data
-                sell_times = [pd.to_datetime(t.get('timestamp_ms', 0), unit='ms') - pd.Timedelta(hours=4) for t in sell_trades]
-                # Use SPY price for Y-coordinate (where the trade appears on the chart)
-                sell_prices = self._get_base_prices_for_trades(sell_trades, filtered_data)
+                print(f"   Processing {len(sell_trades)} SELL trades for markers...")
+                # Parse timestamps from C++ format
+                sell_times = []
+                for t in sell_trades:
+                    if 'timestamp' in t:
+                        ts_str = t['timestamp'].replace(' America/New_York', '')
+                        sell_times.append(pd.to_datetime(ts_str))
+                    elif 'timestamp_ms' in t:
+                        sell_times.append(pd.to_datetime(t['timestamp_ms'], unit='ms') - pd.Timedelta(hours=4))
+                print(f"   Parsed {len(sell_times)} SELL timestamps")
+
+                # Get SPY price at trade time for Y-coordinate (so all trades appear on chart)
+                sell_spy_prices = []
                 sell_hover = []
                 for t in sell_trades:
-                    signal = self.signals.get(t.get('bar_id'))
+                    # Handle both C++ and Python field names
+                    symbol = t.get('symbol', 'N/A')
+                    price = t.get('filled_avg_price', t.get('price', 0))
+                    quantity = t.get('filled_qty', t.get('quantity', 0))
+                    trade_value = t.get('trade_value', price * quantity)
+                    cash = t.get('cash_balance', 0)
+                    portfolio = t.get('portfolio_value', 0)
+                    trade_pnl = t.get('trade_pnl', 0.0)
+                    reason = t.get('reason', 'N/A')
+                    bar_idx = t.get('bar_index', 'N/A')
+
+                    # Find SPY price at this trade's timestamp for chart positioning
+                    trade_time = sell_times[len(sell_spy_prices)]
+                    closest_spy_price = filtered_data[filtered_data['datetime'] == trade_time]['close'].values
+                    if len(closest_spy_price) > 0:
+                        sell_spy_prices.append(closest_spy_price[0])
+                    else:
+                        # Fallback: find nearest time if exact match not found
+                        time_diffs = abs(filtered_data['datetime'] - trade_time)
+                        nearest_idx = time_diffs.idxmin()
+                        sell_spy_prices.append(filtered_data.loc[nearest_idx, 'close'])
+
                     hover_text = (
-                        f"<b>SELL {t.get('symbol', 'N/A')}</b><br>" +
-                        f"Price: ${t.get('price', 0):.2f}<br>" +
-                        f"Quantity: {t.get('quantity', 0):.2f}<br>" +
-                        f"Value: ${t.get('trade_value', 0):,.2f}<br>" +
-                        f"Reason: {t.get('reason', 'N/A')}<br>"
+                        f"<b>SELL {symbol}</b><br>" +
+                        f"Bar: {bar_idx}<br>" +
+                        f"Price: ${price:.2f}<br>" +
+                        f"Qty: {quantity:.0f}<br>" +
+                        f"Value: ${trade_value:,.2f}<br>" +
+                        f"Cash: ${cash:,.2f}<br>" +
+                        f"Portfolio: ${portfolio:,.2f}<br>" +
+                        f"Trade P&L: ${trade_pnl:+.2f}<br>" +
+                        f"Reason: {reason}"
                     )
-                    if signal:
-                        hover_text += (
-                            f"Signal: {signal.get('signal_type', 'N/A')}<br>" +
-                            f"Probability: {signal.get('probability', 0):.3f}<br>" +
-                            f"Ensemble: {signal.get('ensemble_agreement', 0):.2f}<br>"
-                        )
-                    hover_text += f"Portfolio: ${t.get('portfolio_value', 0):,.2f}"
                     sell_hover.append(hover_text)
+                print(f"   Adding {len(sell_spy_prices)} SELL markers to chart")
+                print(f"   SELL times range: {min(sell_times)} to {max(sell_times)}")
+                print(f"   SELL prices range: ${min(sell_spy_prices):.2f} to ${max(sell_spy_prices):.2f}")
                 fig.add_trace(
                     go.Scatter(
                         x=sell_times,
-                        y=sell_prices,
+                        y=sell_spy_prices,
                         mode='markers',
-                        marker=dict(symbol='triangle-down', size=14, color='#ef5350', line=dict(width=1, color='white')),
+                        marker=dict(symbol='triangle-down', size=20, color='#ff0000', line=dict(width=2, color='darkred')),
                         name='Sell Trades',
                         text=sell_hover,
                         hovertemplate='%{text}<extra></extra>'
@@ -452,10 +539,8 @@ class TradingDashboard:
         # Portfolio value chart (row 2)
         if self.equity_curve is not None and not self.equity_curve.empty:
             print(f"   Adding portfolio value line with {len(self.equity_curve)} points")
-            # Convert timestamps from UTC to ET timezone to match market data
-            equity_times = pd.to_datetime(self.equity_curve['timestamp'], unit='ms', errors='coerce')
-            # Assume UTC and convert to ET (America/New_York) - subtract 4 hours for EDT
-            equity_times = equity_times - pd.Timedelta(hours=4)
+            # Timestamps are already parsed correctly in _calculate_equity_curve
+            equity_times = self.equity_curve['timestamp']
             print(f"   Equity curve time range (ET): {equity_times.min()} to {equity_times.max()}")
             print(f"   Equity value range: ${self.equity_curve['equity'].min():,.2f} to ${self.equity_curve['equity'].max():,.2f}")
 
@@ -494,30 +579,22 @@ class TradingDashboard:
                 annotation_position="right"
             )
 
-        # Update layout
+        # Update layout - show all data without scrollbars
         fig.update_layout(
             title={
                 'text': f'OnlineEnsemble Trading Analysis - {len(self.trades)} Trades (RTH Only)',
                 'x': 0.5,
                 'xanchor': 'center'
             },
-            xaxis_rangeslider_visible=True,  # Enable horizontal scrollbar
-            height=1000,
+            xaxis_rangeslider_visible=False,  # Disable horizontal scrollbar
+            height=900,
             showlegend=True,
             template='plotly_white',
-            hovermode='x unified'
+            hovermode='closest'  # Show closest point on hover
         )
 
-        # Set initial x-axis range to show ~4 hours (240 minutes) for better detail
-        # User can scroll horizontally to see all data
-        if len(filtered_data) > 0:
-            first_time = filtered_data['datetime'].iloc[0]
-            # Show first 4 hours (240 minutes) initially
-            initial_range = [
-                first_time,
-                pd.to_datetime(first_time) + pd.Timedelta(hours=4)
-            ]
-            fig.update_xaxes(range=initial_range, row=1, col=1)
+        # Show full trading day (no range restriction)
+        # All data visible without scrolling
 
         # Configure x-axes to hide non-trading hours (removes overnight gaps)
         fig.update_xaxes(
@@ -530,6 +607,14 @@ class TradingDashboard:
         fig.update_yaxes(title_text="Price ($)", row=1, col=1)
         fig.update_yaxes(title_text="Portfolio Value ($)", row=2, col=1)
         fig.update_xaxes(title_text="Date/Time (ET)", row=2, col=1)
+
+        # Format x-axis to show time labels in ET timezone
+        fig.update_xaxes(
+            tickformat='%H:%M',  # Show time as HH:MM
+            dtick=1800000,  # Tick every 30 minutes (in milliseconds)
+            tickangle=0,
+            tickfont=dict(size=10)
+        )
 
         # Set Y-axis range for price chart to focus on actual price range
         if not filtered_data.empty:
@@ -758,15 +843,71 @@ class TradingDashboard:
     <title>Professional Trading Dashboard</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
-        .dashboard { max-width: 1600px; margin: 0 auto; }
-        .chart-container { background: white; margin: 20px 0; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .metrics-summary { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .metric-item { display: inline-block; margin: 10px 20px; text-align: center; }
-        .metric-value { font-size: 24px; font-weight: bold; color: #2c3e50; }
-        .metric-label { font-size: 14px; color: #7f8c8d; }
-        h1 { color: #2c3e50; text-align: center; }
-        h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+        .dashboard { max-width: 100%; margin: 0 auto; }
+        .chart-container { background: white; margin: 20px; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        /* Top header bar - green background with key metrics */
+        .header-metrics {
+            background: linear-gradient(to bottom, #4CAF50 0%, #45a049 100%);
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .header-metric {
+            text-align: center;
+        }
+        .header-metric-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        .header-metric-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .positive { color: #4CAF50; }
+        .negative { color: #f44336; }
+
+        /* End of Day Summary box */
+        .eod-summary {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .eod-summary h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 18px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .eod-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .eod-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+        }
+        .eod-label {
+            color: #666;
+        }
+        .eod-value {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin: 20px; }
 
         /* JP Morgan style trade table */
         .trade-table {
@@ -835,62 +976,81 @@ class TradingDashboard:
             font-size: 11px;
             color: #6c757d;
         }
+        .trade-table .profit {
+            color: #28a745;
+            font-weight: 600;
+        }
+        .trade-table .loss {
+            color: #dc3545;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
     <div class="dashboard">
-        <h1>📊 Professional Trading Dashboard</h1>
         """)
-        
-        # Performance metrics summary
+
+        # Top header bar with key metrics
         if self.performance_metrics:
-            # Build test period string
-            test_period_str = ""
-            start_date = self.performance_metrics.get('start_date')
-            end_date = self.performance_metrics.get('end_date')
-            num_blocks = self.performance_metrics.get('num_blocks', 0)
+            final_value = self.start_equity * (1 + self.performance_metrics.get('total_return', 0) / 100)
+            total_pnl = final_value - self.start_equity
+            roi = self.performance_metrics.get('total_return', 0)
+            win_rate = self.performance_metrics.get('win_rate', 0)
+            max_dd = self.performance_metrics.get('max_drawdown', 0)
 
-            if start_date and end_date:
-                test_period_str = f"<p style='text-align: center; color: #7f8c8d; margin-top: 0;'>Test Period: {start_date} - {end_date}"
-                if num_blocks > 0:
-                    test_period_str += f" ({num_blocks} blocks)"
-                test_period_str += "</p>"
-
-            performance_html = f"""
-        <div class="metrics-summary">
-            <h2>📈 Performance Summary</h2>
-            {test_period_str}
-            <div class="metric-item">
-                <div class="metric-value">{self.performance_metrics.get('mrb', 0):.3f}%</div>
-                <div class="metric-label">MRB</div>
+            header_html = f"""
+        <div class="header-metrics">
+            <div class="header-metric">
+                <div class="header-metric-label">Starting Equity</div>
+                <div class="header-metric-value">${self.start_equity:,.0f}</div>
             </div>
-            <div class="metric-item">
-                <div class="metric-value">{self.performance_metrics.get('total_return', 0):.2f}%</div>
-                <div class="metric-label">Total Return</div>
+            <div class="header-metric">
+                <div class="header-metric-label">Final Value</div>
+                <div class="header-metric-value">${final_value:,.0f}</div>
             </div>
-            <div class="metric-item">
-                <div class="metric-value">{self.performance_metrics.get('max_drawdown', 0):.2f}%</div>
-                <div class="metric-label">Max Drawdown</div>
+            <div class="header-metric">
+                <div class="header-metric-label">Total P&L</div>
+                <div class="header-metric-value">${total_pnl:+,.0f}</div>
             </div>
-            <div class="metric-item">
-                <div class="metric-value">{self.performance_metrics.get('win_rate', 0):.1f}%</div>
-                <div class="metric-label">Win Rate</div>
+            <div class="header-metric">
+                <div class="header-metric-label">ROI</div>
+                <div class="header-metric-value">{roi:+.4f}%</div>
             </div>
-            <div class="metric-item">
-                <div class="metric-value">{self.performance_metrics.get('sharpe_ratio', 0):.2f}</div>
-                <div class="metric-label">Sharpe Ratio</div>
+            <div class="header-metric">
+                <div class="header-metric-label">Win Rate</div>
+                <div class="header-metric-value">{win_rate:.1f}%</div>
             </div>
-            <div class="metric-item">
-                <div class="metric-value">{self.performance_metrics.get('total_trades', 0)}</div>
-                <div class="metric-label">Total Trades</div>
-            </div>
-            <div class="metric-item">
-                <div class="metric-value">{self.performance_metrics.get('num_daily_trades', 0):.1f}</div>
-                <div class="metric-label">Daily Trades</div>
+            <div class="header-metric">
+                <div class="header-metric-label">Max Drawdown</div>
+                <div class="header-metric-value">{max_dd:.2f}%</div>
             </div>
         </div>
             """
-            html_parts.append(performance_html)
+            html_parts.append(header_html)
+
+            # End of Day Summary box
+            final_cash = self.equity_curve['cash'].iloc[-1] if len(self.equity_curve) > 0 else self.start_equity
+            final_portfolio = self.equity_curve['portfolio_value'].iloc[-1] if len(self.equity_curve) > 0 else self.start_equity
+            total_return_pct = ((final_portfolio - self.start_equity) / self.start_equity) * 100
+
+            eod_html = f"""
+        <div class="eod-summary">
+            <h3>📋 End of Day Summary</h3>
+            <div class="eod-row">
+                <span class="eod-label">Final Cash:</span>
+                <span class="eod-value">${final_cash:,.2f}</span>
+            </div>
+            <div class="eod-row">
+                <span class="eod-label">Final Portfolio Value:</span>
+                <span class="eod-value">${final_portfolio:,.2f}</span>
+            </div>
+            <div class="eod-row">
+                <span class="eod-label">Total Return:</span>
+                <span class="eod-value {'positive' if total_return_pct >= 0 else 'negative'}">${total_pnl:+,.2f} ({total_return_pct:+.4f}%)</span>
+            </div>
+        </div>
+            """
+            html_parts.append(eod_html)
         
         # Add charts
         for chart_name, fig in charts.items():
@@ -903,57 +1063,94 @@ class TradingDashboard:
 
         # Add trade statement table (JP Morgan style)
         if self.trades:
-            html_parts.append("""
+            html_parts.append(f"""
         <div class="chart-container">
-            <h2>📋 Trade Statement</h2>
+            <h2>📋 Trade Statement ({len(self.trades)} Trades)</h2>
             <table class="trade-table">
                 <thead>
                     <tr>
-                        <th>Trade Date/Time</th>
+                        <th>#</th>
+                        <th>Bar</th>
+                        <th>Time</th>
                         <th>Symbol</th>
                         <th>Action</th>
-                        <th>Quantity</th>
+                        <th>Qty</th>
                         <th>Price</th>
-                        <th>Trade Value</th>
-                        <th>Cash Balance</th>
-                        <th>Portfolio Value</th>
+                        <th>Value</th>
+                        <th>Cash</th>
+                        <th>Portfolio</th>
+                        <th>Trade P&L</th>
+                        <th>Cum P&L</th>
                         <th>Reason</th>
                     </tr>
                 </thead>
                 <tbody>
             """)
 
-            for trade in self.trades:
-                # Format timestamp
-                ts_ms = trade.get('timestamp_ms', 0)
-                dt = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc)
-                dt_et = dt.astimezone(pytz.timezone('America/New_York'))
-                date_str = dt_et.strftime('%Y-%m-%d')
-                time_str = dt_et.strftime('%H:%M:%S ET')
+            cumulative_pnl = 0.0
+            for idx, trade in enumerate(self.trades, 1):
+                # Format timestamp - handle both formats
+                if 'timestamp' in trade:
+                    # String timestamp from C++ (e.g., "2025-10-07 09:30:00 America/New_York")
+                    ts_str = trade['timestamp']
+                    # Parse the timestamp
+                    try:
+                        # Split off timezone if present
+                        if ' America/New_York' in ts_str:
+                            ts_str = ts_str.replace(' America/New_York', '')
+                        dt_et = datetime.strptime(ts_str, '%Y-%m-%d %H:%M:%S')
+                        date_str = dt_et.strftime('%b %d')
+                        time_str = dt_et.strftime('%H:%M:%S')
+                    except:
+                        date_str = 'N/A'
+                        time_str = 'N/A'
+                elif 'timestamp_ms' in trade:
+                    # Millisecond timestamp
+                    ts_ms = trade['timestamp_ms']
+                    dt = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc)
+                    dt_et = dt.astimezone(pytz.timezone('America/New_York'))
+                    date_str = dt_et.strftime('%b %d')
+                    time_str = dt_et.strftime('%H:%M:%S')
+                else:
+                    date_str = 'N/A'
+                    time_str = 'N/A'
 
-                # Format action with color
-                action = trade.get('action', 'N/A').upper()
+                # Format action with color - handle both 'side' (C++) and 'action' (Python)
+                action = trade.get('side', trade.get('action', 'N/A')).upper()
                 action_class = 'buy' if action == 'BUY' else 'sell'
 
-                # Format values
+                # Format values - handle both C++ and Python formats
                 symbol = trade.get('symbol', 'N/A')
-                quantity = trade.get('quantity', 0)
-                price = trade.get('price', 0)
-                trade_value = trade.get('trade_value', 0)
+                quantity = trade.get('filled_qty', trade.get('quantity', 0))
+                price = trade.get('filled_avg_price', trade.get('price', 0))
+                trade_value = trade.get('trade_value', price * abs(quantity) if price and quantity else 0)
                 cash_balance = trade.get('cash_balance', 0)
                 portfolio_value = trade.get('portfolio_value', 0)
                 reason = trade.get('reason', 'N/A')
+                bar_index = trade.get('bar_index', idx - 1)
+
+                # Calculate trade P&L
+                trade_pnl = trade.get('trade_pnl', 0.0)
+                cumulative_pnl += trade_pnl
+
+                # Format P&L with color
+                trade_pnl_class = 'profit' if trade_pnl >= 0 else 'loss'
+                cum_pnl_class = 'profit' if cumulative_pnl >= 0 else 'loss'
 
                 html_parts.append(f"""
                     <tr>
+                        <td class="number">{idx}</td>
+                        <td class="number">{bar_index}</td>
                         <td>{date_str}<br><span class="time">{time_str}</span></td>
                         <td class="symbol">{symbol}</td>
                         <td class="action-{action_class}">{action}</td>
-                        <td class="number">{quantity:.2f}</td>
-                        <td class="number">${price:.2f}</td>
-                        <td class="number">${trade_value:,.2f}</td>
-                        <td class="number">${cash_balance:,.2f}</td>
-                        <td class="portfolio-value">${portfolio_value:,.2f}</td>
+                        <td class="number">{quantity:.0f}</td>
+                        <td class="number">{price:.2f}</td>
+                        <td class="number">{trade_value:,.2f}</td>
+                        <td class="number">{cash_balance:,.2f}</td>
+                        <td class="portfolio-value">{portfolio_value:,.2f}</td>
+                        <td class="number {trade_pnl_class}">{trade_pnl:+.2f}</td>
+                        <td class="number {cum_pnl_class}">{cumulative_pnl:+.2f}</td>
                         <td class="reason">{reason}</td>
                     </tr>
                 """)

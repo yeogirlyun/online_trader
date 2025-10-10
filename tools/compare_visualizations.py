@@ -44,7 +44,7 @@ def run_new_visualization(tradebook_path: str, output_path: str):
     print("🚀 Running new professional visualization...")
     try:
         cmd = [
-            "python", "tools/professional_trading_dashboard.py",
+            "python", "scripts/professional_trading_dashboard.py",
             "--tradebook", tradebook_path,
             "--data", "data/equities/SPY_RTH_NH.csv",
             "--output", output_path

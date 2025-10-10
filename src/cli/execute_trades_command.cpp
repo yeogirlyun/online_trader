@@ -103,11 +103,16 @@ int ExecuteTradesCommand::execute(const std::vector<std::string>& args) {
     // Auto-detect base symbol (QQQ or SPY) from data file path
     std::cout << "Loading market data for all instruments...\n";
 
-    // Always use data/equities for instrument files (SPY, SH, SDS, SPXL, etc.)
-    std::string instruments_dir = "data/equities";
+    // Extract directory from data path (use same directory for all instrument files)
+    size_t last_slash = data_path.find_last_of("/\\");
+    std::string instruments_dir = (last_slash != std::string::npos)
+        ? data_path.substr(0, last_slash)
+        : "data/equities";  // Fallback if no directory in path
+
+    std::cout << "Using instruments directory: " << instruments_dir << "\n";
 
     // Detect base symbol from filename (QQQ_RTH_NH.csv or SPY_RTH_NH.csv)
-    std::string filename = data_path.substr(data_path.find_last_of("/\\") + 1);
+    std::string filename = data_path.substr(last_slash + 1);
     std::string base_symbol;
     std::vector<std::string> symbols;
 

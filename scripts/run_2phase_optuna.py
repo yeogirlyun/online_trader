@@ -161,6 +161,59 @@ class TwoPhaseOptuna:
                         f"{bar['volume']:.1f}"
                     ])
 
+    def _generate_leveraged_files(self, spy_data: pd.DataFrame, output_dir: str):
+        """Generate SPXL, SH, SDS files from SPY DataFrame with standard RTH_NH naming."""
+        instruments = {
+            'SPXL': {'leverage': 3.0, 'prev_close': 100.0},  # 3x bull
+            'SH': {'leverage': -1.0, 'prev_close': 50.0},   # -1x bear
+            'SDS': {'leverage': -2.0, 'prev_close': 50.0}   # -2x bear
+        }
+
+        spy_data_copy = spy_data.copy().reset_index(drop=True)
+        spy_prev_close = spy_data_copy.iloc[0]['close']
+
+        for symbol, inst in instruments.items():
+            bars = []
+            prev_close = inst['prev_close']
+
+            for _, spy_bar in spy_data_copy.iterrows():
+                # Calculate SPY returns
+                spy_close_ret = (spy_bar['close'] - spy_prev_close) / spy_prev_close
+                spy_open_ret = (spy_bar['open'] - spy_prev_close) / spy_prev_close
+                spy_high_ret = (spy_bar['high'] - spy_prev_close) / spy_prev_close
+                spy_low_ret = (spy_bar['low'] - spy_prev_close) / spy_prev_close
+
+                # Apply leverage
+                leverage = inst['leverage']
+                open_price = prev_close * (1 + spy_open_ret * leverage)
+                high_price = prev_close * (1 + spy_high_ret * leverage)
+                low_price = prev_close * (1 + spy_low_ret * leverage)
+                close_price = prev_close * (1 + spy_close_ret * leverage)
+
+                # Ensure valid OHLC
+                if high_price < low_price:
+                    high_price, low_price = low_price, high_price
+                open_price = max(low_price, min(high_price, open_price))
+                close_price = max(low_price, min(high_price, close_price))
+
+                bars.append({
+                    'ts_utc': spy_bar['ts_utc'],
+                    'ts_nyt_epoch': spy_bar['ts_nyt_epoch'],
+                    'open': open_price,
+                    'high': high_price,
+                    'low': low_price,
+                    'close': close_price,
+                    'volume': spy_bar['volume']
+                })
+
+                prev_close = close_price
+                spy_prev_close = spy_bar['close']
+
+            # Write to file with standard RTH_NH naming
+            output_file = f"{output_dir}/{symbol}_RTH_NH.csv"
+            df = pd.DataFrame(bars)
+            df.to_csv(output_file, index=False)
+
     def run_backtest_with_eod_validation(self, params: Dict, warmup_blocks: int = 10) -> Dict:
         """Run backtest with continuous file (SIMPLIFIED for reliability).
 
@@ -193,8 +246,13 @@ class TwoPhaseOptuna:
 
         # Extract continuous test period
         test_data = self.df.iloc[0:total_bars_needed]
-        test_file = f"{self.output_dir}/test_{TEST_DAYS}days_SPY.csv"
+
+        # Use standard naming convention so execute-trades can find instruments
+        test_file = f"{self.output_dir}/SPY_RTH_NH.csv"
         test_data.to_csv(test_file, index=False)
+
+        # Generate leveraged ETF data files in same directory
+        self._generate_leveraged_files(test_data, self.output_dir)
 
         print(f"  Processing {TEST_DAYS} days continuous (warmup={warmup_blocks} blocks)", end="... ")
 

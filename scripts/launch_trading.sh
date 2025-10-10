@@ -719,19 +719,78 @@ function show_summary() {
     log_info "========================================================================"
 
     local latest_trades=$(ls -t "$LOG_DIR"/trades_*.jsonl 2>/dev/null | head -1)
+    local latest_signals=$(ls -t "$LOG_DIR"/signals_*.jsonl 2>/dev/null | head -1)
 
-    if [ -n "$latest_trades" ] && [ -f "$latest_trades" ]; then
-        local num_trades=$(wc -l < "$latest_trades")
-        log_info "Total trades: $num_trades"
+    if [ -z "$latest_trades" ] || [ ! -f "$latest_trades" ]; then
+        log_error "No trades file found - session may have failed"
+        return 1
+    fi
 
-        if command -v jq &> /dev/null && [ "$num_trades" -gt 0 ]; then
-            log_info "Symbols traded:"
-            jq -r '.symbol' "$latest_trades" 2>/dev/null | sort | uniq -c | awk '{print "  - " $2 ": " $1 " trades"}' || true
-        fi
+    local num_trades=$(wc -l < "$latest_trades")
+    log_info "Total trades: $num_trades"
+
+    if command -v jq &> /dev/null && [ "$num_trades" -gt 0 ]; then
+        log_info "Symbols traded:"
+        jq -r '.symbol' "$latest_trades" 2>/dev/null | sort | uniq -c | awk '{print "  - " $2 ": " $1 " trades"}' || true
     fi
 
     log_info ""
     log_info "Dashboard: data/dashboards/latest_${MODE}.html"
+
+    # Run analyze-trades to get MRD and performance metrics
+    if [ "$num_trades" -gt 0 ] && [ -n "$latest_signals" ] && [ -f "$latest_signals" ]; then
+        log_info ""
+        log_info "========================================================================"
+        log_info "Performance Analysis (via analyze-trades)"
+        log_info "========================================================================"
+
+        # Determine market data file
+        local market_data="$DATA_FILE"
+        if [ "$MODE" = "live" ] && [ -f "data/equities/SPY_warmup_latest.csv" ]; then
+            market_data="data/equities/SPY_warmup_latest.csv"
+        fi
+
+        # Run analyze-trades and capture output
+        local analysis_output=$("$CPP_TRADER" analyze-trades \
+            --signals "$latest_signals" \
+            --trades "$latest_trades" \
+            --data "$market_data" \
+            --start-equity 100000 2>&1)
+
+        # Extract and display key metrics
+        if echo "$analysis_output" | grep -q "Mean Return"; then
+            echo "$analysis_output" | grep -E "Mean Return|Total Return|Win Rate|Sharpe|Max Drawdown|Total Trades" | while read line; do
+                log_info "  $line"
+            done
+
+            # Extract MRD specifically and highlight it
+            local mrd=$(echo "$analysis_output" | grep "Mean Return per Day" | awk '{print $NF}' | tr -d '%')
+            if [ -n "$mrd" ]; then
+                log_info ""
+                log_info "🎯 KEY METRIC: MRD = ${mrd}%"
+
+                # Provide context based on MRD
+                local mrd_float=$(echo "$mrd" | sed 's/%//')
+                if (( $(echo "$mrd_float > 0.5" | bc -l) )); then
+                    log_info "   ✅ EXCELLENT - Above 0.5% target!"
+                elif (( $(echo "$mrd_float > 0.3" | bc -l) )); then
+                    log_info "   ✓ GOOD - Above 0.3% baseline"
+                elif (( $(echo "$mrd_float > 0" | bc -l) )); then
+                    log_info "   ⚠️  MARGINAL - Positive but below target"
+                else
+                    log_info "   ❌ POOR - Negative returns"
+                fi
+            fi
+        else
+            log_info "⚠️  Could not extract performance metrics from analyze-trades"
+            log_info "Raw output:"
+            echo "$analysis_output" | head -20
+        fi
+    else
+        log_info "⚠️  Skipping performance analysis (no trades or signals)"
+    fi
+
+    log_info ""
 }
 
 # =============================================================================

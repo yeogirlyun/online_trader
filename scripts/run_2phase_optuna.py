@@ -412,6 +412,24 @@ class TwoPhaseOptuna:
             print(f"  {key:25s} = {value}")
         print()
 
+        # Handle case where Phase 2 is skipped
+        if self.n_trials_phase2 == 0:
+            print("⚠️  Phase 2 skipped (n_trials=0). Using Phase 1 params only.")
+            print()
+            # Return Phase 1 params with default secondary params
+            default_secondary = {
+                'h1_weight': 0.5,
+                'h5_weight': 0.3,
+                'h10_weight': 0.2,
+                'bb_period': 20,
+                'bb_std_dev': 2.0,
+                'bb_proximity': 0.01,
+                'regularization': 0.001
+            }
+            final_params = phase1_params.copy()
+            final_params.update(default_secondary)
+            return final_params, 0.0  # MRD unknown without Phase 2
+
         def objective(trial):
             # Sample 2 weights, compute 3rd to ensure sum = 1.0
             h1_weight = trial.suggest_float('h1_weight', 0.1, 0.6, step=0.05)

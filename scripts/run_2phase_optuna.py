@@ -55,9 +55,10 @@ class TwoPhaseOptuna:
         total_bars = len(full_df)
         total_blocks = total_bars // 391
 
-        # Limit to most recent 100 blocks (~6 months) for optimization speed
+        # Limit to most recent 40 blocks (~2.5 months) for optimization speed
         # Recent data is more relevant and EOD validation is computationally expensive
-        max_blocks = 100
+        # Shorter lookback is more responsive to current market conditions
+        max_blocks = 40
         if total_blocks > max_blocks:
             start_idx = total_bars - (max_blocks * 391)
             self.df = full_df.iloc[start_idx:].reset_index(drop=True)
@@ -167,6 +168,22 @@ class TwoPhaseOptuna:
             except subprocess.TimeoutExpired:
                 errors['signal_gen'] += 1
                 continue
+
+            # Log probability distribution for first day (debugging)
+            if day_idx == 0:
+                try:
+                    with open(day_signals_file, 'r') as f:
+                        probs = [json.loads(line)['probability'] for line in f if line.strip()]
+                    if probs:
+                        import numpy as np
+                        long_count = sum(1 for p in probs if p >= params['buy_threshold'])
+                        short_count = sum(1 for p in probs if p <= params['sell_threshold'])
+                        print(f"  [Day 0] Prob distribution: mean={np.mean(probs):.3f}, "
+                              f"std={np.std(probs):.3f}, "
+                              f"LONG(>={params['buy_threshold']:.2f})={long_count}, "
+                              f"SHORT(<={params['sell_threshold']:.2f})={short_count}")
+                except:
+                    pass  # Don't fail if logging fails
 
             # Execute trades with EOD enforcement
             cmd_execute = [
@@ -510,10 +527,11 @@ class MarketRegimeDetector:
                 'regularization': (0.00, 0.05)
             }
         else:  # CHOPPY
-            # Require 0.04 gap: buy_min=0.52, sell_max=0.48 → gap=0.04
+            # More balanced ranges: buy_min=0.505, sell_max=0.495 → gap=0.01 minimum
+            # Allows tighter spreads around 0.50 while remaining conservative
             return {
-                'buy_threshold': (0.52, 0.60),
-                'sell_threshold': (0.40, 0.48),
+                'buy_threshold': (0.505, 0.55),
+                'sell_threshold': (0.45, 0.495),
                 'ewrls_lambda': (0.985, 0.997),
                 'bb_amplification_factor': (0.10, 0.25),
                 'bb_period': (15, 35),
@@ -576,7 +594,13 @@ class AdaptiveTwoPhaseOptuna(TwoPhaseOptuna):
             }
 
             # Ensure asymmetric thresholds with regime-specific gap
-            min_gap = 0.08 if current_regime == "HIGH_VOLATILITY" else 0.04
+            if current_regime == "HIGH_VOLATILITY":
+                min_gap = 0.08
+            elif current_regime == "CHOPPY":
+                min_gap = 0.01  # Tighter gap for CHOPPY (matches new ranges)
+            else:  # TRENDING
+                min_gap = 0.04
+
             if params['buy_threshold'] - params['sell_threshold'] < min_gap:
                 return -999.0
 
@@ -590,8 +614,18 @@ class AdaptiveTwoPhaseOptuna(TwoPhaseOptuna):
                 print(f"  WARNING: Trial {trial.number} has extreme MRD: {mrd:.4f}%")
                 return -999.0
 
+            # Minimum trade frequency constraint
+            total_trades = result.get('total_trades', 0)
+            test_days = result.get('num_days', 0)
+            if test_days > 0 and total_trades < 5:  # Less than 5 trades in test period
+                print(f"  Trial {trial.number:3d}: MRD={mrd:+7.4f}% | "
+                      f"buy={params['buy_threshold']:.2f} sell={params['sell_threshold']:.2f} | "
+                      f"⚠️  REJECTED: Only {total_trades} trades in {test_days} days")
+                return -999.0
+
             print(f"  Trial {trial.number:3d}: MRD={mrd:+7.4f}% | "
-                  f"buy={params['buy_threshold']:.2f} sell={params['sell_threshold']:.2f}")
+                  f"buy={params['buy_threshold']:.2f} sell={params['sell_threshold']:.2f} | "
+                  f"{total_trades} trades")
 
             return mrd
 

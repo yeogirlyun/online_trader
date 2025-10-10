@@ -436,23 +436,21 @@ private:
             std::cout << "   📂 Open: " << dashboard_file << "\n";
             std::cout << "\n";
 
-            // Send email notification (only for live mode, not mock)
-            if (!is_mock_mode_) {
-                std::cout << "📧 Sending email notification...\n";
+            // Send email notification (works in both live and mock modes)
+            std::cout << "📧 Sending email notification...\n";
 
-                std::string email_cmd = "python3 tools/send_dashboard_email.py "
-                                       "--dashboard " + dashboard_file + " "
-                                       "--trades " + trades_file + " "
-                                       "--recipient yeogirl@gmail.com "
-                                       "> /dev/null 2>&1";
+            std::string email_cmd = "python3 tools/send_dashboard_email.py "
+                                   "--dashboard " + dashboard_file + " "
+                                   "--trades " + trades_file + " "
+                                   "--recipient yeogirl@gmail.com "
+                                   "> /dev/null 2>&1";
 
-                int email_result = system(email_cmd.c_str());
+            int email_result = system(email_cmd.c_str());
 
-                if (email_result == 0) {
-                    std::cout << "✅ Email sent to yeogirl@gmail.com\n";
-                } else {
-                    std::cout << "⚠️  Email sending failed (check GMAIL_APP_PASSWORD)\n";
-                }
+            if (email_result == 0) {
+                std::cout << "✅ Email sent to yeogirl@gmail.com\n";
+            } else {
+                std::cout << "⚠️  Email sending failed (check GMAIL_APP_PASSWORD)\n";
             }
         } else {
             std::cout << "⚠️  Dashboard generation failed (exit code: " << result << ")\n";
@@ -986,8 +984,9 @@ private:
 
         // =====================================================================
         // STEP 4: Periodic Position Reconciliation (NEW - P0-3)
+        // Skip in mock mode - no external broker to drift from
         // =====================================================================
-        if (bar_count_ % 60 == 0) {  // Every 60 bars (60 minutes)
+        if (!is_mock_mode_ && bar_count_ % 60 == 0) {  // Every 60 bars (60 minutes)
             try {
                 auto broker_positions = get_broker_positions();
                 position_book_.reconcile_with_broker(broker_positions);
@@ -1324,8 +1323,11 @@ private:
 
         log_system("✓ All positions closed");
 
-        // Wait a moment for orders to settle
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        // Wait a moment for orders to settle (only in live mode)
+        // In mock mode, skip sleep to avoid deadlock with replay thread
+        if (!is_mock_mode_) {
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
 
         // Step 2: Get current account info
         log_system("💰 Step 2: Fetching account balance from Alpaca...");

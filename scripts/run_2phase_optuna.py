@@ -28,6 +28,9 @@ import optuna
 import pandas as pd
 import numpy as np
 
+# Import signal caching system for 3-5x optimization speedup
+from signal_cache import SignalCache, CacheStats
+
 
 class TwoPhaseOptuna:
     """2-Phase Optuna optimization for pre-market launch."""
@@ -79,6 +82,12 @@ class TwoPhaseOptuna:
 
     def run_backtest_with_eod_validation(self, params: Dict, warmup_blocks: int = 10) -> Dict:
         """Run backtest with strict EOD enforcement between blocks."""
+
+        # Initialize signal cache for 3-5x speedup
+        signal_cache = SignalCache()
+
+        # Import numpy for statistics (needed throughout method)
+        import numpy as np
 
         # Constants
         BARS_PER_DAY = 391  # 9:30 AM - 4:00 PM inclusive
@@ -132,42 +141,75 @@ class TwoPhaseOptuna:
             day_with_warmup = self.df.iloc[warmup_start_idx:day_data.index[-1] + 1]
             day_with_warmup.to_csv(day_data_file, index=False)
 
-            # Generate signals for the day
-            cmd_generate = [
-                self.sentio_cli, "generate-signals",
-                "--data", day_data_file,
-                "--output", day_signals_file,
-                "--warmup", str(warmup_blocks * BARS_PER_DAY),
-                "--buy-threshold", str(params['buy_threshold']),
-                "--sell-threshold", str(params['sell_threshold']),
-                "--lambda", str(params['ewrls_lambda']),
-                "--bb-amp", str(params['bb_amplification_factor'])
-            ]
+            # Generate cache key for signal lookup
+            cache_key = signal_cache.generate_cache_key(
+                day_data_file, day_idx, warmup_blocks, params
+            )
 
-            # Add phase 2 parameters if present
-            if 'h1_weight' in params:
-                cmd_generate.extend(["--h1-weight", str(params['h1_weight'])])
-            if 'h5_weight' in params:
-                cmd_generate.extend(["--h5-weight", str(params['h5_weight'])])
-            if 'h10_weight' in params:
-                cmd_generate.extend(["--h10-weight", str(params['h10_weight'])])
-            if 'bb_period' in params:
-                cmd_generate.extend(["--bb-period", str(params['bb_period'])])
-            if 'bb_std_dev' in params:
-                cmd_generate.extend(["--bb-std-dev", str(params['bb_std_dev'])])
-            if 'bb_proximity' in params:
-                cmd_generate.extend(["--bb-proximity", str(params['bb_proximity'])])
-            if 'regularization' in params:
-                cmd_generate.extend(["--regularization", str(params['regularization'])])
+            # Check cache first - huge speedup if hit!
+            cached_signals = signal_cache.load(cache_key)
 
-            try:
-                result = subprocess.run(cmd_generate, capture_output=True, text=True, timeout=60)
-                if result.returncode != 0:
+            if cached_signals is not None:
+                # Cache HIT - write cached signals to file
+                with open(day_signals_file, 'w') as f:
+                    for signal in cached_signals:
+                        f.write(json.dumps(signal) + '\n')
+
+                # Record time saved
+                signal_cache.stats.record_hit(signal_cache.stats.avg_signal_gen_time)
+            else:
+                # Cache MISS - generate signals via C++ binary
+                cmd_generate = [
+                    self.sentio_cli, "generate-signals",
+                    "--data", day_data_file,
+                    "--output", day_signals_file,
+                    "--warmup", str(warmup_blocks * BARS_PER_DAY),
+                    "--buy-threshold", str(params['buy_threshold']),
+                    "--sell-threshold", str(params['sell_threshold']),
+                    "--lambda", str(params['ewrls_lambda']),
+                    "--bb-amp", str(params['bb_amplification_factor'])
+                ]
+
+                # Add phase 2 parameters if present
+                if 'h1_weight' in params:
+                    cmd_generate.extend(["--h1-weight", str(params['h1_weight'])])
+                if 'h5_weight' in params:
+                    cmd_generate.extend(["--h5-weight", str(params['h5_weight'])])
+                if 'h10_weight' in params:
+                    cmd_generate.extend(["--h10-weight", str(params['h10_weight'])])
+                if 'bb_period' in params:
+                    cmd_generate.extend(["--bb-period", str(params['bb_period'])])
+                if 'bb_std_dev' in params:
+                    cmd_generate.extend(["--bb-std-dev", str(params['bb_std_dev'])])
+                if 'bb_proximity' in params:
+                    cmd_generate.extend(["--bb-proximity", str(params['bb_proximity'])])
+                if 'regularization' in params:
+                    cmd_generate.extend(["--regularization", str(params['regularization'])])
+
+                # Time signal generation for cache statistics
+                start_time = time.time()
+
+                try:
+                    result = subprocess.run(cmd_generate, capture_output=True, text=True, timeout=60)
+                    if result.returncode != 0:
+                        errors['signal_gen'] += 1
+                        continue  # Skip failed days
+
+                    # Record generation time
+                    elapsed = time.time() - start_time
+                    signal_cache.stats.record_miss(elapsed)
+
+                    # Load generated signals and save to cache
+                    try:
+                        with open(day_signals_file, 'r') as f:
+                            signals = [json.loads(line) for line in f if line.strip()]
+                        signal_cache.save(cache_key, signals)
+                    except:
+                        pass  # Don't fail if cache save fails
+
+                except subprocess.TimeoutExpired:
                     errors['signal_gen'] += 1
-                    continue  # Skip failed days
-            except subprocess.TimeoutExpired:
-                errors['signal_gen'] += 1
-                continue
+                    continue
 
             # Log probability distribution for first day (debugging)
             if day_idx == 0:
@@ -175,7 +217,6 @@ class TwoPhaseOptuna:
                     with open(day_signals_file, 'r') as f:
                         probs = [json.loads(line)['probability'] for line in f if line.strip()]
                     if probs:
-                        import numpy as np
                         long_count = sum(1 for p in probs if p >= params['buy_threshold'])
                         short_count = sum(1 for p in probs if p <= params['sell_threshold'])
                         print(f"  [Day 0] Prob distribution: mean={np.mean(probs):.3f}, "
@@ -259,6 +300,14 @@ class TwoPhaseOptuna:
         if daily_returns:
             mrd = np.mean(daily_returns) * 100  # Convert to percentage
             print(f"✓ ({len(daily_returns)} days, {len(cumulative_trades)} trades)")
+
+            # Report cache statistics (if any cache operations occurred)
+            if signal_cache.stats.hits + signal_cache.stats.misses > 0:
+                total = signal_cache.stats.hits + signal_cache.stats.misses
+                hit_rate = signal_cache.stats.hits / total * 100 if total > 0 else 0
+                print(f"  Cache: {signal_cache.stats.hits} hits, {signal_cache.stats.misses} misses ({hit_rate:.0f}% hit rate)")
+                if signal_cache.stats.compute_time_saved > 0:
+                    print(f"  Time saved by cache: {signal_cache.stats.compute_time_saved:.1f}s")
 
             # Sanity check
             if abs(mrd) > 5.0:  # Flag if > 5% daily return

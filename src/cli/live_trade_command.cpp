@@ -2,6 +2,15 @@
 #include "live/alpaca_client.hpp"
 #include "live/polygon_client.hpp"
 #include "live/position_book.h"
+#include "live/broker_client_interface.h"
+#include "live/bar_feed_interface.h"
+#include "live/mock_broker.h"
+#include "live/mock_bar_feed_replay.h"
+#include "live/alpaca_client_adapter.h"
+#include "live/polygon_client_adapter.h"
+#include "live/alpaca_rest_bar_feed.h"
+#include "live/mock_config.h"
+#include "live/state_persistence.h"
 #include "strategy/online_ensemble_strategy.h"
 #include "backend/position_state_machine.h"
 #include "common/time_utils.h"
@@ -17,39 +26,130 @@
 #include <thread>
 #include <ctime>
 #include <optional>
+#include <memory>
+#include <csignal>
+#include <atomic>
 
 namespace sentio {
 namespace cli {
 
+// Global pointer for signal handler (necessary for C-style signal handlers)
+static std::atomic<bool> g_shutdown_requested{false};
+
 /**
  * Create OnlineEnsemble v1.0 configuration with asymmetric thresholds
  * Target: 0.6086% MRB (10.5% monthly, 125% annual)
+ *
+ * Now loads optimized parameters from midday_selected_params.json if available
  */
 static OnlineEnsembleStrategy::OnlineEnsembleConfig create_v1_config() {
     OnlineEnsembleStrategy::OnlineEnsembleConfig config;
 
-    // v1.0 asymmetric thresholds (from optimization)
+    // Default v1.0 parameters
     config.buy_threshold = 0.55;
     config.sell_threshold = 0.45;
     config.neutral_zone = 0.10;
-
-    // EWRLS parameters
     config.ewrls_lambda = 0.995;
-    config.warmup_samples = 3900;  // 10 blocks @ 390 bars/block
-
-    // Enable BB amplification
+    config.warmup_samples = 7800;  // 20 blocks @ 390 bars/block
     config.enable_bb_amplification = true;
     config.bb_amplification_factor = 0.10;
-
-    // Adaptive learning
+    config.bb_period = 20;
+    config.bb_std_dev = 2.0;
+    config.bb_proximity_threshold = 0.30;
+    config.regularization = 0.01;
+    config.horizon_weights = {0.3, 0.5, 0.2};
     config.enable_adaptive_learning = true;
     config.enable_threshold_calibration = true;
-
-    // TEMPORARY: Disable regime detection to test NaN fix
     config.enable_regime_detection = false;
-    config.regime_check_interval = 60;  // Check every 60 bars
+    config.regime_check_interval = 60;
+
+    // Try to load optimized parameters from JSON file
+    std::string json_file = "/Volumes/ExternalSSD/Dev/C++/online_trader/data/tmp/midday_selected_params.json";
+    std::ifstream file(json_file);
+
+    if (file.is_open()) {
+        try {
+            nlohmann::json j;
+            file >> j;
+            file.close();
+
+            // Load phase 1 parameters
+            config.buy_threshold = j.value("buy_threshold", config.buy_threshold);
+            config.sell_threshold = j.value("sell_threshold", config.sell_threshold);
+            config.bb_amplification_factor = j.value("bb_amplification_factor", config.bb_amplification_factor);
+            config.ewrls_lambda = j.value("ewrls_lambda", config.ewrls_lambda);
+
+            // Load phase 2 parameters
+            double h1 = j.value("h1_weight", 0.3);
+            double h5 = j.value("h5_weight", 0.5);
+            double h10 = j.value("h10_weight", 0.2);
+            config.horizon_weights = {h1, h5, h10};
+            config.bb_period = j.value("bb_period", config.bb_period);
+            config.bb_std_dev = j.value("bb_std_dev", config.bb_std_dev);
+            config.bb_proximity_threshold = j.value("bb_proximity", config.bb_proximity_threshold);
+            config.regularization = j.value("regularization", config.regularization);
+
+            std::cout << "✅ Loaded optimized parameters from: " << json_file << std::endl;
+            std::cout << "   Source: " << j.value("source", "unknown") << std::endl;
+            std::cout << "   MRB target: " << j.value("expected_mrb", 0.0) << "%" << std::endl;
+        } catch (const std::exception& e) {
+            std::cerr << "⚠️  Failed to load optimized parameters: " << e.what() << std::endl;
+            std::cerr << "   Using default configuration" << std::endl;
+        }
+    }
 
     return config;
+}
+
+/**
+ * Load leveraged ETF prices from CSV files for mock mode
+ * Returns: map[timestamp_sec][symbol] -> close_price
+ */
+static std::unordered_map<uint64_t, std::unordered_map<std::string, double>>
+load_leveraged_prices(const std::string& base_path) {
+    std::unordered_map<uint64_t, std::unordered_map<std::string, double>> prices;
+
+    std::vector<std::string> symbols = {"SH", "SDS", "SPXL"};
+
+    for (const auto& symbol : symbols) {
+        std::string filepath = base_path + "/" + symbol + "_yesterday.csv";
+        std::ifstream file(filepath);
+
+        if (!file.is_open()) {
+            std::cerr << "⚠️  Warning: Could not load " << filepath << std::endl;
+            continue;
+        }
+
+        std::string line;
+        int line_count = 0;
+        while (std::getline(file, line)) {
+            if (line.empty()) continue;
+
+            std::istringstream iss(line);
+            std::string date_str, ts_str, o, h, l, close_str, v;
+
+            if (std::getline(iss, date_str, ',') &&
+                std::getline(iss, ts_str, ',') &&
+                std::getline(iss, o, ',') &&
+                std::getline(iss, h, ',') &&
+                std::getline(iss, l, ',') &&
+                std::getline(iss, close_str, ',') &&
+                std::getline(iss, v)) {
+
+                uint64_t timestamp_sec = std::stoull(ts_str);
+                double close_price = std::stod(close_str);
+
+                prices[timestamp_sec][symbol] = close_price;
+                line_count++;
+            }
+        }
+
+        if (line_count > 0) {
+            std::cout << "✅ Loaded " << line_count << " bars for " << symbol << std::endl;
+        }
+    }
+
+    return prices;
 }
 
 /**
@@ -61,22 +161,26 @@ static OnlineEnsembleStrategy::OnlineEnsembleConfig create_v1_config() {
  */
 class LiveTrader {
 public:
-    LiveTrader(const std::string& alpaca_key,
-               const std::string& alpaca_secret,
-               const std::string& polygon_url,
-               const std::string& polygon_key,
-               const std::string& log_dir)
-        : alpaca_(alpaca_key, alpaca_secret, true /* paper */)
-        , polygon_(polygon_url, polygon_key)
+    LiveTrader(std::unique_ptr<IBrokerClient> broker,
+               std::unique_ptr<IBarFeed> bar_feed,
+               const std::string& log_dir,
+               bool is_mock_mode = false,
+               const std::string& data_file = "")
+        : broker_(std::move(broker))
+        , bar_feed_(std::move(bar_feed))
         , log_dir_(log_dir)
+        , is_mock_mode_(is_mock_mode)
+        , data_file_(data_file)
         , strategy_(create_v1_config())
         , psm_()
         , current_state_(PositionStateMachine::State::CASH_ONLY)
         , bars_held_(0)
         , entry_equity_(100000.0)
+        , previous_portfolio_value_(100000.0)  // Initialize to starting equity
         , et_time_()  // Initialize ET time manager
         , eod_state_(log_dir + "/eod_state.txt")  // Persistent EOD tracking
         , nyse_calendar_()  // NYSE holiday calendar
+        , state_persistence_(std::make_unique<StatePersistence>(log_dir + "/state"))  // State persistence
     {
         // Initialize log files
         init_logs();
@@ -90,35 +194,58 @@ public:
         };
     }
 
+    ~LiveTrader() {
+        // Generate dashboard on exit
+        generate_dashboard();
+    }
+
     void run() {
-        log_system("=== OnlineTrader v1.0 Live Paper Trading Started ===");
+        if (is_mock_mode_) {
+            log_system("=== OnlineTrader v1.0 Mock Trading Started ===");
+            log_system("Mode: MOCK REPLAY (39x speed)");
+        } else {
+            log_system("=== OnlineTrader v1.0 Live Paper Trading Started ===");
+            log_system("Mode: LIVE TRADING");
+        }
         log_system("Instruments: SPY (1x), SPXL (3x), SH (-1x), SDS (-2x)");
         log_system("Trading Hours: 9:30am - 4:00pm ET (Regular Hours Only)");
         log_system("Strategy: OnlineEnsemble EWRLS with Asymmetric Thresholds");
         log_system("");
 
-        // Connect to Alpaca
-        log_system("Connecting to Alpaca Paper Trading...");
-        auto account = alpaca_.get_account();
+        // Connect to broker (Alpaca or Mock)
+        log_system(is_mock_mode_ ? "Initializing Mock Broker..." : "Connecting to Alpaca Paper Trading...");
+        auto account = broker_->get_account();
         if (!account) {
-            log_error("Failed to connect to Alpaca");
+            log_error("Failed to get account");
             return;
         }
-        log_system("✓ Connected - Account: " + account->account_number);
+        log_system("✓ Account ready - ID: " + account->account_number);
         log_system("  Starting Capital: $" + std::to_string(account->portfolio_value));
         entry_equity_ = account->portfolio_value;
 
-        // Connect to Polygon
-        log_system("Connecting to Polygon proxy...");
-        if (!polygon_.connect()) {
-            log_error("Failed to connect to Polygon");
+        // Connect to bar feed (Polygon or Mock)
+        log_system(is_mock_mode_ ? "Loading mock bar feed..." : "Connecting to Polygon proxy...");
+        if (!bar_feed_->connect()) {
+            log_error("Failed to connect to bar feed");
             return;
         }
-        log_system("✓ Connected to Polygon");
+        log_system(is_mock_mode_ ? "✓ Mock bars loaded" : "✓ Connected to Polygon");
+
+        // In mock mode, load leveraged ETF prices
+        if (is_mock_mode_) {
+            log_system("Loading leveraged ETF prices for mock mode...");
+            leveraged_prices_ = load_leveraged_prices("/tmp");
+            if (!leveraged_prices_.empty()) {
+                log_system("✓ Leveraged ETF prices loaded (SH, SDS, SPXL)");
+            } else {
+                log_system("⚠️  Warning: No leveraged ETF prices loaded - using fallback prices");
+            }
+            log_system("");
+        }
 
         // Subscribe to symbols (SPY instruments)
         std::vector<std::string> symbols = {"SPY", "SPXL", "SH", "SDS"};
-        if (!polygon_.subscribe(symbols)) {
+        if (!bar_feed_->subscribe(symbols)) {
             log_error("Failed to subscribe to symbols");
             return;
         }
@@ -138,7 +265,7 @@ public:
         log_system("");
 
         // Start main trading loop
-        polygon_.start([this](const std::string& symbol, const Bar& bar) {
+        bar_feed_->start([this](const std::string& symbol, const Bar& bar) {
             if (symbol == "SPY") {  // Only process on SPY bars (trigger for multi-instrument PSM)
                 on_new_bar(bar);
             }
@@ -147,16 +274,31 @@ public:
         log_system("=== Live trading active - Press Ctrl+C to stop ===");
         log_system("");
 
-        // Keep running
-        while (true) {
-            std::this_thread::sleep_for(std::chrono::seconds(60));
+        // Install signal handlers for graceful shutdown
+        std::signal(SIGINT, [](int) { g_shutdown_requested = true; });
+        std::signal(SIGTERM, [](int) { g_shutdown_requested = true; });
+
+        // Keep running until shutdown requested
+        while (!g_shutdown_requested) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            // Auto-shutdown at market close (4:00 PM ET) after EOD liquidation completes
+            std::string today_et = et_time_.get_current_et_date();
+            if (et_time_.is_market_close_time() && eod_state_.is_eod_complete(today_et)) {
+                log_system("⏰ Market closed and EOD complete - initiating automatic shutdown");
+                g_shutdown_requested = true;
+            }
         }
+
+        log_system("=== Shutdown requested - cleaning up ===");
     }
 
 private:
-    AlpacaClient alpaca_;
-    PolygonClient polygon_;
+    std::unique_ptr<IBrokerClient> broker_;
+    std::unique_ptr<IBarFeed> bar_feed_;
     std::string log_dir_;
+    bool is_mock_mode_;
+    std::string data_file_;  // Path to market data CSV file for dashboard generation
     OnlineEnsembleStrategy strategy_;
     PositionStateMachine psm_;
     std::map<std::string, std::string> symbol_map_;
@@ -166,11 +308,12 @@ private:
     ETTimeManager et_time_;  // Centralized ET time management
     EodStateStore eod_state_;  // Idempotent EOD tracking
     NyseCalendar nyse_calendar_;  // Holiday and half-day calendar
+    std::unique_ptr<StatePersistence> state_persistence_;  // Atomic state persistence
     std::optional<Bar> previous_bar_;  // For bar-to-bar learning
     uint64_t bar_count_{0};
 
-    // Mid-day optimization (12:30 PM ET)
-    std::vector<Bar> morning_bars_;  // Collect bars 9:30-12:30 (180 bars)
+    // Mid-day optimization (15:15 PM ET / 3:15pm)
+    std::vector<Bar> todays_bars_;  // Collect ALL bars from 9:30 onwards
     bool midday_optimization_done_{false};  // Flag to track if optimization ran today
     std::string midday_optimization_date_;  // Date of last optimization (YYYY-MM-DD)
 
@@ -178,6 +321,10 @@ private:
     PositionStateMachine::State current_state_;
     int bars_held_;
     double entry_equity_;
+    double previous_portfolio_value_;  // Track portfolio value before trade for P&L calculation
+
+    // Mock mode: Leveraged ETF prices loaded from CSV
+    std::unordered_map<uint64_t, std::unordered_map<std::string, double>> leveraged_prices_;
 
     // Log file streams
     std::ofstream log_system_;
@@ -185,6 +332,7 @@ private:
     std::ofstream log_trades_;
     std::ofstream log_positions_;
     std::ofstream log_decisions_;
+    std::string session_timestamp_;  // Store timestamp for dashboard generation
 
     // Risk management (v1.0 parameters)
     const double PROFIT_TARGET = 0.02;   // 2%
@@ -196,13 +344,13 @@ private:
         // Create log directory if needed
         system(("mkdir -p " + log_dir_).c_str());
 
-        auto timestamp = get_timestamp();
+        session_timestamp_ = get_timestamp();
 
-        log_system_.open(log_dir_ + "/system_" + timestamp + ".log");
-        log_signals_.open(log_dir_ + "/signals_" + timestamp + ".jsonl");
-        log_trades_.open(log_dir_ + "/trades_" + timestamp + ".jsonl");
-        log_positions_.open(log_dir_ + "/positions_" + timestamp + ".jsonl");
-        log_decisions_.open(log_dir_ + "/decisions_" + timestamp + ".jsonl");
+        log_system_.open(log_dir_ + "/system_" + session_timestamp_ + ".log");
+        log_signals_.open(log_dir_ + "/signals_" + session_timestamp_ + ".jsonl");
+        log_trades_.open(log_dir_ + "/trades_" + session_timestamp_ + ".jsonl");
+        log_positions_.open(log_dir_ + "/positions_" + session_timestamp_ + ".jsonl");
+        log_decisions_.open(log_dir_ + "/decisions_" + session_timestamp_ + ".jsonl");
     }
 
     std::string get_timestamp() const {
@@ -236,9 +384,94 @@ private:
         log_system("ERROR: " + message);
     }
 
+    void generate_dashboard() {
+        // Close log files to ensure all data is flushed
+        log_system_.close();
+        log_signals_.close();
+        log_trades_.close();
+        log_positions_.close();
+        log_decisions_.close();
+
+        std::cout << "\n";
+        std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        std::cout << "📊 Generating Trading Dashboard...\n";
+        std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+
+        // Construct file paths
+        std::string trades_file = log_dir_ + "/trades_" + session_timestamp_ + ".jsonl";
+        std::string signals_file = log_dir_ + "/signals_" + session_timestamp_ + ".jsonl";
+        std::string dashboard_dir = "data/dashboards";
+        std::string dashboard_file = dashboard_dir + "/session_" + session_timestamp_ + ".html";
+
+        // Create dashboard directory
+        system(("mkdir -p " + dashboard_dir).c_str());
+
+        // Build Python command
+        std::string python_cmd = "python3 tools/professional_trading_dashboard.py "
+                                "--tradebook " + trades_file + " "
+                                "--signals " + signals_file + " "
+                                "--output " + dashboard_file + " "
+                                "--start-equity 100000 ";
+
+        // Add data file if available (for candlestick charts and trade markers)
+        if (!data_file_.empty()) {
+            python_cmd += "--data " + data_file_ + " ";
+        }
+
+        python_cmd += "> /dev/null 2>&1";
+
+        std::cout << "  Tradebook: " << trades_file << "\n";
+        std::cout << "  Signals: " << signals_file << "\n";
+        if (!data_file_.empty()) {
+            std::cout << "  Data: " + data_file_ + "\n";
+        }
+        std::cout << "  Output: " << dashboard_file << "\n";
+        std::cout << "\n";
+
+        // Execute Python dashboard generator
+        int result = system(python_cmd.c_str());
+
+        if (result == 0) {
+            std::cout << "✅ Dashboard generated successfully!\n";
+            std::cout << "   📂 Open: " << dashboard_file << "\n";
+            std::cout << "\n";
+
+            // Send email notification (only for live mode, not mock)
+            if (!is_mock_mode_) {
+                std::cout << "📧 Sending email notification...\n";
+
+                std::string email_cmd = "python3 tools/send_dashboard_email.py "
+                                       "--dashboard " + dashboard_file + " "
+                                       "--trades " + trades_file + " "
+                                       "--recipient yeogirl@gmail.com "
+                                       "> /dev/null 2>&1";
+
+                int email_result = system(email_cmd.c_str());
+
+                if (email_result == 0) {
+                    std::cout << "✅ Email sent to yeogirl@gmail.com\n";
+                } else {
+                    std::cout << "⚠️  Email sending failed (check GMAIL_APP_PASSWORD)\n";
+                }
+            }
+        } else {
+            std::cout << "⚠️  Dashboard generation failed (exit code: " << result << ")\n";
+            std::cout << "   You can manually generate it with:\n";
+            std::cout << "   python3 tools/professional_trading_dashboard.py \\\n";
+            std::cout << "     --tradebook " << trades_file << " \\\n";
+            std::cout << "     --signals " << signals_file << " \\\n";
+            std::cout << "     --output " << dashboard_file << "\n";
+        }
+
+        std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        std::cout << "\n";
+    }
+
     void reconcile_startup_positions() {
-        // Get current broker positions and cash
-        auto account = alpaca_.get_account();
+        log_system("=== Startup Position Reconciliation ===");
+
+        // Get current broker state
+        auto account = broker_->get_account();
         if (!account) {
             log_error("Failed to get account info for startup reconciliation");
             return;
@@ -246,10 +479,59 @@ private:
 
         auto broker_positions = get_broker_positions();
 
-        log_system("=== Startup Position Reconciliation ===");
         log_system("  Cash: $" + std::to_string(account->cash));
         log_system("  Portfolio Value: $" + std::to_string(account->portfolio_value));
 
+        // ===================================================================
+        // STEP 1: Try to load persisted state from previous session
+        // ===================================================================
+        if (auto persisted = state_persistence_->load_state()) {
+            log_system("[STATE_PERSIST] ✓ Found persisted state from previous session");
+            log_system("  Session ID: " + persisted->session_id);
+            log_system("  Last save: " + persisted->last_bar_time_str);
+            log_system("  PSM State: " + psm_.state_to_string(persisted->psm_state));
+            log_system("  Bars held: " + std::to_string(persisted->bars_held));
+
+            // Validate positions match broker
+            bool positions_match = validate_positions_match(persisted->positions, broker_positions);
+
+            if (positions_match) {
+                log_system("[STATE_PERSIST] ✓ Positions match broker - restoring exact state");
+
+                // Restore exact state
+                current_state_ = persisted->psm_state;
+                bars_held_ = persisted->bars_held;
+                entry_equity_ = persisted->entry_equity;
+
+                // Calculate bars elapsed since last save
+                if (previous_bar_.has_value()) {
+                    uint64_t bars_elapsed = calculate_bars_since(
+                        persisted->last_bar_timestamp,
+                        previous_bar_->timestamp_ms
+                    );
+                    bars_held_ += bars_elapsed;
+                    log_system("  Adjusted bars held: " + std::to_string(bars_held_) +
+                              " (+" + std::to_string(bars_elapsed) + " bars since save)");
+                }
+
+                // Initialize position book
+                for (const auto& pos : broker_positions) {
+                    position_book_.set_position(pos.symbol, pos.qty, pos.avg_entry_price);
+                }
+
+                log_system("✓ State fully recovered from persistence");
+                log_system("");
+                return;
+            } else {
+                log_system("[STATE_PERSIST] ⚠️  Position mismatch - falling back to broker reconciliation");
+            }
+        } else {
+            log_system("[STATE_PERSIST] No persisted state found - using broker reconciliation");
+        }
+
+        // ===================================================================
+        // STEP 2: Fall back to broker-based reconciliation
+        // ===================================================================
         if (broker_positions.empty()) {
             log_system("  Current Positions: NONE (starting flat)");
             current_state_ = PositionStateMachine::State::CASH_ONLY;
@@ -390,6 +672,99 @@ private:
         return PositionStateMachine::State::CASH_ONLY;
     }
 
+    // =====================================================================
+    // State Persistence Helper Methods
+    // =====================================================================
+
+    /**
+     * Calculate number of 1-minute bars elapsed between two timestamps
+     */
+    uint64_t calculate_bars_since(uint64_t from_ts_ms, uint64_t to_ts_ms) const {
+        if (to_ts_ms <= from_ts_ms) return 0;
+        uint64_t elapsed_ms = to_ts_ms - from_ts_ms;
+        uint64_t elapsed_minutes = elapsed_ms / (60 * 1000);
+        return elapsed_minutes;
+    }
+
+    /**
+     * Validate that persisted positions match broker positions
+     */
+    bool validate_positions_match(
+        const std::vector<StatePersistence::PositionDetail>& persisted,
+        const std::vector<BrokerPosition>& broker) {
+
+        // Quick check: same number of positions
+        if (persisted.size() != broker.size()) {
+            log_system("  Position count mismatch: persisted=" +
+                      std::to_string(persisted.size()) +
+                      " broker=" + std::to_string(broker.size()));
+            return false;
+        }
+
+        // Build maps for easier comparison
+        std::map<std::string, double> persisted_map;
+        for (const auto& p : persisted) {
+            persisted_map[p.symbol] = p.quantity;
+        }
+
+        std::map<std::string, double> broker_map;
+        for (const auto& p : broker) {
+            broker_map[p.symbol] = p.qty;
+        }
+
+        // Check each symbol
+        for (const auto& [symbol, qty] : persisted_map) {
+            if (broker_map.find(symbol) == broker_map.end()) {
+                log_system("  Symbol mismatch: " + symbol + " in persisted but not in broker");
+                return false;
+            }
+            if (std::abs(broker_map[symbol] - qty) > 0.01) {  // Allow tiny floating point difference
+                log_system("  Quantity mismatch for " + symbol + ": persisted=" +
+                          std::to_string(qty) + " broker=" + std::to_string(broker_map[symbol]));
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Persist current trading state to disk
+     */
+    void persist_current_state() {
+        try {
+            StatePersistence::TradingState state;
+            state.psm_state = current_state_;
+            state.bars_held = bars_held_;
+            state.entry_equity = entry_equity_;
+
+            if (previous_bar_.has_value()) {
+                state.last_bar_timestamp = previous_bar_->timestamp_ms;
+                state.last_bar_time_str = format_bar_time(*previous_bar_);
+            }
+
+            // Add current positions
+            auto broker_positions = get_broker_positions();
+            for (const auto& pos : broker_positions) {
+                StatePersistence::PositionDetail detail;
+                detail.symbol = pos.symbol;
+                detail.quantity = pos.qty;
+                detail.avg_entry_price = pos.avg_entry_price;
+                detail.entry_timestamp = previous_bar_ ? previous_bar_->timestamp_ms : 0;
+                state.positions.push_back(detail);
+            }
+
+            state.session_id = session_timestamp_;
+
+            if (!state_persistence_->save_state(state)) {
+                log_system("⚠️  State persistence failed (non-fatal - continuing)");
+            }
+
+        } catch (const std::exception& e) {
+            log_system("⚠️  State persistence error: " + std::string(e.what()));
+        }
+    }
+
     void warmup_strategy() {
         // Load warmup data created by comprehensive_warmup.sh script
         // This file contains: 7864 warmup bars (20 blocks @ 390 bars/block + 64 feature bars) + all of today's bars up to now
@@ -523,8 +898,45 @@ private:
     }
 
     void on_new_bar(const Bar& bar) {
-        auto timestamp = get_timestamp_readable();
         bar_count_++;
+
+        // In mock mode, sync time manager to bar timestamp and update market prices
+        if (is_mock_mode_) {
+            et_time_.set_mock_time(bar.timestamp_ms);
+
+            // Update MockBroker with current market prices
+            auto* mock_broker = dynamic_cast<MockBroker*>(broker_.get());
+            if (mock_broker) {
+                // Update SPY price from bar
+                mock_broker->update_market_price("SPY", bar.close);
+
+                // Update leveraged ETF prices from loaded CSV data
+                uint64_t bar_ts_sec = bar.timestamp_ms / 1000;
+
+                // CRITICAL: Crash fast if no price data found (no silent fallbacks!)
+                if (!leveraged_prices_.count(bar_ts_sec)) {
+                    throw std::runtime_error(
+                        "CRITICAL: No leveraged ETF price data for timestamp " +
+                        std::to_string(bar_ts_sec) + " (bar time: " +
+                        get_timestamp_readable() + ")");
+                }
+
+                const auto& prices_at_ts = leveraged_prices_[bar_ts_sec];
+
+                // Validate all required symbols have prices
+                std::vector<std::string> required_symbols = {"SPXL", "SH", "SDS"};
+                for (const auto& symbol : required_symbols) {
+                    if (!prices_at_ts.count(symbol)) {
+                        throw std::runtime_error(
+                            "CRITICAL: Missing price for " + symbol +
+                            " at timestamp " + std::to_string(bar_ts_sec));
+                    }
+                    mock_broker->update_market_price(symbol, prices_at_ts.at(symbol));
+                }
+            }
+        }
+
+        auto timestamp = get_timestamp_readable();
 
         // Log bar received
         log_system("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -589,6 +1001,13 @@ private:
         }
 
         // =====================================================================
+        // STEP 4.5: Persist State (Every 10 bars for low overhead)
+        // =====================================================================
+        if (bar_count_ % 10 == 0) {
+            persist_current_state();
+        }
+
+        // =====================================================================
         // STEP 5: Check End-of-Day Liquidation (IDEMPOTENT)
         // =====================================================================
         std::string today_et = timestamp.substr(0, 10);  // Extract YYYY-MM-DD from timestamp
@@ -609,33 +1028,22 @@ private:
         }
 
         // =====================================================================
-        // STEP 5.5: Mid-Day Optimization at 12:30 PM ET (NEW)
+        // STEP 5.5: Mid-Day Optimization at 16:05 PM ET (NEW)
         // =====================================================================
         // Reset optimization flag for new trading day
         if (midday_optimization_date_ != today_et) {
             midday_optimization_done_ = false;
             midday_optimization_date_ = today_et;
-            morning_bars_.clear();  // Clear morning bars for new day
+            todays_bars_.clear();  // Clear today's bars for new day
         }
 
-        // Collect morning bars (9:30-12:30) during regular hours
+        // Collect ALL bars during regular hours (9:30-16:00) for optimization
         if (is_regular_hours()) {
-            auto et_tm = et_time_.get_current_et_tm();
-            int hour = et_tm.tm_hour;
-            int minute = et_tm.tm_min;
+            todays_bars_.push_back(bar);
 
-            // Morning session: 9:30 - 12:29 (before 12:30)
-            bool is_morning = (hour == 9 && minute >= 30) ||
-                             (hour >= 10 && hour < 12) ||
-                             (hour == 12 && minute < 30);
-
-            if (is_morning) {
-                morning_bars_.push_back(bar);
-            }
-
-            // Check if it's 12:30 PM ET and optimization hasn't been done yet
+            // Check if it's 15:15 PM ET and optimization hasn't been done yet
             if (et_time_.is_midday_optimization_time() && !midday_optimization_done_) {
-                log_system("🔔 MID-DAY OPTIMIZATION TIME (12:30 PM ET)");
+                log_system("🔔 MID-DAY OPTIMIZATION TIME (15:15 PM ET / 3:15pm)");
 
                 // Liquidate all positions before optimization
                 log_system("Liquidating all positions before optimization...");
@@ -654,11 +1062,17 @@ private:
         }
 
         // =====================================================================
-        // STEP 6: Trading Hours Gate (NEW - only trade during RTH)
+        // STEP 6: Trading Hours Gate (NEW - only trade during RTH, before EOD)
         // =====================================================================
         if (!is_regular_hours()) {
             log_system("⏰ After-hours - learning only, no trading");
             return;  // Learning continues, but no trading
+        }
+
+        // CRITICAL: Block trading after EOD liquidation (3:58 PM - 4:00 PM)
+        if (et_time_.is_eod_liquidation_window()) {
+            log_system("🔴 EOD window active - learning only, no new trades");
+            return;  // Learning continues, but no new positions
         }
 
         log_system("🕐 Regular Trading Hours - processing for signals and trades");
@@ -756,7 +1170,7 @@ private:
         decision.should_trade = false;
 
         // Get current portfolio state
-        auto account = alpaca_.get_account();
+        auto account = broker_->get_account();
         if (!account) {
             decision.reason = "Failed to get account info";
             return decision;
@@ -833,12 +1247,12 @@ private:
     void liquidate_all_positions() {
         log_system("Closing all positions for end of day...");
 
-        if (alpaca_.close_all_positions()) {
+        if (broker_->close_all_positions()) {
             log_system("✓ All positions closed");
             current_state_ = PositionStateMachine::State::CASH_ONLY;
             bars_held_ = 0;
 
-            auto account = alpaca_.get_account();
+            auto account = broker_->get_account();
             if (account) {
                 log_system("Final portfolio value: $" + std::to_string(account->portfolio_value));
                 entry_equity_ = account->portfolio_value;
@@ -860,10 +1274,54 @@ private:
 
         // Step 1: Close all current positions
         log_system("📤 Step 1: Closing current positions...");
-        if (!alpaca_.close_all_positions()) {
+
+        // Get current positions before closing (for logging)
+        auto positions_to_close = broker_->get_positions();
+
+        if (!broker_->close_all_positions()) {
             log_error("❌ Failed to close positions - aborting transition");
             return;
         }
+
+        // Get account info before closing for accurate P&L calculation
+        auto account_before = broker_->get_account();
+        double portfolio_before = account_before ? account_before->portfolio_value : previous_portfolio_value_;
+
+        // Log the close orders
+        if (!positions_to_close.empty()) {
+            for (const auto& pos : positions_to_close) {
+                if (std::abs(pos.quantity) >= 0.001) {
+                    // Create a synthetic Order object for logging
+                    Order close_order;
+                    close_order.symbol = pos.symbol;
+                    close_order.quantity = -pos.quantity;  // Negative to close
+                    close_order.side = (pos.quantity > 0) ? "sell" : "buy";
+                    close_order.type = "market";
+                    close_order.time_in_force = "gtc";
+                    close_order.order_id = "CLOSE-" + pos.symbol;
+                    close_order.status = "filled";
+                    close_order.filled_qty = std::abs(pos.quantity);
+                    close_order.filled_avg_price = pos.current_price;
+
+                    // Calculate realized P&L for this close
+                    double trade_pnl = (pos.quantity > 0) ?
+                        pos.quantity * (pos.current_price - pos.avg_entry_price) :  // Long close
+                        pos.quantity * (pos.avg_entry_price - pos.current_price);   // Short close
+
+                    // Get updated account info
+                    auto account_after = broker_->get_account();
+                    double cash = account_after ? account_after->cash : 0.0;
+                    double portfolio = account_after ? account_after->portfolio_value : portfolio_before;
+
+                    log_trade(close_order, bar_count_, cash, portfolio, trade_pnl, "Close position");
+                    log_system("  🔴 CLOSE " + std::to_string(std::abs(pos.quantity)) + " " + pos.symbol +
+                              " (P&L: $" + std::to_string(trade_pnl) + ")");
+
+                    previous_portfolio_value_ = portfolio;
+                }
+            }
+        }
+
         log_system("✓ All positions closed");
 
         // Wait a moment for orders to settle
@@ -871,7 +1329,7 @@ private:
 
         // Step 2: Get current account info
         log_system("💰 Step 2: Fetching account balance from Alpaca...");
-        auto account = alpaca_.get_account();
+        auto account = broker_->get_account();
         if (!account) {
             log_error("❌ Failed to get account info - aborting transition");
             return;
@@ -906,12 +1364,25 @@ private:
                     log_system("     Symbol: " + symbol);
                     log_system("     Quantity: " + std::to_string(quantity) + " shares");
 
-                    auto order = alpaca_.place_market_order(symbol, quantity, "gtc");
+                    auto order = broker_->place_market_order(symbol, quantity, "gtc");
                     if (order) {
                         log_system("  ✓ Order Confirmed:");
                         log_system("     Order ID: " + order->order_id);
                         log_system("     Status: " + order->status);
-                        log_trade(*order);
+
+                        // Get updated account info for accurate logging
+                        auto account_after = broker_->get_account();
+                        double cash = account_after ? account_after->cash : 0.0;
+                        double portfolio = account_after ? account_after->portfolio_value : previous_portfolio_value_;
+                        double trade_pnl = portfolio - previous_portfolio_value_;  // Portfolio change from this trade
+
+                        // Build reason string from decision
+                        std::string reason = "Enter " + psm_.state_to_string(decision.target_state);
+                        if (decision.profit_target_hit) reason += " (profit target)";
+                        else if (decision.stop_loss_hit) reason += " (stop loss)";
+
+                        log_trade(*order, bar_count_, cash, portfolio, trade_pnl, reason);
+                        previous_portfolio_value_ = portfolio;
                     } else {
                         log_error("  ❌ Failed to place order for " + symbol);
                     }
@@ -941,6 +1412,9 @@ private:
         log_system("  New State: " + psm_.state_to_string(current_state_));
         log_system("  Entry Equity: $" + std::to_string(entry_equity_));
         log_system("");
+
+        // Persist state immediately after transition
+        persist_current_state();
     }
 
     // Calculate position allocations based on PSM state
@@ -994,22 +1468,62 @@ private:
         // Convert dollar allocations to share quantities
         std::map<std::string, double> quantities;
         for (const auto& [symbol, dollar_amount] : allocations) {
-            // Get current price from recent bars
-            auto bars = polygon_.get_recent_bars(symbol, 1);
-            if (!bars.empty() && bars[0].close > 0) {
-                double shares = std::floor(dollar_amount / bars[0].close);
-                if (shares > 0) {
-                    quantities[symbol] = shares;
+            double price = 0.0;
+
+            // In mock mode, use leveraged_prices_ for SH, SDS, SPXL
+            if (is_mock_mode_ && (symbol == "SH" || symbol == "SDS" || symbol == "SPXL")) {
+                // Get current bar timestamp
+                auto spy_bars = bar_feed_->get_recent_bars("SPY", 1);
+                if (spy_bars.empty()) {
+                    throw std::runtime_error("CRITICAL: No SPY bars available for timestamp lookup");
                 }
+
+                uint64_t bar_ts_sec = spy_bars[0].timestamp_ms / 1000;
+
+                // Crash fast if no price data (no silent failures!)
+                if (!leveraged_prices_.count(bar_ts_sec)) {
+                    throw std::runtime_error(
+                        "CRITICAL: No leveraged ETF price data for timestamp " +
+                        std::to_string(bar_ts_sec) + " when calculating " + symbol + " position");
+                }
+
+                if (!leveraged_prices_[bar_ts_sec].count(symbol)) {
+                    throw std::runtime_error(
+                        "CRITICAL: No price for " + symbol + " at timestamp " +
+                        std::to_string(bar_ts_sec));
+                }
+
+                price = leveraged_prices_[bar_ts_sec].at(symbol);
+            } else {
+                // Get price from bar feed (SPY or live mode)
+                auto bars = bar_feed_->get_recent_bars(symbol, 1);
+                if (bars.empty() || bars[0].close <= 0) {
+                    throw std::runtime_error(
+                        "CRITICAL: No valid price for " + symbol + " from bar feed");
+                }
+                price = bars[0].close;
+            }
+
+            // Calculate shares
+            if (price <= 0) {
+                throw std::runtime_error(
+                    "CRITICAL: Invalid price " + std::to_string(price) + " for " + symbol);
+            }
+
+            double shares = std::floor(dollar_amount / price);
+            if (shares > 0) {
+                quantities[symbol] = shares;
             }
         }
 
         return quantities;
     }
 
-    void log_trade(const AlpacaClient::Order& order) {
+    void log_trade(const Order& order, uint64_t bar_index = 0, double cash_balance = 0.0,
+                   double portfolio_value = 0.0, double trade_pnl = 0.0, const std::string& reason = "") {
         nlohmann::json j;
         j["timestamp"] = get_timestamp_readable();
+        j["bar_index"] = bar_index;
         j["order_id"] = order.order_id;
         j["symbol"] = order.symbol;
         j["side"] = order.side;
@@ -1019,6 +1533,12 @@ private:
         j["status"] = order.status;
         j["filled_qty"] = order.filled_qty;
         j["filled_avg_price"] = order.filled_avg_price;
+        j["cash_balance"] = cash_balance;
+        j["portfolio_value"] = portfolio_value;
+        j["trade_pnl"] = trade_pnl;
+        if (!reason.empty()) {
+            j["reason"] = reason;
+        }
 
         log_trades_ << j.dump() << std::endl;
         log_trades_.flush();
@@ -1134,10 +1654,10 @@ private:
     }
 
     void log_portfolio_state() {
-        auto account = alpaca_.get_account();
+        auto account = broker_->get_account();
         if (!account) return;
 
-        auto positions = alpaca_.get_positions();
+        auto positions = broker_->get_positions();
 
         nlohmann::json j;
         j["timestamp"] = get_timestamp_readable();
@@ -1168,7 +1688,7 @@ private:
 
     // NEW: Convert Alpaca positions to BrokerPosition format for reconciliation
     std::vector<BrokerPosition> get_broker_positions() {
-        auto alpaca_positions = alpaca_.get_positions();
+        auto alpaca_positions = broker_->get_positions();
         std::vector<BrokerPosition> broker_positions;
 
         for (const auto& pos : alpaca_positions) {
@@ -1185,13 +1705,14 @@ private:
     }
 
     /**
-     * Save morning bars (9:30-12:30) to CSV for Optuna optimization
+     * Save comprehensive warmup data: historical bars + all of today's bars
+     * This ensures optimization uses ALL available data up to current moment
      */
-    std::string save_morning_bars_to_csv() {
+    std::string save_comprehensive_warmup_to_csv() {
         auto et_tm = et_time_.get_current_et_tm();
         std::string today = format_et_date(et_tm);
 
-        std::string filename = "/Volumes/ExternalSSD/Dev/C++/online_trader/data/tmp/morning_bars_" +
+        std::string filename = "/Volumes/ExternalSSD/Dev/C++/online_trader/data/tmp/comprehensive_warmup_" +
                                today + ".csv";
 
         std::ofstream csv(filename);
@@ -1203,8 +1724,34 @@ private:
         // Write CSV header
         csv << "timestamp,open,high,low,close,volume\n";
 
-        // Write bars
-        for (const auto& bar : morning_bars_) {
+        log_system("Building comprehensive warmup data...");
+
+        // Step 1: Load historical warmup bars (20 blocks = 7800 bars + 64 feature bars)
+        std::string warmup_file = "/Volumes/ExternalSSD/Dev/C++/online_trader/data/equities/SPY_warmup_latest.csv";
+        std::ifstream warmup_csv(warmup_file);
+
+        if (!warmup_csv.is_open()) {
+            log_error("Failed to open historical warmup file: " + warmup_file);
+            log_error("Falling back to today's bars only");
+        } else {
+            std::string line;
+            std::getline(warmup_csv, line);  // Skip header
+
+            int historical_count = 0;
+            while (std::getline(warmup_csv, line)) {
+                // Filter: only include bars BEFORE today (to avoid duplicates)
+                if (line.find(today) == std::string::npos) {
+                    csv << line << "\n";
+                    historical_count++;
+                }
+            }
+            warmup_csv.close();
+
+            log_system("  ✓ Historical bars: " + std::to_string(historical_count));
+        }
+
+        // Step 2: Append all of today's bars collected so far
+        for (const auto& bar : todays_bars_) {
             csv << bar.timestamp_ms << ","
                 << bar.open << ","
                 << bar.high << ","
@@ -1214,8 +1761,10 @@ private:
         }
 
         csv.close();
-        log_system("✓ Morning bars saved: " + filename + " (" +
-                  std::to_string(morning_bars_.size()) + " bars)");
+
+        log_system("  ✓ Today's bars: " + std::to_string(todays_bars_.size()));
+        log_system("✓ Comprehensive warmup saved: " + filename);
+
         return filename;
     }
 
@@ -1225,9 +1774,19 @@ private:
     struct OptimizedParams {
         bool success{false};
         std::string source;
+        // Phase 1 parameters
         double buy_threshold{0.55};
         double sell_threshold{0.45};
+        double bb_amplification_factor{0.10};
         double ewrls_lambda{0.995};
+        // Phase 2 parameters
+        double h1_weight{0.3};
+        double h5_weight{0.5};
+        double h10_weight{0.2};
+        int bb_period{20};
+        double bb_std_dev{2.0};
+        double bb_proximity{0.30};
+        double regularization{0.01};
         double expected_mrb{0.0};
     };
 
@@ -1249,16 +1808,36 @@ private:
 
             params.success = true;
             params.source = j.value("source", "baseline");
+            // Phase 1 parameters
             params.buy_threshold = j.value("buy_threshold", 0.55);
             params.sell_threshold = j.value("sell_threshold", 0.45);
+            params.bb_amplification_factor = j.value("bb_amplification_factor", 0.10);
             params.ewrls_lambda = j.value("ewrls_lambda", 0.995);
+            // Phase 2 parameters
+            params.h1_weight = j.value("h1_weight", 0.3);
+            params.h5_weight = j.value("h5_weight", 0.5);
+            params.h10_weight = j.value("h10_weight", 0.2);
+            params.bb_period = j.value("bb_period", 20);
+            params.bb_std_dev = j.value("bb_std_dev", 2.0);
+            params.bb_proximity = j.value("bb_proximity", 0.30);
+            params.regularization = j.value("regularization", 0.01);
             params.expected_mrb = j.value("expected_mrb", 0.0);
 
             log_system("✓ Loaded optimized parameters from: " + json_file);
             log_system("  Source: " + params.source);
-            log_system("  buy_threshold: " + std::to_string(params.buy_threshold));
-            log_system("  sell_threshold: " + std::to_string(params.sell_threshold));
-            log_system("  ewrls_lambda: " + std::to_string(params.ewrls_lambda));
+            log_system("  Phase 1 Parameters:");
+            log_system("    buy_threshold: " + std::to_string(params.buy_threshold));
+            log_system("    sell_threshold: " + std::to_string(params.sell_threshold));
+            log_system("    bb_amplification_factor: " + std::to_string(params.bb_amplification_factor));
+            log_system("    ewrls_lambda: " + std::to_string(params.ewrls_lambda));
+            log_system("  Phase 2 Parameters:");
+            log_system("    h1_weight: " + std::to_string(params.h1_weight));
+            log_system("    h5_weight: " + std::to_string(params.h5_weight));
+            log_system("    h10_weight: " + std::to_string(params.h10_weight));
+            log_system("    bb_period: " + std::to_string(params.bb_period));
+            log_system("    bb_std_dev: " + std::to_string(params.bb_std_dev));
+            log_system("    bb_proximity: " + std::to_string(params.bb_proximity));
+            log_system("    regularization: " + std::to_string(params.regularization));
             log_system("  Expected MRB: " + std::to_string(params.expected_mrb) + "%");
 
         } catch (const std::exception& e) {
@@ -1277,31 +1856,39 @@ private:
 
         // Create new config with optimized parameters
         auto config = create_v1_config();
+        // Phase 1 parameters
         config.buy_threshold = params.buy_threshold;
         config.sell_threshold = params.sell_threshold;
+        config.bb_amplification_factor = params.bb_amplification_factor;
         config.ewrls_lambda = params.ewrls_lambda;
+        // Phase 2 parameters
+        config.horizon_weights = {params.h1_weight, params.h5_weight, params.h10_weight};
+        config.bb_period = params.bb_period;
+        config.bb_std_dev = params.bb_std_dev;
+        config.bb_proximity_threshold = params.bb_proximity;
+        config.regularization = params.regularization;
 
         // Update strategy
         strategy_.update_config(config);
 
-        log_system("✓ Strategy parameters updated for afternoon session");
+        log_system("✓ Strategy parameters updated with phase 1 + phase 2 optimizations");
     }
 
     /**
-     * Run mid-day optimization at 12:30 PM ET
+     * Run mid-day optimization at 15:15 PM ET (3:15pm)
      */
     void run_midday_optimization() {
         log_system("");
         log_system("════════════════════════════════════════════════");
-        log_system("🔄 MID-DAY OPTIMIZATION TRIGGERED (12:30 PM ET)");
+        log_system("🔄 MID-DAY OPTIMIZATION TRIGGERED (15:15 PM ET / 3:15pm)");
         log_system("════════════════════════════════════════════════");
         log_system("");
 
-        // Step 1: Save morning bars to CSV
-        log_system("Step 1: Saving morning bars to CSV...");
-        std::string morning_data_file = save_morning_bars_to_csv();
-        if (morning_data_file.empty()) {
-            log_error("Failed to save morning bars - continuing with baseline parameters");
+        // Step 1: Save comprehensive warmup data (historical + today's bars)
+        log_system("Step 1: Saving comprehensive warmup data to CSV...");
+        std::string warmup_data_file = save_comprehensive_warmup_to_csv();
+        if (warmup_data_file.empty()) {
+            log_error("Failed to save warmup data - continuing with baseline parameters");
             return;
         }
 
@@ -1310,7 +1897,7 @@ private:
         log_system("  (This will take ~5 minutes for 50 trials)");
 
         std::string cmd = "/Volumes/ExternalSSD/Dev/C++/online_trader/tools/midday_optuna_relaunch.sh \"" +
-                          morning_data_file + "\" 2>&1 | tail -30";
+                          warmup_data_file + "\" 2>&1 | tail -30";
 
         int exit_code = system(cmd.c_str());
 
@@ -1341,65 +1928,122 @@ private:
         log_system("════════════════════════════════════════════════");
         log_system("  Parameters: " + params.source);
         log_system("  Expected MRB: " + std::to_string(params.expected_mrb) + "%");
-        log_system("  Resuming trading at 12:31 PM ET");
+        log_system("  Resuming trading at 14:46 PM ET");
         log_system("════════════════════════════════════════════════");
         log_system("");
     }
 };
 
 int LiveTradeCommand::execute(const std::vector<std::string>& args) {
-    // Read Alpaca credentials from environment (config.env)
-    const char* alpaca_key_env = std::getenv("ALPACA_PAPER_API_KEY");
-    const char* alpaca_secret_env = std::getenv("ALPACA_PAPER_SECRET_KEY");
-
-    if (!alpaca_key_env || !alpaca_secret_env) {
-        std::cerr << "ERROR: ALPACA_PAPER_API_KEY and ALPACA_PAPER_SECRET_KEY must be set" << std::endl;
-        std::cerr << "Run: source config.env" << std::endl;
-        return 1;
-    }
-
-    const std::string ALPACA_KEY = alpaca_key_env;
-    const std::string ALPACA_SECRET = alpaca_secret_env;
-
-    // Polygon API key from config.env
-    const char* polygon_key_env = std::getenv("POLYGON_API_KEY");
-    // Use Alpaca's IEX WebSocket for real-time market data (FREE tier)
-    // IEX provides ~3% of market volume, sufficient for paper trading
-    // Upgrade to SIP ($49/mo) for 100% market coverage in production
-    const std::string ALPACA_MARKET_DATA_URL = "wss://stream.data.alpaca.markets/v2/iex";
-
-    // Polygon key (kept for future use, currently using Alpaca IEX)
-    const std::string POLYGON_KEY = polygon_key_env ? polygon_key_env : "";
-
-    // NOTE: Only switch to LIVE credentials after paper trading success is confirmed!
-    // LIVE credentials would be ALPACA_LIVE_API_KEY / ALPACA_LIVE_SECRET_KEY
+    // Parse command-line flags
+    bool is_mock = has_flag(args, "--mock");
+    std::string mock_data_file = get_arg(args, "--mock-data", "");
+    double mock_speed = std::stod(get_arg(args, "--mock-speed", "39.0"));
 
     // Log directory
-    std::string log_dir = "logs/live_trading";
+    std::string log_dir = is_mock ? "logs/mock_trading" : "logs/live_trading";
 
-    LiveTrader trader(ALPACA_KEY, ALPACA_SECRET, ALPACA_MARKET_DATA_URL, POLYGON_KEY, log_dir);
+    // Create broker and bar feed based on mode
+    std::unique_ptr<IBrokerClient> broker;
+    std::unique_ptr<IBarFeed> bar_feed;
+
+    if (is_mock) {
+        // ================================================================
+        // MOCK MODE - Replay historical data
+        // ================================================================
+        if (mock_data_file.empty()) {
+            std::cerr << "ERROR: --mock-data <file> is required in mock mode\n";
+            std::cerr << "Example: sentio_cli live-trade --mock --mock-data /tmp/SPY_yesterday.csv\n";
+            return 1;
+        }
+
+        std::cout << "🎭 MOCK MODE ENABLED\n";
+        std::cout << "  Data file: " << mock_data_file << "\n";
+        std::cout << "  Speed: " << mock_speed << "x real-time\n";
+        std::cout << "  Logs: " << log_dir << "/\n";
+        std::cout << "\n";
+
+        // Create mock broker
+        auto mock_broker = std::make_unique<MockBroker>(
+            100000.0,  // initial_capital
+            0.0        // commission_per_share (zero for testing)
+        );
+        mock_broker->set_fill_behavior(FillBehavior::IMMEDIATE_FULL);
+        broker = std::move(mock_broker);
+
+        // Create mock bar feed
+        bar_feed = std::make_unique<MockBarFeedReplay>(
+            mock_data_file,
+            mock_speed
+        );
+
+    } else {
+        // ================================================================
+        // LIVE MODE - Real trading with Alpaca + Polygon
+        // ================================================================
+
+        // Read Alpaca credentials from environment
+        const char* alpaca_key_env = std::getenv("ALPACA_PAPER_API_KEY");
+        const char* alpaca_secret_env = std::getenv("ALPACA_PAPER_SECRET_KEY");
+
+        if (!alpaca_key_env || !alpaca_secret_env) {
+            std::cerr << "ERROR: ALPACA_PAPER_API_KEY and ALPACA_PAPER_SECRET_KEY must be set\n";
+            std::cerr << "Run: source config.env\n";
+            return 1;
+        }
+
+        const std::string ALPACA_KEY = alpaca_key_env;
+        const std::string ALPACA_SECRET = alpaca_secret_env;
+
+        // Polygon API key
+        const char* polygon_key_env = std::getenv("POLYGON_API_KEY");
+        const std::string ALPACA_MARKET_DATA_URL = "wss://stream.data.alpaca.markets/v2/iex";
+        const std::string POLYGON_KEY = polygon_key_env ? polygon_key_env : "";
+
+        std::cout << "📈 LIVE MODE ENABLED\n";
+        std::cout << "  Account: " << ALPACA_KEY.substr(0, 8) << "...\n";
+        std::cout << "  Data source: Alpaca WebSocket (via Python bridge)\n";
+        std::cout << "  Logs: " << log_dir << "/\n";
+        std::cout << "\n";
+
+        // Create live broker adapter
+        broker = std::make_unique<AlpacaClientAdapter>(ALPACA_KEY, ALPACA_SECRET, true /* paper */);
+
+        // Create live bar feed adapter (WebSocket via FIFO)
+        bar_feed = std::make_unique<PolygonClientAdapter>(ALPACA_MARKET_DATA_URL, POLYGON_KEY);
+    }
+
+    // Create and run trader (same code path for both modes!)
+    LiveTrader trader(std::move(broker), std::move(bar_feed), log_dir, is_mock, mock_data_file);
     trader.run();
 
     return 0;
 }
 
 void LiveTradeCommand::show_help() const {
-    std::cout << "Usage: sentio_cli live-trade\n\n";
-    std::cout << "Run OnlineTrader v1.0 with paper account\n\n";
+    std::cout << "Usage: sentio_cli live-trade [options]\n\n";
+    std::cout << "Run OnlineTrader v1.0 in live or mock mode\n\n";
+    std::cout << "Options:\n";
+    std::cout << "  --mock              Enable mock trading mode (replay historical data)\n";
+    std::cout << "  --mock-data <file>  CSV file to replay (required with --mock)\n";
+    std::cout << "  --mock-speed <x>    Replay speed multiplier (default: 39.0)\n\n";
     std::cout << "Trading Configuration:\n";
     std::cout << "  Instruments: SPY, SPXL (3x), SH (-1x), SDS (-2x)\n";
     std::cout << "  Hours: 9:30am - 3:58pm ET (regular hours only)\n";
     std::cout << "  Strategy: OnlineEnsemble v1.0 with asymmetric thresholds\n";
-    std::cout << "  Data: Real-time via Alpaca (upgradeable to Polygon WebSocket)\n";
-    std::cout << "  Account: Paper trading (PK3NCBT07OJZJULDJR5V)\n\n";
-    std::cout << "Logs: logs/live_trading/\n";
-    std::cout << "  - system_*.log: Human-readable events\n";
-    std::cout << "  - signals_*.jsonl: Every prediction\n";
-    std::cout << "  - decisions_*.jsonl: Trading decisions\n";
-    std::cout << "  - trades_*.jsonl: Order executions\n";
-    std::cout << "  - positions_*.jsonl: Portfolio snapshots\n\n";
-    std::cout << "Example:\n";
-    std::cout << "  sentio_cli live-trade\n";
+    std::cout << "  Warmup: 7,864 bars (20 blocks + 64 feature bars)\n\n";
+    std::cout << "Logs:\n";
+    std::cout << "  Live:  logs/live_trading/\n";
+    std::cout << "  Mock:  logs/mock_trading/\n";
+    std::cout << "  Files: system_*.log, signals_*.jsonl, trades_*.jsonl, decisions_*.jsonl\n\n";
+    std::cout << "Examples:\n";
+    std::cout << "  # Live trading\n";
+    std::cout << "  sentio_cli live-trade\n\n";
+    std::cout << "  # Mock trading (replay yesterday)\n";
+    std::cout << "  tail -391 data/equities/SPY_RTH_NH.csv > /tmp/SPY_yesterday.csv\n";
+    std::cout << "  sentio_cli live-trade --mock --mock-data /tmp/SPY_yesterday.csv\n\n";
+    std::cout << "  # Mock trading at different speed\n";
+    std::cout << "  sentio_cli live-trade --mock --mock-data yesterday.csv --mock-speed 100.0\n";
 }
 
 } // namespace cli

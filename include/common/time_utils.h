@@ -3,6 +3,7 @@
 #include <chrono>
 #include <string>
 #include <ctime>
+#include <cstdio>
 
 namespace sentio {
 
@@ -85,14 +86,32 @@ std::string to_iso_string(const std::chrono::system_clock::time_point& tp);
  */
 class ETTimeManager {
 public:
-    ETTimeManager() : session_("America/New_York") {}
+    ETTimeManager() : session_("America/New_York"), use_mock_time_(false) {}
+
+    /**
+     * @brief Enable mock time mode (for replay/testing)
+     * @param timestamp_ms Simulated time in milliseconds
+     */
+    void set_mock_time(uint64_t timestamp_ms) {
+        use_mock_time_ = true;
+        mock_time_ = std::chrono::system_clock::time_point(
+            std::chrono::milliseconds(timestamp_ms)
+        );
+    }
+
+    /**
+     * @brief Disable mock time mode (return to wall-clock time)
+     */
+    void disable_mock_time() {
+        use_mock_time_ = false;
+    }
 
     /**
      * @brief Get current ET time as formatted string
      * @return "YYYY-MM-DD HH:MM:SS ET"
      */
     std::string get_current_et_string() const {
-        return session_.to_local_string(now());
+        return session_.to_local_string(get_time());
     }
 
     /**
@@ -100,30 +119,57 @@ public:
      * @return struct tm in ET timezone
      */
     std::tm get_current_et_tm() const {
-        return session_.to_local_time(now());
+        return session_.to_local_time(get_time());
+    }
+
+    /**
+     * @brief Get current ET date as string (YYYY-MM-DD format)
+     * @return Date string in format "2025-10-09"
+     */
+    std::string get_current_et_date() const {
+        auto et_tm = get_current_et_tm();
+        char buffer[11];  // "YYYY-MM-DD\0"
+        std::snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d",
+                     et_tm.tm_year + 1900,
+                     et_tm.tm_mon + 1,
+                     et_tm.tm_mday);
+        return std::string(buffer);
     }
 
     /**
      * @brief Check if current time is during regular trading hours (9:30 AM - 4:00 PM ET)
      */
     bool is_regular_hours() const {
-        return session_.is_regular_hours(now()) && session_.is_trading_day(now());
+        return session_.is_regular_hours(get_time()) && session_.is_trading_day(get_time());
     }
 
     /**
-     * @brief Check if current time is in EOD liquidation window (3:55 PM - 4:00 PM ET)
-     * Uses a 5-minute window instead of exact time to ensure liquidation happens
+     * @brief Check if current time is in EOD liquidation window (3:58 PM - 4:00 PM ET)
+     * Uses a 2-minute window to liquidate positions before market close
      */
     bool is_eod_liquidation_window() const {
         auto et_tm = get_current_et_tm();
         int hour = et_tm.tm_hour;
         int minute = et_tm.tm_min;
 
-        // EOD window: 3:55 PM - 4:00 PM ET
-        if (hour == 15 && minute >= 55) return true;  // 3:55-3:59 PM
+        // EOD window: 3:58 PM - 4:00 PM ET
+        if (hour == 15 && minute >= 58) return true;  // 3:58-3:59 PM
         if (hour == 16 && minute == 0) return true;   // 4:00 PM exactly
 
         return false;
+    }
+
+    /**
+     * @brief Check if current time is mid-day optimization window (15:15 PM ET exactly)
+     * Used for adaptive parameter tuning based on comprehensive data (historical + today's bars)
+     */
+    bool is_midday_optimization_time() const {
+        auto et_tm = get_current_et_tm();
+        int hour = et_tm.tm_hour;
+        int minute = et_tm.tm_min;
+
+        // Mid-day optimization: 15:15 PM ET (3:15pm) - during trading hours
+        return (hour == 15 && minute == 15);
     }
 
     /**
@@ -143,6 +189,19 @@ public:
     }
 
     /**
+     * @brief Check if market has closed (>= 4:00 PM ET)
+     * Used to trigger automatic shutdown after EOD liquidation
+     */
+    bool is_market_close_time() const {
+        auto et_tm = get_current_et_tm();
+        int hour = et_tm.tm_hour;
+        int minute = et_tm.tm_min;
+
+        // Market closes at 4:00 PM ET - shutdown at 4:00 PM or later
+        return (hour >= 16);
+    }
+
+    /**
      * @brief Get minutes since midnight ET
      */
     int get_et_minutes_since_midnight() const {
@@ -156,7 +215,16 @@ public:
     const TradingSession& session() const { return session_; }
 
 private:
+    /**
+     * @brief Get current time (mock or wall-clock)
+     */
+    std::chrono::system_clock::time_point get_time() const {
+        return use_mock_time_ ? mock_time_ : now();
+    }
+
     TradingSession session_;
+    bool use_mock_time_;
+    std::chrono::system_clock::time_point mock_time_;
 };
 
 /**

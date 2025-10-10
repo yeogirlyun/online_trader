@@ -1,0 +1,23 @@
+{
+  "last_updated": "2025-10-10T08:09:17Z",
+  "optimization_source": "2phase_optuna_premarket",
+  "optimization_date": "2025-10-10",
+  "data_used": "SPY_RTH_NH_5years.csv",
+  "n_trials_phase1": 10,
+  "n_trials_phase2": 0,
+  "best_mrd": 0.0,
+  "parameters": {
+    "buy_threshold": 0.511,
+    "sell_threshold": 0.47,
+    "ewrls_lambda": 0.984,
+    "bb_amplification_factor": 0.24,
+    "h1_weight": 0.5,
+    "h5_weight": 0.3,
+    "h10_weight": 0.2,
+    "bb_period": 20,
+    "bb_std_dev": 2.0,
+    "bb_proximity": 0.01,
+    "regularization": 0.001
+  },
+  "note": "Optimized for live trading session on 2025-10-10"
+}

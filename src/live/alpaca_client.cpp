@@ -228,6 +228,16 @@ bool AlpacaClient::cancel_order(const std::string& order_id) {
     }
 }
 
+bool AlpacaClient::cancel_all_orders() {
+    try {
+        http_delete("/orders");
+        return true;
+    } catch (const std::exception& e) {
+        std::cerr << "Error canceling all orders: " << e.what() << std::endl;
+        return false;
+    }
+}
+
 bool AlpacaClient::is_market_open() {
     try {
         std::string response = http_get("/clock");

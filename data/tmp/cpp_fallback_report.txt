@@ -1,0 +1,1257 @@
+╔════════════════════════════════════════════════════════════════╗
+║     FALLBACK DETECTION ANALYSIS REPORT                         ║
+╚════════════════════════════════════════════════════════════════╝
+
+Analysis Date: 2025-10-15 02:57:55
+Source Directory: src
+Files Analyzed: 88
+Functions Analyzed: 108
+Total Issues Found: 190
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SUMMARY BY SEVERITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  CRITICAL: 145 issues
+  HIGH: 17 issues
+  MEDIUM: 28 issues
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED ISSUES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[1] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "ERROR: Failed to parse CSV line " << line_num << ": " << e.what() << "\n";
+
+[2] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Line: " << line << "\n";
+
+[3] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Fields: [";
+
+[4] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: if (i > 0) std::cerr << ", ";
+
+[5] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "\"" << fields[i] << "\"";
+
+[6] CRITICAL - exception_fallback_no_rethrow
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return bars;
+
+[7] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "ERROR: Failed to parse CSV line " << line_num << ": " << e.what() << "\n";
+
+[8] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Line: " << line << "\n";
+
+[9] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Fields: [";
+
+[10] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: if (i > 0) std::cerr << ", ";
+
+[11] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "\"" << fields[i] << "\"";
+
+[12] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "ERROR: Failed to parse CSV line " << line_num << ": " << e.what() << "\n";
+
+[13] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Line: " << line << "\n";
+
+[14] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Fields: [";
+
+[15] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: if (i > 0) std::cerr << ", ";
+
+[16] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "\"" << fields[i] << "\"";
+
+[17] CRITICAL - minimal_financial_implementation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:67
+    Message: CRITICAL: Financial function 'load_market_data' has suspiciously minimal implementation (2 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[18] CRITICAL - stub_implementation_trivial
+    Function: load_json
+    Location: src/core/data_io.cpp:176
+    Message: CRITICAL: Critical function 'load_json' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[19] CRITICAL - financial_stub_implementation
+    Function: get_instrument_price
+    Location: src/cli/execute_trades_command.cpp:17
+    Message: CRITICAL: Financial function 'get_instrument_price' returns hardcoded value
+    Recommendation: EXTREME RISK: Implement real calculation immediately - this affects real money
+    Return Value: return 0.0
+
+[20] CRITICAL - minimal_financial_implementation
+    Function: get_instrument_price
+    Location: src/cli/execute_trades_command.cpp:17
+    Message: CRITICAL: Financial function 'get_instrument_price' has suspiciously minimal implementation (2 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[21] CRITICAL - stub_implementation_trivial
+    Function: create_symbol_map
+    Location: src/cli/execute_trades_command.cpp:29
+    Message: CRITICAL: Critical function 'create_symbol_map' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[22] HIGH - minimal_catch_block
+    Function: main
+    Location: src/cli/sentio_cli_main.cpp:31
+    Message: HIGH: Minimal catch block may not handle exception properly
+    Recommendation: Ensure proper exception handling or re-throw
+
+[23] HIGH - minimal_catch_block
+    Function: main
+    Location: src/cli/sentio_cli_main.cpp:31
+    Message: HIGH: Minimal catch block may not handle exception properly
+    Recommendation: Ensure proper exception handling or re-throw
+
+[24] CRITICAL - minimal_financial_implementation
+    Function: signal_handler
+    Location: src/cli/rotation_trade_command.cpp:19
+    Message: CRITICAL: Financial function 'signal_handler' has suspiciously minimal implementation (1 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[25] CRITICAL - exception_silent_continuation
+    Function: create_v1_config
+    Location: src/cli/live_trade_command.cpp:95
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "⚠️  Failed to load optimized parameters: " << e.what() << std::endl;
+
+[26] CRITICAL - exception_silent_continuation
+    Function: create_v1_config
+    Location: src/cli/live_trade_command.cpp:95
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "   Using default configuration" << std::endl;
+
+[27] CRITICAL - exception_fallback_no_rethrow
+    Function: create_v1_config
+    Location: src/cli/live_trade_command.cpp:95
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return config;
+
+[28] CRITICAL - exception_silent_continuation
+    Function: create_v1_config
+    Location: src/cli/live_trade_command.cpp:95
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "⚠️  Failed to load optimized parameters: " << e.what() << std::endl;
+
+[29] CRITICAL - exception_silent_continuation
+    Function: create_v1_config
+    Location: src/cli/live_trade_command.cpp:95
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "   Using default configuration" << std::endl;
+
+[30] CRITICAL - simplified_logic_comment
+    Function: create_v1_config
+    Location: src/cli/live_trade_command.cpp:48
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'default')
+    Recommendation: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+[31] CRITICAL - simplified_logic_comment
+    Function: create_v1_config
+    Location: src/cli/live_trade_command.cpp:53
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'mock')
+    Recommendation: Implement proper logic immediately. Comment contains 'mock' indicating incomplete implementation
+
+[32] CRITICAL - exception_fallback_literal
+    Function: load_baseline
+    Location: src/cli/live_trade_command.cpp:233
+    Message: CRITICAL: Catch block returns literal/default value instead of re-throwing
+    Recommendation: Re-throw exception or crash with detailed error. NEVER return fallback values.
+    Code: return false;
+
+[33] HIGH - inconsistent_literal_returns
+    Function: load_baseline
+    Location: src/cli/live_trade_command.cpp:206
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[34] CRITICAL - minimal_financial_implementation
+    Function: record_trade
+    Location: src/cli/live_trade_command.cpp:366
+    Message: CRITICAL: Financial function 'record_trade' has suspiciously minimal implementation (2 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[35] CRITICAL - minimal_financial_implementation
+    Function: LiveTrader
+    Location: src/cli/live_trade_command.cpp:385
+    Message: CRITICAL: Financial function 'LiveTrader' has suspiciously minimal implementation (1 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[36] CRITICAL - minimal_financial_implementation
+    Function: ~LiveTrader
+    Location: src/cli/live_trade_command.cpp:418
+    Message: CRITICAL: Financial function '~LiveTrader' has suspiciously minimal implementation (1 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[37] CRITICAL - exception_silent_continuation
+    Function: run
+    Location: src/cli/live_trade_command.cpp:480
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("Initializing OnlineEnsemble strategy...");
+
+[38] CRITICAL - exception_silent_continuation
+    Function: run
+    Location: src/cli/live_trade_command.cpp:480
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("✓ Strategy initialized and ready");
+
+[39] CRITICAL - exception_silent_continuation
+    Function: run
+    Location: src/cli/live_trade_command.cpp:480
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("");
+
+[40] CRITICAL - exception_fallback_no_rethrow
+    Function: run
+    Location: src/cli/live_trade_command.cpp:480
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: // MICRO-ADAPTATION DISABLED (returning to stable v2.5 behavior)
+
+[41] CRITICAL - exception_silent_continuation
+    Function: run
+    Location: src/cli/live_trade_command.cpp:480
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("ℹ️  Micro-adaptation DISABLED - using optimized parameters directly");
+
+[42] CRITICAL - exception_silent_continuation
+    Function: run
+    Location: src/cli/live_trade_command.cpp:480
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("");
+
+[43] CRITICAL - exception_silent_continuation
+    Function: run
+    Location: src/cli/live_trade_command.cpp:480
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("=== Live trading active - Press Ctrl+C to stop ===");
+
+[44] CRITICAL - exception_silent_continuation
+    Function: run
+    Location: src/cli/live_trade_command.cpp:480
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("");
+
+[45] CRITICAL - exception_silent_continuation
+    Function: run
+    Location: src/cli/live_trade_command.cpp:480
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("⏰ Market closed and EOD complete - initiating automatic shutdown");
+
+[46] CRITICAL - exception_silent_continuation
+    Function: run
+    Location: src/cli/live_trade_command.cpp:480
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("=== Shutdown requested - cleaning up ===");
+
+[47] CRITICAL - simplified_logic_comment
+    Function: run
+    Location: src/cli/live_trade_command.cpp:436
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'mock')
+    Recommendation: Implement proper logic immediately. Comment contains 'mock' indicating incomplete implementation
+
+[48] MEDIUM - declarations_only_implementation
+    Function: init_logs
+    Location: src/cli/live_trade_command.cpp:573
+    Message: MEDIUM: Function 'init_logs' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[49] MEDIUM - declarations_only_implementation
+    Function: get_timestamp
+    Location: src/cli/live_trade_command.cpp:586
+    Message: MEDIUM: Function 'get_timestamp' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[50] MEDIUM - declarations_only_implementation
+    Function: get_timestamp_readable
+    Location: src/cli/live_trade_command.cpp:594
+    Message: MEDIUM: Function 'get_timestamp_readable' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[51] MEDIUM - suspiciously_short_function
+    Function: get_timestamp_readable
+    Location: src/cli/live_trade_command.cpp:594
+    Message: MEDIUM: Function 'get_timestamp_readable' is suspiciously short (3 lines)
+    Recommendation: Review if function is properly implemented
+
+[52] MEDIUM - declarations_only_implementation
+    Function: is_regular_hours
+    Location: src/cli/live_trade_command.cpp:598
+    Message: MEDIUM: Function 'is_regular_hours' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[53] MEDIUM - suspiciously_short_function
+    Function: is_regular_hours
+    Location: src/cli/live_trade_command.cpp:598
+    Message: MEDIUM: Function 'is_regular_hours' is suspiciously short (3 lines)
+    Recommendation: Review if function is properly implemented
+
+[54] MEDIUM - declarations_only_implementation
+    Function: is_end_of_day_liquidation_time
+    Location: src/cli/live_trade_command.cpp:602
+    Message: MEDIUM: Function 'is_end_of_day_liquidation_time' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[55] MEDIUM - suspiciously_short_function
+    Function: is_end_of_day_liquidation_time
+    Location: src/cli/live_trade_command.cpp:602
+    Message: MEDIUM: Function 'is_end_of_day_liquidation_time' is suspiciously short (3 lines)
+    Recommendation: Review if function is properly implemented
+
+[56] MEDIUM - declarations_only_implementation
+    Function: log_system
+    Location: src/cli/live_trade_command.cpp:606
+    Message: MEDIUM: Function 'log_system' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[57] MEDIUM - declarations_only_implementation
+    Function: log_error
+    Location: src/cli/live_trade_command.cpp:613
+    Message: MEDIUM: Function 'log_error' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[58] CRITICAL - simplified_logic_comment
+    Function: generate_dashboard
+    Location: src/cli/live_trade_command.cpp:669
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'mock')
+    Recommendation: Implement proper logic immediately. Comment contains 'mock' indicating incomplete implementation
+
+[59] CRITICAL - simplified_logic_comment
+    Function: reconcile_startup_positions
+    Location: src/cli/live_trade_command.cpp:761
+    Message: EXTREME RISK: Simplified/fallback logic detected (keyword: 'fall back')
+    Recommendation: Implement proper logic immediately. Comment contains 'fall back' indicating incomplete implementation
+
+[60] HIGH - empty_critical_implementation
+    Function: format_et_date
+    Location: src/cli/live_trade_command.cpp:840
+    Message: HIGH: Critical function 'format_et_date' has empty/minimal implementation
+    Recommendation: Implement proper logic immediately or remove function declaration
+
+[61] MEDIUM - declarations_only_implementation
+    Function: format_et_date
+    Location: src/cli/live_trade_command.cpp:840
+    Message: MEDIUM: Function 'format_et_date' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[62] CRITICAL - simplified_logic_comment
+    Function: get_previous_trading_day
+    Location: src/cli/live_trade_command.cpp:850
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'approximate')
+    Recommendation: Implement proper logic immediately. Comment contains 'approximate' indicating incomplete implementation
+
+[63] CRITICAL - simplified_logic_comment
+    Function: get_previous_trading_day
+    Location: src/cli/live_trade_command.cpp:862
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'fallback')
+    Recommendation: Implement proper logic immediately. Comment contains 'fallback' indicating incomplete implementation
+
+[64] CRITICAL - simplified_logic_comment
+    Function: get_previous_trading_day
+    Location: src/cli/live_trade_command.cpp:850
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'good enough')
+    Recommendation: Implement proper logic immediately. Comment contains 'good enough' indicating incomplete implementation
+
+[65] CRITICAL - simplified_logic_comment
+    Function: get_previous_trading_day
+    Location: src/cli/live_trade_command.cpp:850
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'approx')
+    Recommendation: Implement proper logic immediately. Comment contains 'approx' indicating incomplete implementation
+
+[66] MEDIUM - declarations_only_implementation
+    Function: has_open_positions
+    Location: src/cli/live_trade_command.cpp:866
+    Message: MEDIUM: Function 'has_open_positions' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[67] CRITICAL - minimal_financial_implementation
+    Function: has_open_positions
+    Location: src/cli/live_trade_command.cpp:866
+    Message: CRITICAL: Financial function 'has_open_positions' has suspiciously minimal implementation (2 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[68] MEDIUM - declarations_only_implementation
+    Function: infer_state_from_positions
+    Location: src/cli/live_trade_command.cpp:871
+    Message: MEDIUM: Function 'infer_state_from_positions' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[69] CRITICAL - stub_implementation_trivial
+    Function: calculate_bars_since
+    Location: src/cli/live_trade_command.cpp:910
+    Message: CRITICAL: Critical function 'calculate_bars_since' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[70] CRITICAL - stub_implementation_trivial
+    Function: validate_positions_match
+    Location: src/cli/live_trade_command.cpp:920
+    Message: CRITICAL: Critical function 'validate_positions_match' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[71] CRITICAL - financial_stub_implementation
+    Function: validate_positions_match
+    Location: src/cli/live_trade_command.cpp:920
+    Message: CRITICAL: Financial function 'validate_positions_match' returns hardcoded value
+    Recommendation: EXTREME RISK: Implement real calculation immediately - this affects real money
+    Return Value: return true
+
+[72] CRITICAL - minimal_financial_implementation
+    Function: validate_positions_match
+    Location: src/cli/live_trade_command.cpp:920
+    Message: CRITICAL: Financial function 'validate_positions_match' has suspiciously minimal implementation (2 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[73] HIGH - inconsistent_literal_returns
+    Function: validate_positions_match
+    Location: src/cli/live_trade_command.cpp:920
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[74] CRITICAL - exception_silent_continuation
+    Function: persist_current_state
+    Location: src/cli/live_trade_command.cpp:991
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("⚠️  State persistence error: " + std::string(e.what()));
+
+[75] CRITICAL - simplified_logic_comment
+    Function: warmup_strategy
+    Location: src/cli/live_trade_command.cpp:1018
+    Message: EXTREME RISK: Simplified/fallback logic detected (keyword: 'skip')
+    Recommendation: Implement proper logic immediately. Comment contains 'skip' indicating incomplete implementation
+
+[76] CRITICAL - stub_implementation_trivial
+    Function: format_bar_time
+    Location: src/cli/live_trade_command.cpp:1130
+    Message: CRITICAL: Critical function 'format_bar_time' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[77] HIGH - empty_critical_implementation
+    Function: format_bar_time
+    Location: src/cli/live_trade_command.cpp:1130
+    Message: HIGH: Critical function 'format_bar_time' has empty/minimal implementation
+    Recommendation: Implement proper logic immediately or remove function declaration
+
+[78] MEDIUM - declarations_only_implementation
+    Function: format_bar_time
+    Location: src/cli/live_trade_command.cpp:1130
+    Message: MEDIUM: Function 'format_bar_time' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[79] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_error("[" + timestamp + "] RECONCILIATION FAILED: " +
+
+[80] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_error("[" + timestamp + "] Initiating emergency flatten");
+
+[81] CRITICAL - exception_fallback_no_rethrow
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return;
+
+[82] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("🔔 END OF DAY - Liquidation window active");
+
+[83] CRITICAL - exception_fallback_no_rethrow
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return;
+
+[84] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("🔔 HOURLY OPTIMIZATION TIME (" + std::to_string(current_hour) + ":00)");
+
+[85] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("Reconciling positions and running parameter optimization...");
+
+[86] CRITICAL - exception_fallback_no_rethrow
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return;
+
+[87] CRITICAL - exception_fallback_no_rethrow
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return;  // Learning continues, but no trading
+
+[88] CRITICAL - exception_fallback_no_rethrow
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return;  // Learning continues, but no new positions
+
+[89] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("🕐 Regular Trading Hours - processing for signals and trades");
+
+[90] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("🧠 Generating signal from strategy...");
+
+[91] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("📈 SIGNAL GENERATED:");
+
+[92] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("  Prediction: " + signal.prediction);
+
+[93] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("  Probability: " + std::to_string(signal.probability));
+
+[94] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("  Confidence: " + std::to_string(signal.confidence));
+
+[95] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("  Strategy Ready: " + std::string(strategy_.is_ready() ? "YES" : "NO"));
+
+[96] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_signal(bar, signal);
+
+[97] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("🎯 Evaluating trading decision...");
+
+[98] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: // Enhanced decision logging with detailed explanation
+
+[99] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_enhanced_decision(signal, decision);
+
+[100] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_decision(decision);
+
+[101] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_system("⏸️  NO TRADE: " + decision.reason);
+
+[102] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_portfolio_state();
+
+[103] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_error("[" + timestamp + "] RECONCILIATION FAILED: " +
+
+[104] CRITICAL - exception_silent_continuation
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1262
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_error("[" + timestamp + "] Initiating emergency flatten");
+
+[105] CRITICAL - simplified_logic_comment
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1256
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'skip')
+    Recommendation: Implement proper logic immediately. Comment contains 'skip' indicating incomplete implementation
+
+[106] CRITICAL - simplified_logic_comment
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1153
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'fallback')
+    Recommendation: Implement proper logic immediately. Comment contains 'fallback' indicating incomplete implementation
+
+[107] CRITICAL - simplified_logic_comment
+    Function: on_new_bar
+    Location: src/cli/live_trade_command.cpp:1140
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'mock')
+    Recommendation: Implement proper logic immediately. Comment contains 'mock' indicating incomplete implementation
+
+[108] CRITICAL - minimal_financial_implementation
+    Function: liquidate_all_positions
+    Location: src/cli/live_trade_command.cpp:1531
+    Message: CRITICAL: Financial function 'liquidate_all_positions' has suspiciously minimal implementation (2 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[109] CRITICAL - simplified_logic_comment
+    Function: execute_transition
+    Location: src/cli/live_trade_command.cpp:1578
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'synthetic')
+    Recommendation: Implement proper logic immediately. Comment contains 'synthetic' indicating incomplete implementation
+
+[110] CRITICAL - simplified_logic_comment
+    Function: execute_transition
+    Location: src/cli/live_trade_command.cpp:1612
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'skip')
+    Recommendation: Implement proper logic immediately. Comment contains 'skip' indicating incomplete implementation
+
+[111] CRITICAL - simplified_logic_comment
+    Function: execute_transition
+    Location: src/cli/live_trade_command.cpp:1612
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'mock')
+    Recommendation: Implement proper logic immediately. Comment contains 'mock' indicating incomplete implementation
+
+[112] CRITICAL - simplified_logic_comment
+    Function: calculate_target_allocations
+    Location: src/cli/live_trade_command.cpp:1760
+    Message: EXTREME RISK: Simplified/fallback logic detected (keyword: 'mock')
+    Recommendation: Implement proper logic immediately. Comment contains 'mock' indicating incomplete implementation
+
+[113] CRITICAL - minimal_financial_implementation
+    Function: calculate_target_allocations
+    Location: src/cli/live_trade_command.cpp:1708
+    Message: CRITICAL: Financial function 'calculate_target_allocations' has suspiciously minimal implementation (1 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[114] MEDIUM - declarations_only_implementation
+    Function: get_broker_positions
+    Location: src/cli/live_trade_command.cpp:1977
+    Message: MEDIUM: Function 'get_broker_positions' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[115] CRITICAL - minimal_financial_implementation
+    Function: get_broker_positions
+    Location: src/cli/live_trade_command.cpp:1977
+    Message: CRITICAL: Financial function 'get_broker_positions' has suspiciously minimal implementation (1 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[116] CRITICAL - simplified_logic_comment
+    Function: save_comprehensive_warmup_to_csv
+    Location: src/cli/live_trade_command.cpp:2025
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'skip')
+    Recommendation: Implement proper logic immediately. Comment contains 'skip' indicating incomplete implementation
+
+[117] CRITICAL - exception_silent_continuation
+    Function: load_optimized_parameters
+    Location: src/cli/live_trade_command.cpp:2130
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: log_error("Failed to parse optimization results: " + std::string(e.what()));
+
+[118] CRITICAL - exception_fallback_no_rethrow
+    Function: load_optimized_parameters
+    Location: src/cli/live_trade_command.cpp:2130
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return params;
+
+[119] CRITICAL - stub_implementation_trivial
+    Function: generate_bar_id
+    Location: src/common/utils.cpp:47
+    Message: CRITICAL: Critical function 'generate_bar_id' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[120] HIGH - empty_critical_implementation
+    Function: generate_bar_id
+    Location: src/common/utils.cpp:47
+    Message: HIGH: Critical function 'generate_bar_id' has empty/minimal implementation
+    Recommendation: Implement proper logic immediately or remove function declaration
+
+[121] MEDIUM - declarations_only_implementation
+    Function: generate_bar_id
+    Location: src/common/utils.cpp:47
+    Message: MEDIUM: Function 'generate_bar_id' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[122] CRITICAL - stub_implementation_trivial
+    Function: extract_timestamp
+    Location: src/common/utils.cpp:54
+    Message: CRITICAL: Critical function 'extract_timestamp' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[123] HIGH - empty_critical_implementation
+    Function: extract_timestamp
+    Location: src/common/utils.cpp:54
+    Message: HIGH: Critical function 'extract_timestamp' has empty/minimal implementation
+    Recommendation: Implement proper logic immediately or remove function declaration
+
+[124] HIGH - return_only_implementation
+    Function: extract_timestamp
+    Location: src/common/utils.cpp:54
+    Message: HIGH: Function 'extract_timestamp' contains only a return statement
+    Recommendation: Implement function logic or remove if unnecessary
+
+[125] MEDIUM - declarations_only_implementation
+    Function: extract_timestamp
+    Location: src/common/utils.cpp:54
+    Message: MEDIUM: Function 'extract_timestamp' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[126] MEDIUM - suspiciously_short_function
+    Function: extract_timestamp
+    Location: src/common/utils.cpp:54
+    Message: MEDIUM: Function 'extract_timestamp' is suspiciously short (3 lines)
+    Recommendation: Review if function is properly implemented
+
+[127] CRITICAL - stub_implementation_trivial
+    Function: extract_symbol_hash
+    Location: src/common/utils.cpp:58
+    Message: CRITICAL: Critical function 'extract_symbol_hash' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[128] HIGH - empty_critical_implementation
+    Function: extract_symbol_hash
+    Location: src/common/utils.cpp:58
+    Message: HIGH: Critical function 'extract_symbol_hash' has empty/minimal implementation
+    Recommendation: Implement proper logic immediately or remove function declaration
+
+[129] HIGH - return_only_implementation
+    Function: extract_symbol_hash
+    Location: src/common/utils.cpp:58
+    Message: HIGH: Function 'extract_symbol_hash' contains only a return statement
+    Recommendation: Implement function logic or remove if unnecessary
+
+[130] MEDIUM - declarations_only_implementation
+    Function: extract_symbol_hash
+    Location: src/common/utils.cpp:58
+    Message: MEDIUM: Function 'extract_symbol_hash' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[131] MEDIUM - suspiciously_short_function
+    Function: extract_symbol_hash
+    Location: src/common/utils.cpp:58
+    Message: MEDIUM: Function 'extract_symbol_hash' is suspiciously short (3 lines)
+    Recommendation: Review if function is properly implemented
+
+[132] HIGH - inconsistent_literal_returns
+    Function: write_jsonl
+    Location: src/common/utils.cpp:194
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[133] HIGH - inconsistent_literal_returns
+    Function: write_csv
+    Location: src/common/utils.cpp:203
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[134] MEDIUM - declarations_only_implementation
+    Function: ms_to_timestamp
+    Location: src/common/utils.cpp:335
+    Message: MEDIUM: Function 'ms_to_timestamp' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[135] MEDIUM - declarations_only_implementation
+    Function: log_dir
+    Location: src/common/utils.cpp:466
+    Message: MEDIUM: Function 'log_dir' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[136] MEDIUM - suspiciously_short_function
+    Function: log_dir
+    Location: src/common/utils.cpp:466
+    Message: MEDIUM: Function 'log_dir' is suspiciously short (3 lines)
+    Recommendation: Review if function is properly implemented
+
+[137] MEDIUM - declarations_only_implementation
+    Function: ensure_log_dir
+    Location: src/common/utils.cpp:469
+    Message: MEDIUM: Function 'ensure_log_dir' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[138] MEDIUM - declarations_only_implementation
+    Function: iso_now
+    Location: src/common/utils.cpp:473
+    Message: MEDIUM: Function 'iso_now' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[139] CRITICAL - exception_fallback_no_rethrow
+    Function: load_best_params
+    Location: src/common/config_loader.cpp:48
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return std::nullopt;
+
+[140] CRITICAL - exception_fallback_no_rethrow
+    Function: load_best_params
+    Location: src/common/config_loader.cpp:48
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return std::nullopt;
+
+[141] CRITICAL - exception_silent_continuation
+    Function: load_best_params
+    Location: src/common/config_loader.cpp:48
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: utils::log_info("Loaded best parameters from " + config_file);
+
+[142] CRITICAL - exception_silent_continuation
+    Function: load_best_params
+    Location: src/common/config_loader.cpp:48
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: utils::log_info("  buy_threshold: " + std::to_string(config.buy_threshold));
+
+[143] CRITICAL - exception_silent_continuation
+    Function: load_best_params
+    Location: src/common/config_loader.cpp:48
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: utils::log_info("  sell_threshold: " + std::to_string(config.sell_threshold));
+
+[144] CRITICAL - exception_silent_continuation
+    Function: load_best_params
+    Location: src/common/config_loader.cpp:48
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: utils::log_info("  ewrls_lambda: " + std::to_string(config.ewrls_lambda));
+
+[145] CRITICAL - exception_silent_continuation
+    Function: load_best_params
+    Location: src/common/config_loader.cpp:48
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: utils::log_info("  bb_amplification_factor: " + std::to_string(config.bb_amplification_factor));
+
+[146] CRITICAL - exception_fallback_no_rethrow
+    Function: load_best_params
+    Location: src/common/config_loader.cpp:48
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return config;
+
+[147] CRITICAL - simplified_logic_comment
+    Function: load_best_params
+    Location: src/common/config_loader.cpp:72
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'default')
+    Recommendation: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+[148] CRITICAL - simplified_logic_comment
+    Function: load_best_params
+    Location: src/common/config_loader.cpp:32
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'skip')
+    Recommendation: Implement proper logic immediately. Comment contains 'skip' indicating incomplete implementation
+
+[149] CRITICAL - simplified_logic_comment
+    Function: get_production_config
+    Location: src/common/config_loader.cpp:97
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'default')
+    Recommendation: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+[150] CRITICAL - simplified_logic_comment
+    Function: get_production_config
+    Location: src/common/config_loader.cpp:97
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'fallback')
+    Recommendation: Implement proper logic immediately. Comment contains 'fallback' indicating incomplete implementation
+
+[151] CRITICAL - simplified_logic_comment
+    Function: get_production_config
+    Location: src/common/config_loader.cpp:97
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'hardcoded')
+    Recommendation: Implement proper logic immediately. Comment contains 'hardcoded' indicating incomplete implementation
+
+[152] HIGH - inconsistent_literal_returns
+    Function: csv_to_binary
+    Location: src/common/binary_data.cpp:270
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[153] HIGH - inconsistent_literal_returns
+    Function: validate_binary_file
+    Location: src/common/binary_data.cpp:353
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[154] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Error parsing WebSocket message: " << e.what() << std::endl;
+
+[155] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Message was: " << ctx->buffer.substr(0, 200) << std::endl;
+
+[156] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "❌ WebSocket connection error: " << (char*)in << std::endl;
+
+[157] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "❌ WebSocket connection error (no details)" << std::endl;
+
+[158] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cout << "→ Sending WebSocket handshake headers" << std::endl;
+
+[159] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cout << "→ WebSocket handshake response received" << std::endl;
+
+[160] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cout << "→ WebSocket instance created" << std::endl;
+
+[161] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cout << "→ WebSocket instance destroyed" << std::endl;
+
+[162] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cout << "WebSocket connection closed" << std::endl;
+
+[163] CRITICAL - exception_fallback_literal
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block returns literal/default value instead of re-throwing
+    Recommendation: Re-throw exception or crash with detailed error. NEVER return fallback values.
+    Code: return 0;
+
+[164] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Error parsing WebSocket message: " << e.what() << std::endl;
+
+[165] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Message was: " << ctx->buffer.substr(0, 200) << std::endl;
+
+[166] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "❌ WebSocket connection error: " << (char*)in << std::endl;
+
+[167] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "❌ WebSocket connection error (no details)" << std::endl;
+
+[168] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cout << "→ Sending WebSocket handshake headers" << std::endl;
+
+[169] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cout << "→ WebSocket handshake response received" << std::endl;
+
+[170] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cout << "→ WebSocket instance created" << std::endl;
+
+[171] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cout << "→ WebSocket instance destroyed" << std::endl;
+
+[172] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cout << "WebSocket connection closed" << std::endl;
+
+[173] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Error parsing WebSocket message: " << e.what() << std::endl;
+
+[174] CRITICAL - exception_silent_continuation
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:142
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Message was: " << ctx->buffer.substr(0, 200) << std::endl;
+
+[175] CRITICAL - simplified_logic_comment
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:46
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'hardcoded')
+    Recommendation: Implement proper logic immediately. Comment contains 'hardcoded' indicating incomplete implementation
+
+[176] CRITICAL - simplified_logic_comment
+    Function: websocket_callback
+    Location: src/live/polygon_websocket.cpp:110
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'for now')
+    Recommendation: Implement proper logic immediately. Comment contains 'for now' indicating incomplete implementation
+
+[177] CRITICAL - exception_silent_continuation
+    Function: fetch_latest_bar_alpaca
+    Location: src/live/polygon_client.cpp:123
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Error parsing bar: " << e.what() << std::endl;
+
+[178] CRITICAL - exception_fallback_no_rethrow
+    Function: fetch_latest_bar_alpaca
+    Location: src/live/polygon_client.cpp:123
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return bar;
+
+[179] CRITICAL - minimal_financial_implementation
+    Function: create_strategy
+    Location: src/strategy/istrategy.cpp:33
+    Message: CRITICAL: Financial function 'create_strategy' has suspiciously minimal implementation (1 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[180] CRITICAL - simplified_logic_comment
+    Function: get_available_strategies
+    Location: src/strategy/istrategy.cpp:86
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'default')
+    Recommendation: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+[181] CRITICAL - simplified_logic_comment
+    Function: get_available_strategies
+    Location: src/strategy/istrategy.cpp:99
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'cheat')
+    Recommendation: Implement proper logic immediately. Comment contains 'cheat' indicating incomplete implementation
+
+[182] MEDIUM - declarations_only_implementation
+    Function: get_available_strategies
+    Location: src/strategy/istrategy.cpp:82
+    Message: MEDIUM: Function 'get_available_strategies' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[183] CRITICAL - exception_fallback_literal
+    Function: is_valid_strategy
+    Location: src/strategy/istrategy.cpp:120
+    Message: CRITICAL: Catch block returns literal/default value instead of re-throwing
+    Recommendation: Re-throw exception or crash with detailed error. NEVER return fallback values.
+    Code: return false;
+
+[184] HIGH - inconsistent_literal_returns
+    Function: is_valid_strategy
+    Location: src/strategy/istrategy.cpp:106
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[185] HIGH - minimal_catch_block
+    Function: is_valid_strategy
+    Location: src/strategy/istrategy.cpp:106
+    Message: HIGH: Minimal catch block may not handle exception properly
+    Recommendation: Ensure proper exception handling or re-throw
+
+[186] CRITICAL - minimal_financial_implementation
+    Function: string_to_strategy_type
+    Location: src/strategy/istrategy.cpp:125
+    Message: CRITICAL: Financial function 'string_to_strategy_type' has suspiciously minimal implementation (2 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[187] CRITICAL - simplified_logic_comment
+    Function: strategy_type_to_string
+    Location: src/strategy/istrategy.cpp:159
+    Message: EXTREME RISK: Simplified/fallback logic detected (keyword: 'default')
+    Recommendation: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+[188] CRITICAL - minimal_financial_implementation
+    Function: strategy_type_to_string
+    Location: src/strategy/istrategy.cpp:157
+    Message: CRITICAL: Financial function 'strategy_type_to_string' has suspiciously minimal implementation (1 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[189] MEDIUM - declarations_only_implementation
+    Function: safe_log
+    Location: src/strategy/market_regime_detector.cpp:8
+    Message: MEDIUM: Function 'safe_log' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[190] MEDIUM - suspiciously_short_function
+    Function: safe_log
+    Location: src/strategy/market_regime_detector.cpp:8
+    Message: MEDIUM: Function 'safe_log' is suspiciously short (1 lines)
+    Recommendation: Review if function is properly implemented
+

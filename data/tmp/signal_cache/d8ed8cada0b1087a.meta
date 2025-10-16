@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-10-10T07:46:22.901328",
+  "signal_count": 4301,
+  "cache_key": "d8ed8cada0b1087a",
+  "probability_stats": {
+    "mean": 0.5002094824459428,
+    "std": 0.024984142206394316,
+    "min": 0.053561,
+    "max": 0.787787
+  }
+}

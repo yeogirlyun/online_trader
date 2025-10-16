@@ -1,0 +1,21 @@
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:47:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:48:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:49:01"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:50:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:51:01"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:52:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:53:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:54:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:55:01"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:56:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:57:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:58:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-07 23:59:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-08 00:00:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-08 00:01:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-08 00:02:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-08 00:03:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-08 00:04:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-08 00:05:00"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"STATE_TRANSITION (prob=0.697681)","should_trade":true,"target_state":"BULL_3X_ONLY","timestamp":"2025-10-08 00:06:00"}
+{"bars_held":0,"current_equity":99851.84,"current_state":"BULL_3X_ONLY","position_pnl_pct":-0.001481600000000035,"reason":"MIN_HOLD_PERIOD (held 0 bars)","should_trade":false,"target_state":"BASE_BULL_3X","timestamp":"2025-10-08 00:07:00"}

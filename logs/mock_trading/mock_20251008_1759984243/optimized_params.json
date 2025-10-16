@@ -1,0 +1,9 @@
+{
+  "baseline_mrb": 0.0,
+  "best_mrb": 0.0,
+  "improvement": 0.0,
+  "buy_threshold": 0.5749080237694725,
+  "sell_threshold": 0.49014286128198326,
+  "ewrls_lambda": 0.9965879454763027,
+  "n_trials": 50
+}

@@ -1,0 +1,6 @@
+=== OnlineEnsemble Trade Analysis ===
+Trade file: data/tmp/actual_replay_20251009_131725/trades.jsonl
+
+Loading trade history...
+Loaded 0 trades
+

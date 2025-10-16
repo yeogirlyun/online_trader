@@ -1,0 +1,19 @@
+{
+  "bars_held": 0,
+  "checksum": "8d919fe68176355c8ea7650fc33e267732f9ad432c16265abd59ceddb0775cad",
+  "entry_equity": 100066.41828887882,
+  "last_bar_time_str": "2025-10-09 09:56:00",
+  "last_bar_timestamp": 1760018160000,
+  "positions": [
+    {
+      "avg_entry_price": 0.0,
+      "entry_timestamp": 1760018160000,
+      "quantity": 148.0,
+      "symbol": "SPY"
+    }
+  ],
+  "psm_state": 1,
+  "save_count": 1872239601,
+  "save_timestamp": 1760107468974,
+  "session_id": "20251010_104425"
+}

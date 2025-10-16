@@ -1,0 +1,12 @@
+{
+  "strategy": "C",
+  "best_params": {
+    "buy_threshold": 0.52,
+    "sell_threshold": 0.45,
+    "ewrls_lambda": 0.994,
+    "bb_amplification_factor": 0.09
+  },
+  "best_value": 0.207,
+  "total_tests": 50,
+  "data_file": "data/equities/SPY_4blocks.csv"
+}

@@ -18,11 +18,10 @@ OnlineEnsembleStrategy::OnlineEnsembleStrategy(const OnlineEnsembleConfig& confi
     feature_engine_ = std::make_unique<features::UnifiedFeatureEngine>();
 
     // Initialize multi-horizon EWRLS predictor with correct feature count
-    size_t num_features = feature_engine_->get_features().size();
+    size_t num_features = feature_engine_->features_view().size();
     if (num_features == 0) {
-        // Feature engine not ready yet, use default config total
-        features::UnifiedFeatureEngineConfig default_config;
-        num_features = default_config.total_features();  // 126 features
+        // Feature engine not ready yet, use schema names count
+        num_features = feature_engine_->names().size();
     }
     ensemble_predictor_ = std::make_unique<learning::MultiHorizonPredictor>(num_features);
 
@@ -72,14 +71,6 @@ SignalOutput OnlineEnsembleStrategy::generate_signal(const Bar& bar) {
     if (features.empty()) {
         output.signal_type = SignalType::NEUTRAL;
         output.probability = 0.5;
-        return output;
-    }
-
-    // Check volatility filter (skip trading in flat markets)
-    if (config_.enable_volatility_filter && !has_sufficient_volatility()) {
-        output.signal_type = SignalType::NEUTRAL;
-        output.probability = 0.5;
-        output.metadata["skip_reason"] = "insufficient_volatility";
         return output;
     }
 
@@ -167,11 +158,11 @@ std::vector<double> OnlineEnsembleStrategy::extract_features(const Bar& current_
 
     // UnifiedFeatureEngine maintains its own history via update()
     // Just get the current features after the bar has been added to history
-    if (!feature_engine_->is_ready()) {
+    if (feature_engine_->warmup_remaining() > 0) {
         return {};
     }
 
-    return feature_engine_->get_features();
+    return feature_engine_->features_view();
 }
 
 void OnlineEnsembleStrategy::track_prediction(int bar_index, int horizon,
@@ -504,6 +495,9 @@ double OnlineEnsembleStrategy::apply_bb_amplification(double base_probability, c
     return amplified_prob;
 }
 
+// NOTE: These methods are commented out as they're not needed for rotation trading
+// and reference config fields that don't exist
+/*
 double OnlineEnsembleStrategy::calculate_atr(int period) const {
     if (bar_history_.size() < static_cast<size_t>(period + 1)) {
         return 0.0;
@@ -544,5 +538,6 @@ bool OnlineEnsembleStrategy::has_sufficient_volatility() const {
     // Check if ATR ratio meets minimum threshold
     return atr_ratio >= config_.min_atr_ratio;
 }
+*/
 
 } // namespace sentio

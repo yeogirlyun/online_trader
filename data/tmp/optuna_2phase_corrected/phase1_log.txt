@@ -1,0 +1,152 @@
+[I 2025-10-08 19:05:14,313] A new study created in memory with name: no-name-131ab8f5-df7c-4550-ab11-042ad0031687
+================================================================================
+ADAPTIVE OPTUNA FRAMEWORK
+================================================================================
+Strategy: C
+Data: data/equities/SPY_4blocks.csv
+Build: /Volumes/ExternalSSD/Dev/C++/online_trader/build
+Output: data/tmp/optuna_2phase_corrected/phase1_results.json
+================================================================================
+[AdaptiveOptuna] Loaded 1920 bars
+[AdaptiveOptuna] Total blocks: 4
+[AdaptiveOptuna] Bars per block: 390
+[AdaptiveOptuna] Optuna trials: 50
+[AdaptiveOptuna] Parallel jobs: 4
+[FeatureCache] Feature caching DISABLED
+
+================================================================================
+STRATEGY C: STATIC BASELINE
+================================================================================
+
+--- Tuning on first 20 blocks ---
+
+[Tuning] PHASE 1 (wide search) - Blocks 0-19 (50 trials)
+[BlockData] Created /Volumes/ExternalSSD/Dev/C++/online_trader/data/tmp/ab_test_results/train_blocks_0_20_SPY.csv: blocks 0-19 (1920 bars)
+[Optuna] Running 50 trials with 4 parallel jobs
+  0%|          | 0/50 [00:00<?, ?it/s]                                        0%|          | 0/50 [00:00<?, ?it/s]Best trial: 3. Best value: 0.1618:   0%|          | 0/50 [00:00<?, ?it/s]Best trial: 3. Best value: 0.1618:   2%|▏         | 1/50 [00:00<00:35,  1.37it/s]                                                                                 Best trial: 3. Best value: 0.1618:   2%|▏         | 1/50 [00:00<00:35,  1.37it/s]Best trial: 3. Best value: 0.1618:   2%|▏         | 1/50 [00:00<00:35,  1.37it/s]                                                                                 Best trial: 3. Best value: 0.1618:   4%|▍         | 2/50 [00:00<00:35,  1.37it/s]Best trial: 3. Best value: 0.1618:   4%|▍         | 2/50 [00:00<00:35,  1.37it/s]                                                                                 Best trial: 3. Best value: 0.1618:   6%|▌         | 3/50 [00:00<00:34,  1.37it/s]Best trial: 3. Best value: 0.1618:   6%|▌         | 3/50 [00:00<00:34,  1.37it/s]                                                                                 Best trial: 3. Best value: 0.1618:   8%|▊         | 4/50 [00:01<00:33,  1.37it/s]Best trial: 3. Best value: 0.1618:   8%|▊         | 4/50 [00:01<00:33,  1.37it/s]Best trial: 3. Best value: 0.1618:  10%|█         | 5/50 [00:01<00:11,  3.88it/s]                                                                                 Best trial: 3. Best value: 0.1618:  10%|█         | 5/50 [00:01<00:11,  3.88it/s]Best trial: 3. Best value: 0.1618:  10%|█         | 5/50 [00:01<00:11,  3.88it/s]                                                                                 Best trial: 3. Best value: 0.1618:  12%|█▏        | 6/50 [00:01<00:11,  3.88it/s]Best trial: 3. Best value: 0.1618:  12%|█▏        | 6/50 [00:01<00:11,  3.88it/s]                                                                                 Best trial: 3. Best value: 0.1618:  14%|█▍        | 7/50 [00:01<00:11,  3.88it/s]Best trial: 3. Best value: 0.1618:  14%|█▍        | 7/50 [00:01<00:11,  3.88it/s]                                                                                 Best trial: 3. Best value: 0.1618:  16%|█▌        | 8/50 [00:02<00:10,  3.88it/s]Best trial: 3. Best value: 0.1618:  16%|█▌        | 8/50 [00:02<00:10,  3.88it/s]Best trial: 3. Best value: 0.1618:  18%|█▊        | 9/50 [00:02<00:08,  4.62it/s]                                                                                 Best trial: 3. Best value: 0.1618:  18%|█▊        | 9/50 [00:02<00:08,  4.62it/s]Best trial: 3. Best value: 0.1618:  18%|█▊        | 9/50 [00:02<00:08,  4.62it/s]                                                                                 Best trial: 3. Best value: 0.1618:  20%|██        | 10/50 [00:02<00:08,  4.62it/s]Best trial: 3. Best value: 0.1618:  20%|██        | 10/50 [00:02<00:08,  4.62it/s]                                                                                  Best trial: 3. Best value: 0.1618:  22%|██▏       | 11/50 [00:02<00:08,  4.62it/s]Best trial: 3. Best value: 0.1618:  22%|██▏       | 11/50 [00:02<00:08,  4.62it/s]                                                                                  Best trial: 3. Best value: 0.1618:  24%|██▍       | 12/50 [00:02<00:08,  4.62it/s]Best trial: 12. Best value: 0.1955:  24%|██▍       | 12/50 [00:02<00:08,  4.62it/s]Best trial: 12. Best value: 0.1955:  26%|██▌       | 13/50 [00:02<00:07,  5.00it/s]                                                                                   Best trial: 12. Best value: 0.1955:  26%|██▌       | 13/50 [00:02<00:07,  5.00it/s]Best trial: 13. Best value: 0.22:  26%|██▌       | 13/50 [00:02<00:07,  5.00it/s]                                                                                   Best trial: 13. Best value: 0.22:  28%|██▊       | 14/50 [00:02<00:07,  5.00it/s]Best trial: 13. Best value: 0.22:  28%|██▊       | 14/50 [00:02<00:07,  5.00it/s]                                                                                 Best trial: 13. Best value: 0.22:  30%|███       | 15/50 [00:02<00:06,  5.00it/s]Best trial: 13. Best value: 0.22:  30%|███       | 15/50 [00:02<00:06,  5.00it/s]                                                                                 Best trial: 13. Best value: 0.22:  32%|███▏      | 16/50 [00:03<00:06,  5.00it/s]Best trial: 13. Best value: 0.22:  32%|███▏      | 16/50 [00:03<00:06,  5.00it/s]Best trial: 13. Best value: 0.22:  34%|███▍      | 17/50 [00:03<00:06,  5.05it/s]                                                                                 Best trial: 13. Best value: 0.22:  34%|███▍      | 17/50 [00:03<00:06,  5.05it/s]Best trial: 13. Best value: 0.22:  34%|███▍      | 17/50 [00:03<00:06,  5.05it/s]                                                                                 Best trial: 13. Best value: 0.22:  36%|███▌      | 18/50 [00:03<00:06,  5.05it/s]Best trial: 13. Best value: 0.22:  36%|███▌      | 18/50 [00:03<00:06,  5.05it/s]                                                                                 Best trial: 13. Best value: 0.22:  38%|███▊      | 19/50 [00:03<00:06,  5.05it/s]Best trial: 13. Best value: 0.22:  38%|███▊      | 19/50 [00:03<00:06,  5.05it/s]                                                                                 Best trial: 13. Best value: 0.22:  40%|████      | 20/50 [00:04<00:05,  5.05it/s]Best trial: 13. Best value: 0.22:  40%|████      | 20/50 [00:04<00:05,  5.05it/s]Best trial: 13. Best value: 0.22:  42%|████▏     | 21/50 [00:04<00:05,  5.20it/s]                                                                                 Best trial: 13. Best value: 0.22:  42%|████▏     | 21/50 [00:04<00:05,  5.20it/s]Best trial: 13. Best value: 0.22:  42%|████▏     | 21/50 [00:04<00:05,  5.20it/s]                                                                                 Best trial: 13. Best value: 0.22:  44%|████▍     | 22/50 [00:04<00:05,  5.20it/s]Best trial: 13. Best value: 0.22:  44%|████▍     | 22/50 [00:04<00:05,  5.20it/s]                                                                                 Best trial: 13. Best value: 0.22:  46%|████▌     | 23/50 [00:04<00:05,  5.20it/s]Best trial: 13. Best value: 0.22:  46%|████▌     | 23/50 [00:04<00:05,  5.20it/s]                                                                                 Best trial: 13. Best value: 0.22:  48%|████▊     | 24/50 [00:05<00:04,  5.20it/s]Best trial: 13. Best value: 0.22:  48%|████▊     | 24/50 [00:05<00:04,  5.20it/s]Best trial: 13. Best value: 0.22:  50%|█████     | 25/50 [00:05<00:04,  5.28it/s]                                                                                 Best trial: 13. Best value: 0.22:  50%|█████     | 25/50 [00:05<00:04,  5.28it/s]Best trial: 13. Best value: 0.22:  50%|█████     | 25/50 [00:05<00:04,  5.28it/s]                                                                                 Best trial: 13. Best value: 0.22:  52%|█████▏    | 26/50 [00:05<00:04,  5.28it/s]Best trial: 13. Best value: 0.22:  52%|█████▏    | 26/50 [00:05<00:04,  5.28it/s]                                                                                 Best trial: 13. Best value: 0.22:  54%|█████▍    | 27/50 [00:05<00:04,  5.28it/s]Best trial: 13. Best value: 0.22:  54%|█████▍    | 27/50 [00:05<00:04,  5.28it/s]                                                                                 Best trial: 13. Best value: 0.22:  56%|█████▌    | 28/50 [00:05<00:04,  5.28it/s]Best trial: 13. Best value: 0.22:  56%|█████▌    | 28/50 [00:05<00:04,  5.28it/s]Best trial: 13. Best value: 0.22:  58%|█████▊    | 29/50 [00:05<00:03,  5.37it/s]                                                                                 Best trial: 13. Best value: 0.22:  58%|█████▊    | 29/50 [00:05<00:03,  5.37it/s]Best trial: 13. Best value: 0.22:  58%|█████▊    | 29/50 [00:05<00:03,  5.37it/s]                                                                                 Best trial: 13. Best value: 0.22:  60%|██████    | 30/50 [00:05<00:03,  5.37it/s]Best trial: 13. Best value: 0.22:  60%|██████    | 30/50 [00:05<00:03,  5.37it/s]                                                                                 Best trial: 13. Best value: 0.22:  62%|██████▏   | 31/50 [00:05<00:03,  5.37it/s]Best trial: 13. Best value: 0.22:  62%|██████▏   | 31/50 [00:05<00:03,  5.37it/s]                                                                                 Best trial: 13. Best value: 0.22:  64%|██████▍   | 32/50 [00:06<00:03,  5.37it/s]Best trial: 13. Best value: 0.22:  64%|██████▍   | 32/50 [00:06<00:03,  5.37it/s]Best trial: 13. Best value: 0.22:  66%|██████▌   | 33/50 [00:06<00:03,  5.36it/s]                                                                                 Best trial: 13. Best value: 0.22:  66%|██████▌   | 33/50 [00:06<00:03,  5.36it/s]Best trial: 13. Best value: 0.22:  66%|██████▌   | 33/50 [00:06<00:03,  5.36it/s]                                                                                 Best trial: 13. Best value: 0.22:  68%|██████▊   | 34/50 [00:06<00:02,  5.36it/s]Best trial: 13. Best value: 0.22:  68%|██████▊   | 34/50 [00:06<00:02,  5.36it/s]                                                                                 Best trial: 13. Best value: 0.22:  70%|███████   | 35/50 [00:06<00:02,  5.36it/s]Best trial: 13. Best value: 0.22:  70%|███████   | 35/50 [00:06<00:02,  5.36it/s]                                                                                 Best trial: 13. Best value: 0.22:  72%|███████▏  | 36/50 [00:07<00:02,  5.36it/s]Best trial: 13. Best value: 0.22:  72%|███████▏  | 36/50 [00:07<00:02,  5.36it/s]Best trial: 13. Best value: 0.22:  74%|███████▍  | 37/50 [00:07<00:02,  5.18it/s]                                                                                 Best trial: 13. Best value: 0.22:  74%|███████▍  | 37/50 [00:07<00:02,  5.18it/s]Best trial: 13. Best value: 0.22:  74%|███████▍  | 37/50 [00:07<00:02,  5.18it/s]                                                                                 Best trial: 13. Best value: 0.22:  76%|███████▌  | 38/50 [00:07<00:02,  5.18it/s]Best trial: 13. Best value: 0.22:  76%|███████▌  | 38/50 [00:07<00:02,  5.18it/s]                                                                                 Best trial: 13. Best value: 0.22:  78%|███████▊  | 39/50 [00:07<00:02,  5.18it/s]Best trial: 13. Best value: 0.22:  78%|███████▊  | 39/50 [00:07<00:02,  5.18it/s]                                                                                 Best trial: 13. Best value: 0.22:  80%|████████  | 40/50 [00:08<00:01,  5.18it/s]Best trial: 13. Best value: 0.22:  80%|████████  | 40/50 [00:08<00:01,  5.18it/s]Best trial: 13. Best value: 0.22:  82%|████████▏ | 41/50 [00:08<00:01,  5.29it/s]                                                                                 Best trial: 13. Best value: 0.22:  82%|████████▏ | 41/50 [00:08<00:01,  5.29it/s]Best trial: 13. Best value: 0.22:  82%|████████▏ | 41/50 [00:08<00:01,  5.29it/s]                                                                                 Best trial: 13. Best value: 0.22:  84%|████████▍ | 42/50 [00:08<00:01,  5.29it/s]Best trial: 13. Best value: 0.22:  84%|████████▍ | 42/50 [00:08<00:01,  5.29it/s]                                                                                 Best trial: 13. Best value: 0.22:  86%|████████▌ | 43/50 [00:08<00:01,  5.29it/s]Best trial: 13. Best value: 0.22:  86%|████████▌ | 43/50 [00:08<00:01,  5.29it/s]                                                                                 Best trial: 13. Best value: 0.22:  88%|████████▊ | 44/50 [00:08<00:01,  5.29it/s]Best trial: 13. Best value: 0.22:  88%|████████▊ | 44/50 [00:08<00:01,  5.29it/s]Best trial: 13. Best value: 0.22:  90%|█████████ | 45/50 [00:08<00:00,  5.33it/s]                                                                                 Best trial: 13. Best value: 0.22:  90%|█████████ | 45/50 [00:08<00:00,  5.33it/s]Best trial: 13. Best value: 0.22:  90%|█████████ | 45/50 [00:08<00:00,  5.33it/s]                                                                                 Best trial: 13. Best value: 0.22:  92%|█████████▏| 46/50 [00:08<00:00,  5.33it/s]Best trial: 13. Best value: 0.22:  92%|█████████▏| 46/50 [00:08<00:00,  5.33it/s]                                                                                 Best trial: 13. Best value: 0.22:  94%|█████████▍| 47/50 [00:08<00:00,  5.33it/s]Best trial: 13. Best value: 0.22:  94%|█████████▍| 47/50 [00:08<00:00,  5.33it/s]                                                                                 Best trial: 13. Best value: 0.22:  96%|█████████▌| 48/50 [00:09<00:00,  5.33it/s]Best trial: 13. Best value: 0.22:  96%|█████████▌| 48/50 [00:09<00:00,  5.33it/s]Best trial: 13. Best value: 0.22:  98%|█████████▊| 49/50 [00:09<00:00,  5.41it/s]                                                                                 Best trial: 13. Best value: 0.22:  98%|█████████▊| 49/50 [00:09<00:00,  5.41it/s]Best trial: 13. Best value: 0.22:  98%|█████████▊| 49/50 [00:09<00:00,  5.41it/s]Best trial: 13. Best value: 0.22: 100%|██████████| 50/50 [00:09<00:00,  5.21it/s]
+  Trial 3: MRB=0.1618% buy=0.57 sell=0.47
+[I 2025-10-08 19:05:15,059] Trial 3 finished with value: 0.1618 and parameters: {'buy_threshold': 0.5700000000000001, 'sell_threshold': 0.47000000000000003, 'ewrls_lambda': 0.998, 'bb_amplification_factor': 0.12000000000000001}. Best is trial 3 with value: 0.1618.
+  Trial 0: MRB=0.1618% buy=0.58 sell=0.47
+[I 2025-10-08 19:05:15,063] Trial 0 finished with value: 0.1618 and parameters: {'buy_threshold': 0.5800000000000001, 'sell_threshold': 0.47000000000000003, 'ewrls_lambda': 0.992, 'bb_amplification_factor': 0.08}. Best is trial 3 with value: 0.1618.
+  Trial 2: MRB=0.1618% buy=0.59 sell=0.40
+[I 2025-10-08 19:05:15,063] Trial 2 finished with value: 0.1618 and parameters: {'buy_threshold': 0.59, 'sell_threshold': 0.4, 'ewrls_lambda': 0.998, 'bb_amplification_factor': 0.12000000000000001}. Best is trial 3 with value: 0.1618.
+  Trial 1: MRB=0.1618% buy=0.59 sell=0.45
+[I 2025-10-08 19:05:15,064] Trial 1 finished with value: 0.1618 and parameters: {'buy_threshold': 0.59, 'sell_threshold': 0.45, 'ewrls_lambda': 0.996, 'bb_amplification_factor': 0.07}. Best is trial 3 with value: 0.1618.
+  Trial 4: MRB=0.0000% buy=0.52 sell=0.49
+[I 2025-10-08 19:05:15,756] Trial 4 finished with value: 0.0 and parameters: {'buy_threshold': 0.52, 'sell_threshold': 0.49, 'ewrls_lambda': 0.991, 'bb_amplification_factor': 0.05}. Best is trial 3 with value: 0.1618.
+  Trial 7: MRB=0.1506% buy=0.51 sell=0.45
+[I 2025-10-08 19:05:15,784] Trial 7 finished with value: 0.1506 and parameters: {'buy_threshold': 0.51, 'sell_threshold': 0.45, 'ewrls_lambda': 0.994, 'bb_amplification_factor': 0.05}. Best is trial 3 with value: 0.1618.
+  Trial 5: MRB=0.1506% buy=0.53 sell=0.49
+[I 2025-10-08 19:05:15,790] Trial 5 finished with value: 0.1506 and parameters: {'buy_threshold': 0.53, 'sell_threshold': 0.49, 'ewrls_lambda': 0.996, 'bb_amplification_factor': 0.11}. Best is trial 3 with value: 0.1618.
+  Trial 6: MRB=0.1506% buy=0.52 sell=0.47
+[I 2025-10-08 19:05:15,793] Trial 6 finished with value: 0.1506 and parameters: {'buy_threshold': 0.52, 'sell_threshold': 0.47000000000000003, 'ewrls_lambda': 0.99, 'bb_amplification_factor': 0.05}. Best is trial 3 with value: 0.1618.
+  Trial 8: MRB=0.1324% buy=0.57 sell=0.47
+[I 2025-10-08 19:05:16,488] Trial 8 finished with value: 0.1324 and parameters: {'buy_threshold': 0.5700000000000001, 'sell_threshold': 0.47000000000000003, 'ewrls_lambda': 0.993, 'bb_amplification_factor': 0.14}. Best is trial 3 with value: 0.1618.
+  Trial 9: MRB=0.0000% buy=0.60 sell=0.41
+[I 2025-10-08 19:05:16,500] Trial 9 finished with value: 0.0 and parameters: {'buy_threshold': 0.6, 'sell_threshold': 0.41000000000000003, 'ewrls_lambda': 0.999, 'bb_amplification_factor': 0.14}. Best is trial 3 with value: 0.1618.
+  Trial 10: MRB=0.0928% buy=0.51 sell=0.47
+[I 2025-10-08 19:05:16,522] Trial 10 finished with value: 0.0928 and parameters: {'buy_threshold': 0.51, 'sell_threshold': 0.47000000000000003, 'ewrls_lambda': 0.994, 'bb_amplification_factor': 0.15}. Best is trial 3 with value: 0.1618.
+  Trial 11: MRB=0.0928% buy=0.59 sell=0.48
+[I 2025-10-08 19:05:16,526] Trial 11 finished with value: 0.0928 and parameters: {'buy_threshold': 0.59, 'sell_threshold': 0.48000000000000004, 'ewrls_lambda': 0.999, 'bb_amplification_factor': 0.13}. Best is trial 3 with value: 0.1618.
+  Trial 12: MRB=0.1955% buy=0.57 sell=0.42
+[I 2025-10-08 19:05:17,202] Trial 12 finished with value: 0.1955 and parameters: {'buy_threshold': 0.5700000000000001, 'sell_threshold': 0.42000000000000004, 'ewrls_lambda': 0.997, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 12 with value: 0.1955.
+  Trial 13: MRB=0.2200% buy=0.55 sell=0.43
+[I 2025-10-08 19:05:17,222] Trial 13 finished with value: 0.22 and parameters: {'buy_threshold': 0.55, 'sell_threshold': 0.43000000000000005, 'ewrls_lambda': 0.992, 'bb_amplification_factor': 0.08}. Best is trial 13 with value: 0.22.
+  Trial 14: MRB=0.1638% buy=0.58 sell=0.43
+[I 2025-10-08 19:05:17,245] Trial 14 finished with value: 0.1638 and parameters: {'buy_threshold': 0.5800000000000001, 'sell_threshold': 0.43000000000000005, 'ewrls_lambda': 0.992, 'bb_amplification_factor': 0.08}. Best is trial 13 with value: 0.22.
+  Trial 15: MRB=0.1638% buy=0.56 sell=0.44
+[I 2025-10-08 19:05:17,250] Trial 15 finished with value: 0.1638 and parameters: {'buy_threshold': 0.56, 'sell_threshold': 0.44, 'ewrls_lambda': 0.992, 'bb_amplification_factor': 0.08}. Best is trial 13 with value: 0.22.
+[ERROR] Analysis failed: Error: No trades loaded
+
+  Trial 17: MRB=-999.0000% buy=0.55 sell=0.43
+[I 2025-10-08 19:05:17,982] Trial 17 finished with value: -999.0 and parameters: {'buy_threshold': 0.55, 'sell_threshold': 0.43000000000000005, 'ewrls_lambda': 0.996, 'bb_amplification_factor': 0.09}. Best is trial 13 with value: 0.22.
+[ERROR] Analysis failed: Error: No trades loaded
+
+  Trial 16: MRB=-999.0000% buy=0.55 sell=0.43
+[I 2025-10-08 19:05:17,986] Trial 16 finished with value: -999.0 and parameters: {'buy_threshold': 0.55, 'sell_threshold': 0.43000000000000005, 'ewrls_lambda': 0.992, 'bb_amplification_factor': 0.08}. Best is trial 13 with value: 0.22.
+[ERROR] Analysis failed: Error: No trades loaded
+
+  Trial 18: MRB=-999.0000% buy=0.55 sell=0.43
+[I 2025-10-08 19:05:17,989] Trial 18 finished with value: -999.0 and parameters: {'buy_threshold': 0.55, 'sell_threshold': 0.43000000000000005, 'ewrls_lambda': 0.996, 'bb_amplification_factor': 0.09}. Best is trial 13 with value: 0.22.
+  Trial 19: MRB=0.1006% buy=0.54 sell=0.42
+[I 2025-10-08 19:05:18,018] Trial 19 finished with value: 0.1006 and parameters: {'buy_threshold': 0.54, 'sell_threshold': 0.42000000000000004, 'ewrls_lambda': 0.996, 'bb_amplification_factor': 0.1}. Best is trial 13 with value: 0.22.
+  Trial 21: MRB=0.1661% buy=0.54 sell=0.41
+[I 2025-10-08 19:05:18,709] Trial 21 finished with value: 0.1661 and parameters: {'buy_threshold': 0.54, 'sell_threshold': 0.41000000000000003, 'ewrls_lambda': 0.995, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 13 with value: 0.22.
+  Trial 22: MRB=0.1661% buy=0.54 sell=0.41
+[I 2025-10-08 19:05:18,713] Trial 22 finished with value: 0.1661 and parameters: {'buy_threshold': 0.54, 'sell_threshold': 0.41000000000000003, 'ewrls_lambda': 0.995, 'bb_amplification_factor': 0.07}. Best is trial 13 with value: 0.22.
+  Trial 20: MRB=0.1661% buy=0.54 sell=0.42
+[I 2025-10-08 19:05:18,716] Trial 20 finished with value: 0.1661 and parameters: {'buy_threshold': 0.54, 'sell_threshold': 0.42000000000000004, 'ewrls_lambda': 0.995, 'bb_amplification_factor': 0.07}. Best is trial 13 with value: 0.22.
+  Trial 23: MRB=0.1618% buy=0.56 sell=0.40
+[I 2025-10-08 19:05:18,738] Trial 23 finished with value: 0.1618 and parameters: {'buy_threshold': 0.56, 'sell_threshold': 0.4, 'ewrls_lambda': 0.99, 'bb_amplification_factor': 0.07}. Best is trial 13 with value: 0.22.
+  Trial 25: MRB=0.1857% buy=0.56 sell=0.40
+[I 2025-10-08 19:05:19,446] Trial 25 finished with value: 0.1857 and parameters: {'buy_threshold': 0.56, 'sell_threshold': 0.4, 'ewrls_lambda': 0.997, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 13 with value: 0.22.
+  Trial 26: MRB=0.1857% buy=0.56 sell=0.42
+[I 2025-10-08 19:05:19,447] Trial 26 finished with value: 0.1857 and parameters: {'buy_threshold': 0.56, 'sell_threshold': 0.42000000000000004, 'ewrls_lambda': 0.997, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 13 with value: 0.22.
+  Trial 24: MRB=0.1857% buy=0.54 sell=0.41
+[I 2025-10-08 19:05:19,454] Trial 24 finished with value: 0.1857 and parameters: {'buy_threshold': 0.54, 'sell_threshold': 0.41000000000000003, 'ewrls_lambda': 0.995, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 13 with value: 0.22.
+  Trial 27: MRB=0.1481% buy=0.57 sell=0.44
+[I 2025-10-08 19:05:19,477] Trial 27 finished with value: 0.1481 and parameters: {'buy_threshold': 0.5700000000000001, 'sell_threshold': 0.44, 'ewrls_lambda': 0.997, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 13 with value: 0.22.
+[ERROR] Analysis failed: Error: No trades loaded
+
+  Trial 28: MRB=-999.0000% buy=0.56 sell=0.42
+[I 2025-10-08 19:05:20,165] Trial 28 finished with value: -999.0 and parameters: {'buy_threshold': 0.56, 'sell_threshold': 0.42000000000000004, 'ewrls_lambda': 0.997, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 13 with value: 0.22.
+  Trial 30: MRB=0.1617% buy=0.53 sell=0.44
+[I 2025-10-08 19:05:20,184] Trial 30 finished with value: 0.1617 and parameters: {'buy_threshold': 0.53, 'sell_threshold': 0.44, 'ewrls_lambda': 0.993, 'bb_amplification_factor': 0.09}. Best is trial 13 with value: 0.22.
+  Trial 29: MRB=0.1617% buy=0.57 sell=0.40
+[I 2025-10-08 19:05:20,187] Trial 29 finished with value: 0.1617 and parameters: {'buy_threshold': 0.5700000000000001, 'sell_threshold': 0.4, 'ewrls_lambda': 0.997, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 13 with value: 0.22.
+  Trial 31: MRB=0.1732% buy=0.53 sell=0.42
+[I 2025-10-08 19:05:20,208] Trial 31 finished with value: 0.1732 and parameters: {'buy_threshold': 0.53, 'sell_threshold': 0.42000000000000004, 'ewrls_lambda': 0.993, 'bb_amplification_factor': 0.09}. Best is trial 13 with value: 0.22.
+  Trial 32: MRB=0.0000% buy=0.53 sell=0.41
+[I 2025-10-08 19:05:20,912] Trial 32 finished with value: 0.0 and parameters: {'buy_threshold': 0.53, 'sell_threshold': 0.41000000000000003, 'ewrls_lambda': 0.993, 'bb_amplification_factor': 0.09}. Best is trial 13 with value: 0.22.
+  Trial 33: MRB=0.0000% buy=0.58 sell=0.41
+[I 2025-10-08 19:05:20,916] Trial 33 finished with value: 0.0 and parameters: {'buy_threshold': 0.5800000000000001, 'sell_threshold': 0.41000000000000003, 'ewrls_lambda': 0.993, 'bb_amplification_factor': 0.1}. Best is trial 13 with value: 0.22.
+  Trial 34: MRB=0.1618% buy=0.58 sell=0.41
+[I 2025-10-08 19:05:20,934] Trial 34 finished with value: 0.1618 and parameters: {'buy_threshold': 0.5800000000000001, 'sell_threshold': 0.41000000000000003, 'ewrls_lambda': 0.998, 'bb_amplification_factor': 0.05}. Best is trial 13 with value: 0.22.
+  Trial 35: MRB=0.1618% buy=0.58 sell=0.41
+[I 2025-10-08 19:05:20,946] Trial 35 finished with value: 0.1618 and parameters: {'buy_threshold': 0.5800000000000001, 'sell_threshold': 0.41000000000000003, 'ewrls_lambda': 0.998, 'bb_amplification_factor': 0.07}. Best is trial 13 with value: 0.22.
+  Trial 37: MRB=0.0000% buy=0.55 sell=0.40
+[I 2025-10-08 19:05:21,744] Trial 37 finished with value: 0.0 and parameters: {'buy_threshold': 0.55, 'sell_threshold': 0.4, 'ewrls_lambda': 0.998, 'bb_amplification_factor': 0.07}. Best is trial 13 with value: 0.22.
+  Trial 36: MRB=0.0000% buy=0.58 sell=0.40
+[I 2025-10-08 19:05:21,745] Trial 36 finished with value: 0.0 and parameters: {'buy_threshold': 0.5800000000000001, 'sell_threshold': 0.4, 'ewrls_lambda': 0.998, 'bb_amplification_factor': 0.07}. Best is trial 13 with value: 0.22.
+  Trial 38: MRB=0.0000% buy=0.55 sell=0.40
+[I 2025-10-08 19:05:21,746] Trial 38 finished with value: 0.0 and parameters: {'buy_threshold': 0.55, 'sell_threshold': 0.4, 'ewrls_lambda': 0.998, 'bb_amplification_factor': 0.07}. Best is trial 13 with value: 0.22.
+  Trial 39: MRB=0.1481% buy=0.55 sell=0.40
+[I 2025-10-08 19:05:21,771] Trial 39 finished with value: 0.1481 and parameters: {'buy_threshold': 0.55, 'sell_threshold': 0.4, 'ewrls_lambda': 0.991, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 13 with value: 0.22.
+  Trial 41: MRB=0.0979% buy=0.56 sell=0.46
+[I 2025-10-08 19:05:22,463] Trial 41 finished with value: 0.0979 and parameters: {'buy_threshold': 0.56, 'sell_threshold': 0.46, 'ewrls_lambda': 0.991, 'bb_amplification_factor': 0.05}. Best is trial 13 with value: 0.22.
+  Trial 42: MRB=0.0979% buy=0.56 sell=0.46
+[I 2025-10-08 19:05:22,465] Trial 42 finished with value: 0.0979 and parameters: {'buy_threshold': 0.56, 'sell_threshold': 0.46, 'ewrls_lambda': 0.991, 'bb_amplification_factor': 0.05}. Best is trial 13 with value: 0.22.
+  Trial 40: MRB=0.0979% buy=0.56 sell=0.40
+[I 2025-10-08 19:05:22,467] Trial 40 finished with value: 0.0979 and parameters: {'buy_threshold': 0.56, 'sell_threshold': 0.4, 'ewrls_lambda': 0.991, 'bb_amplification_factor': 0.05}. Best is trial 13 with value: 0.22.
+  Trial 43: MRB=0.1506% buy=0.56 sell=0.45
+[I 2025-10-08 19:05:22,494] Trial 43 finished with value: 0.1506 and parameters: {'buy_threshold': 0.56, 'sell_threshold': 0.45, 'ewrls_lambda': 0.994, 'bb_amplification_factor': 0.05}. Best is trial 13 with value: 0.22.
+  Trial 46: MRB=0.1952% buy=0.57 sell=0.42
+[I 2025-10-08 19:05:23,201] Trial 46 finished with value: 0.1952 and parameters: {'buy_threshold': 0.5700000000000001, 'sell_threshold': 0.42000000000000004, 'ewrls_lambda': 0.997, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 13 with value: 0.22.
+  Trial 45: MRB=0.1952% buy=0.57 sell=0.42
+[I 2025-10-08 19:05:23,203] Trial 45 finished with value: 0.1952 and parameters: {'buy_threshold': 0.5700000000000001, 'sell_threshold': 0.42000000000000004, 'ewrls_lambda': 0.997, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 13 with value: 0.22.
+  Trial 44: MRB=0.1952% buy=0.57 sell=0.42
+[I 2025-10-08 19:05:23,203] Trial 44 finished with value: 0.1952 and parameters: {'buy_threshold': 0.5700000000000001, 'sell_threshold': 0.42000000000000004, 'ewrls_lambda': 0.997, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 13 with value: 0.22.
+  Trial 47: MRB=0.1481% buy=0.57 sell=0.42
+[I 2025-10-08 19:05:23,224] Trial 47 finished with value: 0.1481 and parameters: {'buy_threshold': 0.5700000000000001, 'sell_threshold': 0.42000000000000004, 'ewrls_lambda': 0.997, 'bb_amplification_factor': 0.060000000000000005}. Best is trial 13 with value: 0.22.
+  Trial 49: MRB=0.1638% buy=0.57 sell=0.43
+[I 2025-10-08 19:05:23,917] Trial 49 finished with value: 0.1638 and parameters: {'buy_threshold': 0.5700000000000001, 'sell_threshold': 0.43000000000000005, 'ewrls_lambda': 0.999, 'bb_amplification_factor': 0.08}. Best is trial 13 with value: 0.22.
+  Trial 48: MRB=0.1638% buy=0.57 sell=0.42
+[I 2025-10-08 19:05:23,921] Trial 48 finished with value: 0.1638 and parameters: {'buy_threshold': 0.5700000000000001, 'sell_threshold': 0.42000000000000004, 'ewrls_lambda': 0.997, 'bb_amplification_factor': 0.08}. Best is trial 13 with value: 0.22.
+[Tuning] Complete in 9.6s
+[Tuning] Best MRB: 0.2200%
+[Tuning] Best params: {'buy_threshold': 0.55, 'sell_threshold': 0.43000000000000005, 'ewrls_lambda': 0.992, 'bb_amplification_factor': 0.08}
+
+[Static] Using fixed params for all tests: {'buy_threshold': 0.55, 'sell_threshold': 0.43000000000000005, 'ewrls_lambda': 0.992, 'bb_amplification_factor': 0.08}
+
+================================================================================
+SUMMARY
+================================================================================
+Strategy: C
+Total tests: 0
+Mean MRB: 0.0000%
+Std MRB: 0.0000%
+Min MRB: 0.0000%
+Max MRB: 0.0000%
+Total time: 0.2 minutes
+Results saved to: data/tmp/optuna_2phase_corrected/phase1_results.json
+================================================================================

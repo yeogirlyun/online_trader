@@ -1,0 +1,1882 @@
+╔════════════════════════════════════════════════════════════════╗
+║     CRITICAL FALLBACK ISSUES - IMMEDIATE ACTION REQUIRED      ║
+╚════════════════════════════════════════════════════════════════╝
+
+⚠️  145 CRITICAL FALLBACK MECHANISMS DETECTED
+⚠️  These MUST be fixed before any production deployment
+⚠️  Fallback mechanisms mask bugs and cause financial losses
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "ERROR: Failed to parse CSV line " << line_num << ": " << e.what() << "\n";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #2
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Line: " << line << "\n";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #3
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Fields: [";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #4
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    if (i > 0) std::cerr << ", ";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #5
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "\"" << fields[i] << "\"";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #6
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return bars;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #7
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "ERROR: Failed to parse CSV line " << line_num << ": " << e.what() << "\n";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #8
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Line: " << line << "\n";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #9
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Fields: [";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #10
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    if (i > 0) std::cerr << ", ";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #11
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "\"" << fields[i] << "\"";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #12
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "ERROR: Failed to parse CSV line " << line_num << ": " << e.what() << "\n";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #13
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Line: " << line << "\n";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #14
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Fields: [";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #15
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    if (i > 0) std::cerr << ", ";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #16
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "\"" << fields[i] << "\"";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #17
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: load_market_data
+Location: src/core/data_io.cpp:67
+Message: CRITICAL: Financial function 'load_market_data' has suspiciously minimal implementation (2 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #18
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: load_json
+Location: src/core/data_io.cpp:176
+Message: CRITICAL: Critical function 'load_json' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #19
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: financial_stub_implementation
+Function: get_instrument_price
+Location: src/cli/execute_trades_command.cpp:17
+Message: CRITICAL: Financial function 'get_instrument_price' returns hardcoded value
+Action Required: EXTREME RISK: Implement real calculation immediately - this affects real money
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #20
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: get_instrument_price
+Location: src/cli/execute_trades_command.cpp:17
+Message: CRITICAL: Financial function 'get_instrument_price' has suspiciously minimal implementation (2 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #21
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: create_symbol_map
+Location: src/cli/execute_trades_command.cpp:29
+Message: CRITICAL: Critical function 'create_symbol_map' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #22
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: signal_handler
+Location: src/cli/rotation_trade_command.cpp:19
+Message: CRITICAL: Financial function 'signal_handler' has suspiciously minimal implementation (1 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #23
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: create_v1_config
+Location: src/cli/live_trade_command.cpp:95
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "⚠️  Failed to load optimized parameters: " << e.what() << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #24
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: create_v1_config
+Location: src/cli/live_trade_command.cpp:95
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "   Using default configuration" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #25
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: create_v1_config
+Location: src/cli/live_trade_command.cpp:95
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return config;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #26
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: create_v1_config
+Location: src/cli/live_trade_command.cpp:95
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "⚠️  Failed to load optimized parameters: " << e.what() << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #27
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: create_v1_config
+Location: src/cli/live_trade_command.cpp:95
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "   Using default configuration" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #28
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: create_v1_config
+Location: src/cli/live_trade_command.cpp:48
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'default')
+Action Required: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #29
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: create_v1_config
+Location: src/cli/live_trade_command.cpp:53
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'mock')
+Action Required: Implement proper logic immediately. Comment contains 'mock' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #30
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_literal
+Function: load_baseline
+Location: src/cli/live_trade_command.cpp:233
+Message: CRITICAL: Catch block returns literal/default value instead of re-throwing
+Action Required: Re-throw exception or crash with detailed error. NEVER return fallback values.
+
+Problematic Code:
+    return false;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #31
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: record_trade
+Location: src/cli/live_trade_command.cpp:366
+Message: CRITICAL: Financial function 'record_trade' has suspiciously minimal implementation (2 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #32
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: LiveTrader
+Location: src/cli/live_trade_command.cpp:385
+Message: CRITICAL: Financial function 'LiveTrader' has suspiciously minimal implementation (1 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #33
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: ~LiveTrader
+Location: src/cli/live_trade_command.cpp:418
+Message: CRITICAL: Financial function '~LiveTrader' has suspiciously minimal implementation (1 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #34
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: run
+Location: src/cli/live_trade_command.cpp:480
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("Initializing OnlineEnsemble strategy...");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #35
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: run
+Location: src/cli/live_trade_command.cpp:480
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("✓ Strategy initialized and ready");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #36
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: run
+Location: src/cli/live_trade_command.cpp:480
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #37
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: run
+Location: src/cli/live_trade_command.cpp:480
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    // MICRO-ADAPTATION DISABLED (returning to stable v2.5 behavior)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #38
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: run
+Location: src/cli/live_trade_command.cpp:480
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("ℹ️  Micro-adaptation DISABLED - using optimized parameters directly");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #39
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: run
+Location: src/cli/live_trade_command.cpp:480
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #40
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: run
+Location: src/cli/live_trade_command.cpp:480
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("=== Live trading active - Press Ctrl+C to stop ===");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #41
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: run
+Location: src/cli/live_trade_command.cpp:480
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #42
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: run
+Location: src/cli/live_trade_command.cpp:480
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("⏰ Market closed and EOD complete - initiating automatic shutdown");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #43
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: run
+Location: src/cli/live_trade_command.cpp:480
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("=== Shutdown requested - cleaning up ===");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #44
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: run
+Location: src/cli/live_trade_command.cpp:436
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'mock')
+Action Required: Implement proper logic immediately. Comment contains 'mock' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #45
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: generate_dashboard
+Location: src/cli/live_trade_command.cpp:669
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'mock')
+Action Required: Implement proper logic immediately. Comment contains 'mock' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #46
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: reconcile_startup_positions
+Location: src/cli/live_trade_command.cpp:761
+Message: EXTREME RISK: Simplified/fallback logic detected (keyword: 'fall back')
+Action Required: Implement proper logic immediately. Comment contains 'fall back' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #47
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: get_previous_trading_day
+Location: src/cli/live_trade_command.cpp:850
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'approximate')
+Action Required: Implement proper logic immediately. Comment contains 'approximate' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #48
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: get_previous_trading_day
+Location: src/cli/live_trade_command.cpp:862
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'fallback')
+Action Required: Implement proper logic immediately. Comment contains 'fallback' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #49
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: get_previous_trading_day
+Location: src/cli/live_trade_command.cpp:850
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'good enough')
+Action Required: Implement proper logic immediately. Comment contains 'good enough' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #50
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: get_previous_trading_day
+Location: src/cli/live_trade_command.cpp:850
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'approx')
+Action Required: Implement proper logic immediately. Comment contains 'approx' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #51
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: has_open_positions
+Location: src/cli/live_trade_command.cpp:866
+Message: CRITICAL: Financial function 'has_open_positions' has suspiciously minimal implementation (2 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #52
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: calculate_bars_since
+Location: src/cli/live_trade_command.cpp:910
+Message: CRITICAL: Critical function 'calculate_bars_since' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #53
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: validate_positions_match
+Location: src/cli/live_trade_command.cpp:920
+Message: CRITICAL: Critical function 'validate_positions_match' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #54
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: financial_stub_implementation
+Function: validate_positions_match
+Location: src/cli/live_trade_command.cpp:920
+Message: CRITICAL: Financial function 'validate_positions_match' returns hardcoded value
+Action Required: EXTREME RISK: Implement real calculation immediately - this affects real money
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #55
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: validate_positions_match
+Location: src/cli/live_trade_command.cpp:920
+Message: CRITICAL: Financial function 'validate_positions_match' has suspiciously minimal implementation (2 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #56
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: persist_current_state
+Location: src/cli/live_trade_command.cpp:991
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("⚠️  State persistence error: " + std::string(e.what()));
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #57
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: warmup_strategy
+Location: src/cli/live_trade_command.cpp:1018
+Message: EXTREME RISK: Simplified/fallback logic detected (keyword: 'skip')
+Action Required: Implement proper logic immediately. Comment contains 'skip' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #58
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: format_bar_time
+Location: src/cli/live_trade_command.cpp:1130
+Message: CRITICAL: Critical function 'format_bar_time' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #59
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_error("[" + timestamp + "] RECONCILIATION FAILED: " +
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #60
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_error("[" + timestamp + "] Initiating emergency flatten");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #61
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #62
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("🔔 END OF DAY - Liquidation window active");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #63
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #64
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("🔔 HOURLY OPTIMIZATION TIME (" + std::to_string(current_hour) + ":00)");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #65
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("Reconciling positions and running parameter optimization...");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #66
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #67
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return;  // Learning continues, but no trading
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #68
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return;  // Learning continues, but no new positions
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #69
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("🕐 Regular Trading Hours - processing for signals and trades");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #70
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("🧠 Generating signal from strategy...");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #71
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("📈 SIGNAL GENERATED:");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #72
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("  Prediction: " + signal.prediction);
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #73
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("  Probability: " + std::to_string(signal.probability));
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #74
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("  Confidence: " + std::to_string(signal.confidence));
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #75
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("  Strategy Ready: " + std::string(strategy_.is_ready() ? "YES" : "NO"));
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #76
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_signal(bar, signal);
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #77
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("🎯 Evaluating trading decision...");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #78
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    // Enhanced decision logging with detailed explanation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #79
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_enhanced_decision(signal, decision);
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #80
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_decision(decision);
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #81
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_system("⏸️  NO TRADE: " + decision.reason);
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #82
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_portfolio_state();
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #83
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_error("[" + timestamp + "] RECONCILIATION FAILED: " +
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #84
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1262
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_error("[" + timestamp + "] Initiating emergency flatten");
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #85
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1256
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'skip')
+Action Required: Implement proper logic immediately. Comment contains 'skip' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #86
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1153
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'fallback')
+Action Required: Implement proper logic immediately. Comment contains 'fallback' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #87
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: on_new_bar
+Location: src/cli/live_trade_command.cpp:1140
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'mock')
+Action Required: Implement proper logic immediately. Comment contains 'mock' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #88
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: liquidate_all_positions
+Location: src/cli/live_trade_command.cpp:1531
+Message: CRITICAL: Financial function 'liquidate_all_positions' has suspiciously minimal implementation (2 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #89
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: execute_transition
+Location: src/cli/live_trade_command.cpp:1578
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'synthetic')
+Action Required: Implement proper logic immediately. Comment contains 'synthetic' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #90
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: execute_transition
+Location: src/cli/live_trade_command.cpp:1612
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'skip')
+Action Required: Implement proper logic immediately. Comment contains 'skip' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #91
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: execute_transition
+Location: src/cli/live_trade_command.cpp:1612
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'mock')
+Action Required: Implement proper logic immediately. Comment contains 'mock' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #92
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: calculate_target_allocations
+Location: src/cli/live_trade_command.cpp:1760
+Message: EXTREME RISK: Simplified/fallback logic detected (keyword: 'mock')
+Action Required: Implement proper logic immediately. Comment contains 'mock' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #93
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: calculate_target_allocations
+Location: src/cli/live_trade_command.cpp:1708
+Message: CRITICAL: Financial function 'calculate_target_allocations' has suspiciously minimal implementation (1 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #94
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: get_broker_positions
+Location: src/cli/live_trade_command.cpp:1977
+Message: CRITICAL: Financial function 'get_broker_positions' has suspiciously minimal implementation (1 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #95
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: save_comprehensive_warmup_to_csv
+Location: src/cli/live_trade_command.cpp:2025
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'skip')
+Action Required: Implement proper logic immediately. Comment contains 'skip' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #96
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_optimized_parameters
+Location: src/cli/live_trade_command.cpp:2130
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    log_error("Failed to parse optimization results: " + std::string(e.what()));
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #97
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: load_optimized_parameters
+Location: src/cli/live_trade_command.cpp:2130
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return params;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #98
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: generate_bar_id
+Location: src/common/utils.cpp:47
+Message: CRITICAL: Critical function 'generate_bar_id' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #99
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: extract_timestamp
+Location: src/common/utils.cpp:54
+Message: CRITICAL: Critical function 'extract_timestamp' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #100
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: extract_symbol_hash
+Location: src/common/utils.cpp:58
+Message: CRITICAL: Critical function 'extract_symbol_hash' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #101
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: load_best_params
+Location: src/common/config_loader.cpp:48
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return std::nullopt;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #102
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: load_best_params
+Location: src/common/config_loader.cpp:48
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return std::nullopt;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #103
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_best_params
+Location: src/common/config_loader.cpp:48
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    utils::log_info("Loaded best parameters from " + config_file);
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #104
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_best_params
+Location: src/common/config_loader.cpp:48
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    utils::log_info("  buy_threshold: " + std::to_string(config.buy_threshold));
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #105
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_best_params
+Location: src/common/config_loader.cpp:48
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    utils::log_info("  sell_threshold: " + std::to_string(config.sell_threshold));
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #106
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_best_params
+Location: src/common/config_loader.cpp:48
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    utils::log_info("  ewrls_lambda: " + std::to_string(config.ewrls_lambda));
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #107
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_best_params
+Location: src/common/config_loader.cpp:48
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    utils::log_info("  bb_amplification_factor: " + std::to_string(config.bb_amplification_factor));
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #108
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: load_best_params
+Location: src/common/config_loader.cpp:48
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return config;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #109
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: load_best_params
+Location: src/common/config_loader.cpp:72
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'default')
+Action Required: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #110
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: load_best_params
+Location: src/common/config_loader.cpp:32
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'skip')
+Action Required: Implement proper logic immediately. Comment contains 'skip' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #111
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: get_production_config
+Location: src/common/config_loader.cpp:97
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'default')
+Action Required: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #112
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: get_production_config
+Location: src/common/config_loader.cpp:97
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'fallback')
+Action Required: Implement proper logic immediately. Comment contains 'fallback' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #113
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: get_production_config
+Location: src/common/config_loader.cpp:97
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'hardcoded')
+Action Required: Implement proper logic immediately. Comment contains 'hardcoded' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #114
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Error parsing WebSocket message: " << e.what() << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #115
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Message was: " << ctx->buffer.substr(0, 200) << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #116
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "❌ WebSocket connection error: " << (char*)in << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #117
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "❌ WebSocket connection error (no details)" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #118
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cout << "→ Sending WebSocket handshake headers" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #119
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cout << "→ WebSocket handshake response received" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #120
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cout << "→ WebSocket instance created" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #121
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cout << "→ WebSocket instance destroyed" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #122
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cout << "WebSocket connection closed" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #123
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_literal
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block returns literal/default value instead of re-throwing
+Action Required: Re-throw exception or crash with detailed error. NEVER return fallback values.
+
+Problematic Code:
+    return 0;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #124
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Error parsing WebSocket message: " << e.what() << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #125
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Message was: " << ctx->buffer.substr(0, 200) << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #126
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "❌ WebSocket connection error: " << (char*)in << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #127
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "❌ WebSocket connection error (no details)" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #128
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cout << "→ Sending WebSocket handshake headers" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #129
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cout << "→ WebSocket handshake response received" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #130
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cout << "→ WebSocket instance created" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #131
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cout << "→ WebSocket instance destroyed" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #132
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cout << "WebSocket connection closed" << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #133
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Error parsing WebSocket message: " << e.what() << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #134
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:142
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Message was: " << ctx->buffer.substr(0, 200) << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #135
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:46
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'hardcoded')
+Action Required: Implement proper logic immediately. Comment contains 'hardcoded' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #136
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: websocket_callback
+Location: src/live/polygon_websocket.cpp:110
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'for now')
+Action Required: Implement proper logic immediately. Comment contains 'for now' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #137
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: fetch_latest_bar_alpaca
+Location: src/live/polygon_client.cpp:123
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Error parsing bar: " << e.what() << std::endl;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #138
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: fetch_latest_bar_alpaca
+Location: src/live/polygon_client.cpp:123
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return bar;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #139
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: create_strategy
+Location: src/strategy/istrategy.cpp:33
+Message: CRITICAL: Financial function 'create_strategy' has suspiciously minimal implementation (1 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #140
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: get_available_strategies
+Location: src/strategy/istrategy.cpp:86
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'default')
+Action Required: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #141
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: get_available_strategies
+Location: src/strategy/istrategy.cpp:99
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'cheat')
+Action Required: Implement proper logic immediately. Comment contains 'cheat' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #142
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_literal
+Function: is_valid_strategy
+Location: src/strategy/istrategy.cpp:120
+Message: CRITICAL: Catch block returns literal/default value instead of re-throwing
+Action Required: Re-throw exception or crash with detailed error. NEVER return fallback values.
+
+Problematic Code:
+    return false;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #143
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: string_to_strategy_type
+Location: src/strategy/istrategy.cpp:125
+Message: CRITICAL: Financial function 'string_to_strategy_type' has suspiciously minimal implementation (2 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #144
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: strategy_type_to_string
+Location: src/strategy/istrategy.cpp:159
+Message: EXTREME RISK: Simplified/fallback logic detected (keyword: 'default')
+Action Required: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #145
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: strategy_type_to_string
+Location: src/strategy/istrategy.cpp:157
+Message: CRITICAL: Financial function 'strategy_type_to_string' has suspiciously minimal implementation (1 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+

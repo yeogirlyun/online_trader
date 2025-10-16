@@ -1,0 +1,61 @@
+
+================================================================================
+MOCK TRADING SESSION REPLAY REPORT
+================================================================================
+Session Date: 2025-10-08
+Replay Date: 2025-10-09
+Session Name: mock_replay_20251008
+
+CONFIGURATION
+----------------------------------------
+Warmup Date: 2025-10-07
+Trading Date: 2025-10-08
+Baseline Parameters:
+  - buy_threshold: 0.55
+  - sell_threshold: 0.45
+  - ewrls_lambda: 0.995
+
+MORNING SESSION (9:30 AM - 12:45 PM)
+----------------------------------------
+Parameters: Baseline
+MRB: 0.0000%
+Status: ✓ Complete
+
+MIDDAY OPTIMIZATION (12:45 PM)
+----------------------------------------
+Optimization Run: ✗ No
+Status: Skipped or Failed
+Decision: Keep Baseline
+
+AFTERNOON SESSION (1:00 PM - 4:00 PM)
+----------------------------------------
+Parameters: Baseline
+MRB: 0.0000%
+Status: ✓ Complete
+
+EOD CLOSING (3:58 PM)
+----------------------------------------
+All positions liquidated: ✓
+Portfolio: 100% Cash
+Status: Complete
+
+SUMMARY
+----------------------------------------
+Total Trading Hours: 6.5 hours (9:30 AM - 4:00 PM)
+Morning MRB: 0.0000%
+Afternoon MRB: 0.0000%
+
+Overall Session Status: ✓ SUCCESS
+
+OUTPUT FILES
+----------------------------------------
+Session Directory: /Volumes/ExternalSSD/Dev/C++/online_trader/data/tmp/mock_replay_20251008
+Morning Signals: /Volumes/ExternalSSD/Dev/C++/online_trader/data/tmp/mock_replay_20251008/morning_signals.jsonl
+Morning Trades: /Volumes/ExternalSSD/Dev/C++/online_trader/data/tmp/mock_replay_20251008/morning_trades.jsonl
+Afternoon Signals: /Volumes/ExternalSSD/Dev/C++/online_trader/data/tmp/mock_replay_20251008/afternoon_signals.jsonl
+Afternoon Trades: /Volumes/ExternalSSD/Dev/C++/online_trader/data/tmp/mock_replay_20251008/afternoon_trades.jsonl
+Report: /Volumes/ExternalSSD/Dev/C++/online_trader/data/tmp/mock_replay_20251008/session_report.txt
+
+================================================================================
+Session completed at 2025-10-09 13:08:35
+================================================================================

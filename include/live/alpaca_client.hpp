@@ -121,6 +121,12 @@ public:
     bool cancel_order(const std::string& order_id);
 
     /**
+     * Cancel all open orders
+     * DELETE /v2/orders
+     */
+    bool cancel_all_orders();
+
+    /**
      * Check if market is open
      * GET /v2/clock
      */

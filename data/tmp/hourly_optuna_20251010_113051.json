@@ -1,0 +1,11 @@
+{
+  "strategy": "B",
+  "total_tests": 0,
+  "mean_mrb": 0.0,
+  "std_mrb": 0.0,
+  "min_mrb": 0.0,
+  "max_mrb": 0.0,
+  "total_time": 1.9073486328125e-06,
+  "results": [],
+  "error": "All tests failed"
+}

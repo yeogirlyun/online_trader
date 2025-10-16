@@ -46,4 +46,24 @@ bool EodStateStore::is_eod_complete(const std::string& et_date) const {
     return last.has_value() && last.value() == et_date;
 }
 
+EodState EodStateStore::load(const std::string& et_date) const {
+    EodState state;
+
+    // Check if EOD was completed for this date
+    if (is_eod_complete(et_date)) {
+        state.status = EodStatus::DONE;
+    } else {
+        state.status = EodStatus::PENDING;
+    }
+
+    return state;
+}
+
+void EodStateStore::save(const std::string& et_date, const EodState& state) {
+    // Only save if status is DONE
+    if (state.status == EodStatus::DONE) {
+        mark_eod_complete(et_date);
+    }
+}
+
 } // namespace sentio

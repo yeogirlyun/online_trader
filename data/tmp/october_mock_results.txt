@@ -1,0 +1,5616 @@
+========================================
+Multi-Symbol Rotation Trading System
+========================================
+
+Mode: MOCK (Backtest)
+Symbols: 6 instruments
+  - TQQQ
+  - SQQQ
+  - SPXL
+  - SDS
+  - UVXY
+  - SVXY
+
+========================================
+Mock Trading Mode (Backtest)
+========================================
+
+✓ Loaded configuration from: config/rotation_strategy.json
+[OES::Constructor] Creating OES instance #0
+[OES::Constructor] Creating OES instance #1
+[OES::Constructor] Creating OES instance #2
+[OES::Constructor] Creating OES instance #3
+[OES::Constructor] Creating OES instance #4
+[OES::Constructor] Creating OES instance #5
+Loading warmup data...
+  TQQQ: 782 bars (4 days warmup before 2025-10-01)
+  SQQQ: 782 bars (4 days warmup before 2025-10-01)
+  SPXL: 778 bars (4 days warmup before 2025-10-01)
+  SDS: 746 bars (4 days warmup before 2025-10-01)
+  UVXY: 781 bars (4 days warmup before 2025-10-01)
+  SVXY: 686 bars (4 days warmup before 2025-10-01)
+
+[Backend] Starting warmup with 6 symbols
+[Backend]   SDS: 746 warmup bars
+[Backend]   SPXL: 778 warmup bars
+[Backend]   SQQQ: 782 warmup bars
+[Backend]   SVXY: 686 warmup bars
+[Backend]   TQQQ: 782 warmup bars
+[Backend]   UVXY: 781 warmup bars
+[OESManager::warmup] Starting warmup for SDS with 746 bars
+[OES::on_bar] Call #0 - samples_seen=0, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #0)
+[OESManager::warmup]   Bar 0 processed
+[OES::on_bar] Call #1 - samples_seen=1, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #1)
+[OESManager::warmup]   Bar 1 processed
+[OES::on_bar] Call #2 - samples_seen=2, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #2)
+[OESManager::warmup]   Bar 2 processed
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.228236, bb20_.sd=3.42386, feats_[24]=0.228236, feats_[25]=3.42386
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.218574, bb20_.sd=3.43287, feats_[24]=0.218574, feats_[25]=3.43287
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.20964, bb20_.sd=3.44287, feats_[24]=0.20964, feats_[25]=3.44287
+[OESManager::warmup] Completed 746 warmup bars for SDS
+[OESManager::warmup]   SDS: READY
+[OESManager::warmup] Starting warmup for SPXL with 778 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 778 warmup bars for SPXL
+[OESManager::warmup]   SPXL: READY
+[OESManager::warmup] Starting warmup for SQQQ with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for SQQQ
+[OESManager::warmup]   SQQQ: READY
+[OESManager::warmup] Starting warmup for SVXY with 686 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 686 warmup bars for SVXY
+[OESManager::warmup]   SVXY: READY
+[OESManager::warmup] Starting warmup for TQQQ with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for TQQQ
+[OESManager::warmup]   TQQQ: READY
+[OESManager::warmup] Starting warmup for UVXY with 781 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 781 warmup bars for UVXY
+[OESManager::warmup]   UVXY: READY
+[Backend]   SDS: READY
+[Backend]   SPXL: READY
+[Backend]   SQQQ: READY
+[Backend]   SVXY: READY
+[Backend]   TQQQ: READY
+[Backend]   UVXY: READY
+[Backend] ✓ Warmup complete - all OES instances ready
+✓ Warmup complete
+
+Starting mock trading session...
+Test date: 2025-10-01 (single-day mode)
+
+Starting mock trading session...
+
+[Backend] Checking if ready...
+[Backend] ✓ Backend is ready
+[Backend] Opening log files...
+[Backend]   Signal log: logs/rotation_trading/signals.jsonl
+[Backend]   Decision log: logs/rotation_trading/decisions.jsonl
+[Backend]   Trade log: logs/rotation_trading/trades.jsonl
+[Backend]   Position log: logs/rotation_trading/positions.jsonl
+[Feed] Loading CSV data for 6 symbols...
+[Feed] Loading SDS from data/equities/SDS_RTH_NH.csv
+[Feed] ✓ Loaded SDS: 374 bars
+[Feed] Loading SPXL from data/equities/SPXL_RTH_NH.csv
+[Feed] ✓ Loaded SPXL: 388 bars
+[Feed] Loading SQQQ from data/equities/SQQQ_RTH_NH.csv
+[Feed] ✓ Loaded SQQQ: 391 bars
+[Feed] Loading SVXY from data/equities/SVXY_RTH_NH.csv
+[Feed] ✓ Loaded SVXY: 279 bars
+[Feed] Loading TQQQ from data/equities/TQQQ_RTH_NH.csv
+[Feed] ✓ Loaded TQQQ: 391 bars
+[Feed] Loading UVXY from data/equities/UVXY_RTH_NH.csv
+[Feed] ✓ Loaded UVXY: 390 bars
+Waiting for backtest to complete...
+[DataMgr] update_symbol called for SDS (bar timestamp: 1759325400000)
+[DataMgr] update_symbol called for SPXL (bar timestamp: 1759325400000)
+[DataMgr] update_symbol called for SQQQ (bar timestamp: 1759325400000)
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #1: predicted_return=0, confidence=0, is_ready=0
+[OES]   TQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   TQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #2: predicted_return=0, confidence=0, is_ready=0
+[OES]   SQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #3: predicted_return=0, confidence=0, is_ready=0
+[OES]   SPXL: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SPXL: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #4: predicted_return=0, confidence=0, is_ready=0
+[OES]   SDS: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #5: predicted_return=0, confidence=0, is_ready=0
+[OES]   UVXY: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #6: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #7: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #8: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #9: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #10: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES]   SVXY: Stale data (300s) - skipping
+[OES] Returning 5 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+
+Mock trading session complete
+
+========================================
+Session Summary
+========================================
+Bars processed: 391
+Signals generated: 2345
+Trades executed: 10
+Positions opened: 5
+Positions closed: 5
+Rotations: 0
+
+Total P&L: $-99960.941000 (-99.960941%)
+Final equity: $39.059000
+Max drawdown: 99.960941%
+
+Win rate: 0.000000%
+Avg win: 0.000000%
+Avg loss: 0.000000%
+Sharpe ratio: -22.964335
+MRD: 0.000000%
+========================================
+
+✓ Positive MRD: 0.000000%
+========================================
+Multi-Symbol Rotation Trading System
+========================================
+
+Mode: MOCK (Backtest)
+Symbols: 6 instruments
+  - TQQQ
+  - SQQQ
+  - SPXL
+  - SDS
+  - UVXY
+  - SVXY
+
+========================================
+Mock Trading Mode (Backtest)
+========================================
+
+✓ Loaded configuration from: config/rotation_strategy.json
+[OES::Constructor] Creating OES instance #0
+[OES::Constructor] Creating OES instance #1
+[OES::Constructor] Creating OES instance #2
+[OES::Constructor] Creating OES instance #3
+[OES::Constructor] Creating OES instance #4
+[OES::Constructor] Creating OES instance #5
+Loading warmup data...
+  TQQQ: 1173 bars (4 days warmup before 2025-10-02)
+  SQQQ: 1173 bars (4 days warmup before 2025-10-02)
+  SPXL: 1166 bars (4 days warmup before 2025-10-02)
+  SDS: 1120 bars (4 days warmup before 2025-10-02)
+  UVXY: 1171 bars (4 days warmup before 2025-10-02)
+  SVXY: 965 bars (4 days warmup before 2025-10-02)
+
+[Backend] Starting warmup with 6 symbols
+[Backend]   SDS: 1120 warmup bars
+[Backend]   SPXL: 1166 warmup bars
+[Backend]   SQQQ: 1173 warmup bars
+[Backend]   SVXY: 965 warmup bars
+[Backend]   TQQQ: 1173 warmup bars
+[Backend]   UVXY: 1171 warmup bars
+[OESManager::warmup] Starting warmup for SDS with 1120 bars
+[OES::on_bar] Call #0 - samples_seen=0, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #0)
+[OESManager::warmup]   Bar 0 processed
+[OES::on_bar] Call #1 - samples_seen=1, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #1)
+[OESManager::warmup]   Bar 1 processed
+[OES::on_bar] Call #2 - samples_seen=2, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #2)
+[OESManager::warmup]   Bar 2 processed
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.228236, bb20_.sd=3.42386, feats_[24]=0.228236, feats_[25]=3.42386
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.218574, bb20_.sd=3.43287, feats_[24]=0.218574, feats_[25]=3.43287
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.20964, bb20_.sd=3.44287, feats_[24]=0.20964, feats_[25]=3.44287
+[OESManager::warmup] Completed 1120 warmup bars for SDS
+[OESManager::warmup]   SDS: READY
+[OESManager::warmup] Starting warmup for SPXL with 1166 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1166 warmup bars for SPXL
+[OESManager::warmup]   SPXL: READY
+[OESManager::warmup] Starting warmup for SQQQ with 1173 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1173 warmup bars for SQQQ
+[OESManager::warmup]   SQQQ: READY
+[OESManager::warmup] Starting warmup for SVXY with 965 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 965 warmup bars for SVXY
+[OESManager::warmup]   SVXY: READY
+[OESManager::warmup] Starting warmup for TQQQ with 1173 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1173 warmup bars for TQQQ
+[OESManager::warmup]   TQQQ: READY
+[OESManager::warmup] Starting warmup for UVXY with 1171 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1171 warmup bars for UVXY
+[OESManager::warmup]   UVXY: READY
+[Backend]   SDS: READY
+[Backend]   SPXL: READY
+[Backend]   SQQQ: READY
+[Backend]   SVXY: READY
+[Backend]   TQQQ: READY
+[Backend]   UVXY: READY
+[Backend] ✓ Warmup complete - all OES instances ready
+✓ Warmup complete
+
+Starting mock trading session...
+Test date: 2025-10-02 (single-day mode)
+
+Starting mock trading session...
+
+[Backend] Checking if ready...
+[Backend] ✓ Backend is ready
+[Backend] Opening log files...
+[Backend]   Signal log: logs/rotation_trading/signals.jsonl
+[Backend]   Decision log: logs/rotation_trading/decisions.jsonl
+[Backend]   Trade log: logs/rotation_trading/trades.jsonl
+[Backend]   Position log: logs/rotation_trading/positions.jsonl
+[Feed] Loading CSV data for 6 symbols...
+[Feed] Loading SDS from data/equities/SDS_RTH_NH.csv
+[Feed] ✓ Loaded SDS: 357 bars
+[Feed] Loading SPXL from data/equities/SPXL_RTH_NH.csv
+[Feed] ✓ Loaded SPXL: 388 bars
+[Feed] Loading SQQQ from data/equities/SQQQ_RTH_NH.csv
+[Feed] ✓ Loaded SQQQ: 391 bars
+[Feed] Loading SVXY from data/equities/SVXY_RTH_NH.csv
+[Feed] ✓ Loaded SVXY: 331 bars
+[Feed] Loading TQQQ from data/equities/TQQQ_RTH_NH.csv
+[Feed] ✓ Loaded TQQQ: 391 bars
+[Feed] Loading UVXY from data/equities/UVXY_RTH_NH.csv
+[Feed] ✓ Loaded UVXY: 390 bars
+Waiting for backtest to complete...
+[DataMgr] update_symbol called for SDS (bar timestamp: 1759411800000)
+[DataMgr] update_symbol called for SPXL (bar timestamp: 1759411800000)
+[DataMgr] update_symbol called for SQQQ (bar timestamp: 1759411800000)
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #1: predicted_return=0, confidence=0, is_ready=0
+[OES]   TQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   TQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #2: predicted_return=0, confidence=0, is_ready=0
+[OES]   SQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #3: predicted_return=0, confidence=0, is_ready=0
+[OES]   SPXL: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SPXL: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #4: predicted_return=0, confidence=0, is_ready=0
+[OES]   SDS: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #5: predicted_return=0, confidence=0, is_ready=0
+[OES]   UVXY: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #6: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #7: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #8: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #9: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #10: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES]   SVXY: Stale data (300s) - skipping
+[OES] Returning 5 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+
+Mock trading session complete
+
+========================================
+Session Summary
+========================================
+Bars processed: 391
+Signals generated: 2345
+Trades executed: 12
+Positions opened: 6
+Positions closed: 6
+Rotations: 0
+
+Total P&L: $-99978.933900 (-99.978934%)
+Final equity: $21.066100
+Max drawdown: 99.978934%
+
+Win rate: 0.000000%
+Avg win: 0.000000%
+Avg loss: 0.000000%
+Sharpe ratio: -24.302987
+MRD: 0.000000%
+========================================
+
+✓ Positive MRD: 0.000000%
+========================================
+Multi-Symbol Rotation Trading System
+========================================
+
+Mode: MOCK (Backtest)
+Symbols: 6 instruments
+  - TQQQ
+  - SQQQ
+  - SPXL
+  - SDS
+  - UVXY
+  - SVXY
+
+========================================
+Mock Trading Mode (Backtest)
+========================================
+
+✓ Loaded configuration from: config/rotation_strategy.json
+[OES::Constructor] Creating OES instance #0
+[OES::Constructor] Creating OES instance #1
+[OES::Constructor] Creating OES instance #2
+[OES::Constructor] Creating OES instance #3
+[OES::Constructor] Creating OES instance #4
+[OES::Constructor] Creating OES instance #5
+Loading warmup data...
+  TQQQ: 1564 bars (4 days warmup before 2025-10-03)
+  SQQQ: 1564 bars (4 days warmup before 2025-10-03)
+  SPXL: 1554 bars (4 days warmup before 2025-10-03)
+  SDS: 1477 bars (4 days warmup before 2025-10-03)
+  UVXY: 1561 bars (4 days warmup before 2025-10-03)
+  SVXY: 1296 bars (4 days warmup before 2025-10-03)
+
+[Backend] Starting warmup with 6 symbols
+[Backend]   SDS: 1477 warmup bars
+[Backend]   SPXL: 1554 warmup bars
+[Backend]   SQQQ: 1564 warmup bars
+[Backend]   SVXY: 1296 warmup bars
+[Backend]   TQQQ: 1564 warmup bars
+[Backend]   UVXY: 1561 warmup bars
+[OESManager::warmup] Starting warmup for SDS with 1477 bars
+[OES::on_bar] Call #0 - samples_seen=0, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #0)
+[OESManager::warmup]   Bar 0 processed
+[OES::on_bar] Call #1 - samples_seen=1, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #1)
+[OESManager::warmup]   Bar 1 processed
+[OES::on_bar] Call #2 - samples_seen=2, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #2)
+[OESManager::warmup]   Bar 2 processed
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.228236, bb20_.sd=3.42386, feats_[24]=0.228236, feats_[25]=3.42386
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.218574, bb20_.sd=3.43287, feats_[24]=0.218574, feats_[25]=3.43287
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.20964, bb20_.sd=3.44287, feats_[24]=0.20964, feats_[25]=3.44287
+[OESManager::warmup] Completed 1477 warmup bars for SDS
+[OESManager::warmup]   SDS: READY
+[OESManager::warmup] Starting warmup for SPXL with 1554 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1554 warmup bars for SPXL
+[OESManager::warmup]   SPXL: READY
+[OESManager::warmup] Starting warmup for SQQQ with 1564 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1564 warmup bars for SQQQ
+[OESManager::warmup]   SQQQ: READY
+[OESManager::warmup] Starting warmup for SVXY with 1296 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1296 warmup bars for SVXY
+[OESManager::warmup]   SVXY: READY
+[OESManager::warmup] Starting warmup for TQQQ with 1564 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1564 warmup bars for TQQQ
+[OESManager::warmup]   TQQQ: READY
+[OESManager::warmup] Starting warmup for UVXY with 1561 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1561 warmup bars for UVXY
+[OESManager::warmup]   UVXY: READY
+[Backend]   SDS: READY
+[Backend]   SPXL: READY
+[Backend]   SQQQ: READY
+[Backend]   SVXY: READY
+[Backend]   TQQQ: READY
+[Backend]   UVXY: READY
+[Backend] ✓ Warmup complete - all OES instances ready
+✓ Warmup complete
+
+Starting mock trading session...
+Test date: 2025-10-03 (single-day mode)
+
+Starting mock trading session...
+
+[Backend] Checking if ready...
+[Backend] ✓ Backend is ready
+[Backend] Opening log files...
+[Backend]   Signal log: logs/rotation_trading/signals.jsonl
+[Backend]   Decision log: logs/rotation_trading/decisions.jsonl
+[Backend]   Trade log: logs/rotation_trading/trades.jsonl
+[Backend]   Position log: logs/rotation_trading/positions.jsonl
+[Feed] Loading CSV data for 6 symbols...
+[Feed] Loading SDS from data/equities/SDS_RTH_NH.csv
+[Feed] ✓ Loaded SDS: 387 bars
+[Feed] Loading SPXL from data/equities/SPXL_RTH_NH.csv
+[Feed] ✓ Loaded SPXL: 389 bars
+[Feed] Loading SQQQ from data/equities/SQQQ_RTH_NH.csv
+[Feed] ✓ Loaded SQQQ: 391 bars
+[Feed] Loading SVXY from data/equities/SVXY_RTH_NH.csv
+[Feed] ✓ Loaded SVXY: 314 bars
+[Feed] Loading TQQQ from data/equities/TQQQ_RTH_NH.csv
+[Feed] ✓ Loaded TQQQ: 391 bars
+[Feed] Loading UVXY from data/equities/UVXY_RTH_NH.csv
+[Feed] ✓ Loaded UVXY: 390 bars
+Waiting for backtest to complete...
+[DataMgr] update_symbol called for SDS (bar timestamp: 1759498200000)
+[DataMgr] update_symbol called for SPXL (bar timestamp: 1759498200000)
+[DataMgr] update_symbol called for SQQQ (bar timestamp: 1759498200000)
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #1: predicted_return=0, confidence=0, is_ready=0
+[OES]   TQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   TQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #2: predicted_return=0, confidence=0, is_ready=0
+[OES]   SQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #3: predicted_return=0, confidence=0, is_ready=0
+[OES]   SPXL: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SPXL: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #4: predicted_return=0, confidence=0, is_ready=0
+[OES]   SDS: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #5: predicted_return=0, confidence=0, is_ready=0
+[OES]   UVXY: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #6: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #7: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #8: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #9: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #10: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES]   SVXY: Stale data (300s) - skipping
+[OES] Returning 5 signals
+[OES]   SVXY: Stale data (360s) - skipping
+[OES] Returning 5 signals
+[OES]   SVXY: Stale data (420s) - skipping
+[OES] Returning 5 signals
+[OES] Returning 5 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 5 signals
+[OES] Returning 5 signals
+[OES] Returning 5 signals
+[OES] Returning 5 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+
+Mock trading session complete
+
+========================================
+Session Summary
+========================================
+Bars processed: 391
+Signals generated: 2338
+Trades executed: 10
+Positions opened: 5
+Positions closed: 5
+Rotations: 0
+
+Total P&L: $-99973.210200 (-99.973210%)
+Final equity: $26.789800
+Max drawdown: 99.973215%
+
+Win rate: 0.000000%
+Avg win: 0.000000%
+Avg loss: 0.000000%
+Sharpe ratio: -29.829231
+MRD: 0.000000%
+========================================
+
+✓ Positive MRD: 0.000000%
+========================================
+Multi-Symbol Rotation Trading System
+========================================
+
+Mode: MOCK (Backtest)
+Symbols: 6 instruments
+  - TQQQ
+  - SQQQ
+  - SPXL
+  - SDS
+  - UVXY
+  - SVXY
+
+========================================
+Mock Trading Mode (Backtest)
+========================================
+
+✓ Loaded configuration from: config/rotation_strategy.json
+[OES::Constructor] Creating OES instance #0
+[OES::Constructor] Creating OES instance #1
+[OES::Constructor] Creating OES instance #2
+[OES::Constructor] Creating OES instance #3
+[OES::Constructor] Creating OES instance #4
+[OES::Constructor] Creating OES instance #5
+Loading warmup data...
+  TQQQ: 782 bars (4 days warmup before 2025-10-06)
+  SQQQ: 782 bars (4 days warmup before 2025-10-06)
+  SPXL: 777 bars (4 days warmup before 2025-10-06)
+  SDS: 744 bars (4 days warmup before 2025-10-06)
+  UVXY: 780 bars (4 days warmup before 2025-10-06)
+  SVXY: 645 bars (4 days warmup before 2025-10-06)
+
+[Backend] Starting warmup with 6 symbols
+[Backend]   SDS: 744 warmup bars
+[Backend]   SPXL: 777 warmup bars
+[Backend]   SQQQ: 782 warmup bars
+[Backend]   SVXY: 645 warmup bars
+[Backend]   TQQQ: 782 warmup bars
+[Backend]   UVXY: 780 warmup bars
+[OESManager::warmup] Starting warmup for SDS with 744 bars
+[OES::on_bar] Call #0 - samples_seen=0, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #0)
+[OESManager::warmup]   Bar 0 processed
+[OES::on_bar] Call #1 - samples_seen=1, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #1)
+[OESManager::warmup]   Bar 1 processed
+[OES::on_bar] Call #2 - samples_seen=2, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #2)
+[OESManager::warmup]   Bar 2 processed
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.236515, bb20_.sd=3.44779, feats_[24]=0.236515, feats_[25]=3.44779
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.225935, bb20_.sd=3.45451, feats_[24]=0.225935, feats_[25]=3.45451
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.215138, bb20_.sd=3.45795, feats_[24]=0.215138, feats_[25]=3.45795
+[OESManager::warmup] Completed 744 warmup bars for SDS
+[OESManager::warmup]   SDS: READY
+[OESManager::warmup] Starting warmup for SPXL with 777 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 777 warmup bars for SPXL
+[OESManager::warmup]   SPXL: READY
+[OESManager::warmup] Starting warmup for SQQQ with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for SQQQ
+[OESManager::warmup]   SQQQ: READY
+[OESManager::warmup] Starting warmup for SVXY with 645 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 645 warmup bars for SVXY
+[OESManager::warmup]   SVXY: READY
+[OESManager::warmup] Starting warmup for TQQQ with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for TQQQ
+[OESManager::warmup]   TQQQ: READY
+[OESManager::warmup] Starting warmup for UVXY with 780 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 780 warmup bars for UVXY
+[OESManager::warmup]   UVXY: READY
+[Backend]   SDS: READY
+[Backend]   SPXL: READY
+[Backend]   SQQQ: READY
+[Backend]   SVXY: READY
+[Backend]   TQQQ: READY
+[Backend]   UVXY: READY
+[Backend] ✓ Warmup complete - all OES instances ready
+✓ Warmup complete
+
+Starting mock trading session...
+Test date: 2025-10-06 (single-day mode)
+
+Starting mock trading session...
+
+[Backend] Checking if ready...
+[Backend] ✓ Backend is ready
+[Backend] Opening log files...
+[Backend]   Signal log: logs/rotation_trading/signals.jsonl
+[Backend]   Decision log: logs/rotation_trading/decisions.jsonl
+[Backend]   Trade log: logs/rotation_trading/trades.jsonl
+[Backend]   Position log: logs/rotation_trading/positions.jsonl
+[Feed] Loading CSV data for 6 symbols...
+[Feed] Loading SDS from data/equities/SDS_RTH_NH.csv
+[Feed] ✓ Loaded SDS: 366 bars
+[Feed] Loading SPXL from data/equities/SPXL_RTH_NH.csv
+[Feed] ✓ Loaded SPXL: 390 bars
+[Feed] Loading SQQQ from data/equities/SQQQ_RTH_NH.csv
+[Feed] ✓ Loaded SQQQ: 391 bars
+[Feed] Loading SVXY from data/equities/SVXY_RTH_NH.csv
+[Feed] ✓ Loaded SVXY: 309 bars
+[Feed] Loading TQQQ from data/equities/TQQQ_RTH_NH.csv
+[Feed] ✓ Loaded TQQQ: 391 bars
+[Feed] Loading UVXY from data/equities/UVXY_RTH_NH.csv
+[Feed] ✓ Loaded UVXY: 389 bars
+Waiting for backtest to complete...
+[DataMgr] update_symbol called for SDS (bar timestamp: 1759757400000)
+[DataMgr] update_symbol called for SPXL (bar timestamp: 1759757400000)
+[DataMgr] update_symbol called for SQQQ (bar timestamp: 1759757400000)
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #1: predicted_return=0, confidence=0, is_ready=0
+[OES]   TQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   TQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #2: predicted_return=0, confidence=0, is_ready=0
+[OES]   SQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #3: predicted_return=0, confidence=0, is_ready=0
+[OES]   SPXL: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SPXL: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #4: predicted_return=0, confidence=0, is_ready=0
+[OES]   SDS: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #5: predicted_return=0, confidence=0, is_ready=0
+[OES]   UVXY: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #6: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #7: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #8: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #9: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #10: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+
+Mock trading session complete
+
+========================================
+Session Summary
+========================================
+Bars processed: 391
+Signals generated: 2346
+Trades executed: 10
+Positions opened: 5
+Positions closed: 5
+Rotations: 0
+
+Total P&L: $-99932.689800 (-99.932690%)
+Final equity: $67.310200
+Max drawdown: 99.932760%
+
+Win rate: 0.000000%
+Avg win: 0.000000%
+Avg loss: 0.000000%
+Sharpe ratio: -11.160855
+MRD: 0.000000%
+========================================
+
+✓ Positive MRD: 0.000000%
+========================================
+Multi-Symbol Rotation Trading System
+========================================
+
+Mode: MOCK (Backtest)
+Symbols: 6 instruments
+  - TQQQ
+  - SQQQ
+  - SPXL
+  - SDS
+  - UVXY
+  - SVXY
+
+========================================
+Mock Trading Mode (Backtest)
+========================================
+
+✓ Loaded configuration from: config/rotation_strategy.json
+[OES::Constructor] Creating OES instance #0
+[OES::Constructor] Creating OES instance #1
+[OES::Constructor] Creating OES instance #2
+[OES::Constructor] Creating OES instance #3
+[OES::Constructor] Creating OES instance #4
+[OES::Constructor] Creating OES instance #5
+Loading warmup data...
+  TQQQ: 782 bars (4 days warmup before 2025-10-07)
+  SQQQ: 782 bars (4 days warmup before 2025-10-07)
+  SPXL: 779 bars (4 days warmup before 2025-10-07)
+  SDS: 753 bars (4 days warmup before 2025-10-07)
+  UVXY: 779 bars (4 days warmup before 2025-10-07)
+  SVXY: 623 bars (4 days warmup before 2025-10-07)
+
+[Backend] Starting warmup with 6 symbols
+[Backend]   SDS: 753 warmup bars
+[Backend]   SPXL: 779 warmup bars
+[Backend]   SQQQ: 782 warmup bars
+[Backend]   SVXY: 623 warmup bars
+[Backend]   TQQQ: 782 warmup bars
+[Backend]   UVXY: 779 warmup bars
+[OESManager::warmup] Starting warmup for SDS with 753 bars
+[OES::on_bar] Call #0 - samples_seen=0, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #0)
+[OESManager::warmup]   Bar 0 processed
+[OES::on_bar] Call #1 - samples_seen=1, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #1)
+[OESManager::warmup]   Bar 1 processed
+[OES::on_bar] Call #2 - samples_seen=2, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #2)
+[OESManager::warmup]   Bar 2 processed
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.204628, bb20_.sd=3.31145, feats_[24]=0.204628, feats_[25]=3.31145
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.195147, bb20_.sd=3.31599, feats_[24]=0.195147, feats_[25]=3.31599
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.186689, bb20_.sd=3.32292, feats_[24]=0.186689, feats_[25]=3.32292
+[OESManager::warmup] Completed 753 warmup bars for SDS
+[OESManager::warmup]   SDS: READY
+[OESManager::warmup] Starting warmup for SPXL with 779 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 779 warmup bars for SPXL
+[OESManager::warmup]   SPXL: READY
+[OESManager::warmup] Starting warmup for SQQQ with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for SQQQ
+[OESManager::warmup]   SQQQ: READY
+[OESManager::warmup] Starting warmup for SVXY with 623 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 623 warmup bars for SVXY
+[OESManager::warmup]   SVXY: READY
+[OESManager::warmup] Starting warmup for TQQQ with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for TQQQ
+[OESManager::warmup]   TQQQ: READY
+[OESManager::warmup] Starting warmup for UVXY with 779 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 779 warmup bars for UVXY
+[OESManager::warmup]   UVXY: READY
+[Backend]   SDS: READY
+[Backend]   SPXL: READY
+[Backend]   SQQQ: READY
+[Backend]   SVXY: READY
+[Backend]   TQQQ: READY
+[Backend]   UVXY: READY
+[Backend] ✓ Warmup complete - all OES instances ready
+✓ Warmup complete
+
+Starting mock trading session...
+Test date: 2025-10-07 (single-day mode)
+
+Starting mock trading session...
+
+[Backend] Checking if ready...
+[Backend] ✓ Backend is ready
+[Backend] Opening log files...
+[Backend]   Signal log: logs/rotation_trading/signals.jsonl
+[Backend]   Decision log: logs/rotation_trading/decisions.jsonl
+[Backend]   Trade log: logs/rotation_trading/trades.jsonl
+[Backend]   Position log: logs/rotation_trading/positions.jsonl
+[Feed] Loading CSV data for 6 symbols...
+[Feed] Loading SDS from data/equities/SDS_RTH_NH.csv
+[Feed] ✓ Loaded SDS: 377 bars
+[Feed] Loading SPXL from data/equities/SPXL_RTH_NH.csv
+[Feed] ✓ Loaded SPXL: 386 bars
+[Feed] Loading SQQQ from data/equities/SQQQ_RTH_NH.csv
+[Feed] ✓ Loaded SQQQ: 391 bars
+[Feed] Loading SVXY from data/equities/SVXY_RTH_NH.csv
+[Feed] ✓ Loaded SVXY: 370 bars
+[Feed] Loading TQQQ from data/equities/TQQQ_RTH_NH.csv
+[Feed] ✓ Loaded TQQQ: 391 bars
+[Feed] Loading UVXY from data/equities/UVXY_RTH_NH.csv
+[Feed] ✓ Loaded UVXY: 391 bars
+Waiting for backtest to complete...
+[DataMgr] update_symbol called for SDS (bar timestamp: 1759843800000)
+[DataMgr] update_symbol called for SPXL (bar timestamp: 1759843800000)
+[DataMgr] update_symbol called for SQQQ (bar timestamp: 1759843800000)
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #1: predicted_return=0, confidence=0, is_ready=0
+[OES]   TQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   TQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #2: predicted_return=0, confidence=0, is_ready=0
+[OES]   SQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #3: predicted_return=0, confidence=0, is_ready=0
+[OES]   SPXL: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SPXL: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #4: predicted_return=0, confidence=0, is_ready=0
+[OES]   SDS: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #5: predicted_return=0, confidence=0, is_ready=0
+[OES]   UVXY: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #6: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #7: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #8: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #9: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #10: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+
+Mock trading session complete
+
+========================================
+Session Summary
+========================================
+Bars processed: 391
+Signals generated: 2346
+Trades executed: 10
+Positions opened: 5
+Positions closed: 5
+Rotations: 0
+
+Total P&L: $-99965.540400 (-99.965540%)
+Final equity: $34.459600
+Max drawdown: 99.965551%
+
+Win rate: 0.000000%
+Avg win: 0.000000%
+Avg loss: 0.000000%
+Sharpe ratio: -22.305381
+MRD: 0.000000%
+========================================
+
+✓ Positive MRD: 0.000000%
+========================================
+Multi-Symbol Rotation Trading System
+========================================
+
+Mode: MOCK (Backtest)
+Symbols: 6 instruments
+  - TQQQ
+  - SQQQ
+  - SPXL
+  - SDS
+  - UVXY
+  - SVXY
+
+========================================
+Mock Trading Mode (Backtest)
+========================================
+
+✓ Loaded configuration from: config/rotation_strategy.json
+[OES::Constructor] Creating OES instance #0
+[OES::Constructor] Creating OES instance #1
+[OES::Constructor] Creating OES instance #2
+[OES::Constructor] Creating OES instance #3
+[OES::Constructor] Creating OES instance #4
+[OES::Constructor] Creating OES instance #5
+Loading warmup data...
+  TQQQ: 782 bars (4 days warmup before 2025-10-08)
+  SQQQ: 782 bars (4 days warmup before 2025-10-08)
+  SPXL: 776 bars (4 days warmup before 2025-10-08)
+  SDS: 743 bars (4 days warmup before 2025-10-08)
+  UVXY: 780 bars (4 days warmup before 2025-10-08)
+  SVXY: 679 bars (4 days warmup before 2025-10-08)
+
+[Backend] Starting warmup with 6 symbols
+[Backend]   SDS: 743 warmup bars
+[Backend]   SPXL: 776 warmup bars
+[Backend]   SQQQ: 782 warmup bars
+[Backend]   SVXY: 679 warmup bars
+[Backend]   TQQQ: 782 warmup bars
+[Backend]   UVXY: 780 warmup bars
+[OESManager::warmup] Starting warmup for SDS with 743 bars
+[OES::on_bar] Call #0 - samples_seen=0, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #0)
+[OESManager::warmup]   Bar 0 processed
+[OES::on_bar] Call #1 - samples_seen=1, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #1)
+[OESManager::warmup]   Bar 1 processed
+[OES::on_bar] Call #2 - samples_seen=2, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #2)
+[OESManager::warmup]   Bar 2 processed
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.201233, bb20_.sd=3.31024, feats_[24]=0.201233, feats_[25]=3.31024
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.189921, bb20_.sd=3.31175, feats_[24]=0.189921, feats_[25]=3.31175
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.179804, bb20_.sd=3.31594, feats_[24]=0.179804, feats_[25]=3.31594
+[OESManager::warmup] Completed 743 warmup bars for SDS
+[OESManager::warmup]   SDS: READY
+[OESManager::warmup] Starting warmup for SPXL with 776 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 776 warmup bars for SPXL
+[OESManager::warmup]   SPXL: READY
+[OESManager::warmup] Starting warmup for SQQQ with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for SQQQ
+[OESManager::warmup]   SQQQ: READY
+[OESManager::warmup] Starting warmup for SVXY with 679 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 679 warmup bars for SVXY
+[OESManager::warmup]   SVXY: READY
+[OESManager::warmup] Starting warmup for TQQQ with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for TQQQ
+[OESManager::warmup]   TQQQ: READY
+[OESManager::warmup] Starting warmup for UVXY with 780 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 780 warmup bars for UVXY
+[OESManager::warmup]   UVXY: READY
+[Backend]   SDS: READY
+[Backend]   SPXL: READY
+[Backend]   SQQQ: READY
+[Backend]   SVXY: READY
+[Backend]   TQQQ: READY
+[Backend]   UVXY: READY
+[Backend] ✓ Warmup complete - all OES instances ready
+✓ Warmup complete
+
+Starting mock trading session...
+Test date: 2025-10-08 (single-day mode)
+
+Starting mock trading session...
+
+[Backend] Checking if ready...
+[Backend] ✓ Backend is ready
+[Backend] Opening log files...
+[Backend]   Signal log: logs/rotation_trading/signals.jsonl
+[Backend]   Decision log: logs/rotation_trading/decisions.jsonl
+[Backend]   Trade log: logs/rotation_trading/trades.jsonl
+[Backend]   Position log: logs/rotation_trading/positions.jsonl
+[Feed] Loading CSV data for 6 symbols...
+[Feed] Loading SDS from data/equities/SDS_RTH_NH.csv
+[Feed] ✓ Loaded SDS: 350 bars
+[Feed] Loading SPXL from data/equities/SPXL_RTH_NH.csv
+[Feed] ✓ Loaded SPXL: 388 bars
+[Feed] Loading SQQQ from data/equities/SQQQ_RTH_NH.csv
+[Feed] ✓ Loaded SQQQ: 391 bars
+[Feed] Loading SVXY from data/equities/SVXY_RTH_NH.csv
+[Feed] ✓ Loaded SVXY: 306 bars
+[Feed] Loading TQQQ from data/equities/TQQQ_RTH_NH.csv
+[Feed] ✓ Loaded TQQQ: 391 bars
+[Feed] Loading UVXY from data/equities/UVXY_RTH_NH.csv
+[Feed] ✓ Loaded UVXY: 391 bars
+Waiting for backtest to complete...
+[DataMgr] update_symbol called for SDS (bar timestamp: 1759930200000)
+[DataMgr] update_symbol called for SPXL (bar timestamp: 1759930200000)
+[DataMgr] update_symbol called for SQQQ (bar timestamp: 1759930200000)
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #1: predicted_return=0, confidence=0, is_ready=0
+[OES]   TQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   TQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #2: predicted_return=0, confidence=0, is_ready=0
+[OES]   SQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #3: predicted_return=0, confidence=0, is_ready=0
+[OES]   SPXL: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SPXL: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #4: predicted_return=0, confidence=0, is_ready=0
+[OES]   SDS: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #5: predicted_return=0, confidence=0, is_ready=0
+[OES]   UVXY: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #6: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #7: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #8: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #9: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #10: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES]   SVXY: Stale data (300s) - skipping
+[OES] Returning 5 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+
+Mock trading session complete
+
+========================================
+Session Summary
+========================================
+Bars processed: 391
+Signals generated: 2345
+Trades executed: 12
+Positions opened: 6
+Positions closed: 6
+Rotations: 0
+
+Total P&L: $-99978.797600 (-99.978798%)
+Final equity: $21.202400
+Max drawdown: 99.979597%
+
+Win rate: 0.000000%
+Avg win: 0.000000%
+Avg loss: 0.000000%
+Sharpe ratio: -33.537750
+MRD: 0.000000%
+========================================
+
+✓ Positive MRD: 0.000000%
+========================================
+Multi-Symbol Rotation Trading System
+========================================
+
+Mode: MOCK (Backtest)
+Symbols: 6 instruments
+  - TQQQ
+  - SQQQ
+  - SPXL
+  - SDS
+  - UVXY
+  - SVXY
+
+========================================
+Mock Trading Mode (Backtest)
+========================================
+
+✓ Loaded configuration from: config/rotation_strategy.json
+[OES::Constructor] Creating OES instance #0
+[OES::Constructor] Creating OES instance #1
+[OES::Constructor] Creating OES instance #2
+[OES::Constructor] Creating OES instance #3
+[OES::Constructor] Creating OES instance #4
+[OES::Constructor] Creating OES instance #5
+Loading warmup data...
+  TQQQ: 1173 bars (4 days warmup before 2025-10-09)
+  SQQQ: 1173 bars (4 days warmup before 2025-10-09)
+  SPXL: 1164 bars (4 days warmup before 2025-10-09)
+  SDS: 1093 bars (4 days warmup before 2025-10-09)
+  UVXY: 1171 bars (4 days warmup before 2025-10-09)
+  SVXY: 985 bars (4 days warmup before 2025-10-09)
+
+[Backend] Starting warmup with 6 symbols
+[Backend]   SDS: 1093 warmup bars
+[Backend]   SPXL: 1164 warmup bars
+[Backend]   SQQQ: 1173 warmup bars
+[Backend]   SVXY: 985 warmup bars
+[Backend]   TQQQ: 1173 warmup bars
+[Backend]   UVXY: 1171 warmup bars
+[OESManager::warmup] Starting warmup for SDS with 1093 bars
+[OES::on_bar] Call #0 - samples_seen=0, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #0)
+[OESManager::warmup]   Bar 0 processed
+[OES::on_bar] Call #1 - samples_seen=1, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #1)
+[OESManager::warmup]   Bar 1 processed
+[OES::on_bar] Call #2 - samples_seen=2, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #2)
+[OESManager::warmup]   Bar 2 processed
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.201233, bb20_.sd=3.31024, feats_[24]=0.201233, feats_[25]=3.31024
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.189921, bb20_.sd=3.31175, feats_[24]=0.189921, feats_[25]=3.31175
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.179804, bb20_.sd=3.31594, feats_[24]=0.179804, feats_[25]=3.31594
+[OESManager::warmup] Completed 1093 warmup bars for SDS
+[OESManager::warmup]   SDS: READY
+[OESManager::warmup] Starting warmup for SPXL with 1164 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1164 warmup bars for SPXL
+[OESManager::warmup]   SPXL: READY
+[OESManager::warmup] Starting warmup for SQQQ with 1173 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1173 warmup bars for SQQQ
+[OESManager::warmup]   SQQQ: READY
+[OESManager::warmup] Starting warmup for SVXY with 985 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 985 warmup bars for SVXY
+[OESManager::warmup]   SVXY: READY
+[OESManager::warmup] Starting warmup for TQQQ with 1173 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1173 warmup bars for TQQQ
+[OESManager::warmup]   TQQQ: READY
+[OESManager::warmup] Starting warmup for UVXY with 1171 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1171 warmup bars for UVXY
+[OESManager::warmup]   UVXY: READY
+[Backend]   SDS: READY
+[Backend]   SPXL: READY
+[Backend]   SQQQ: READY
+[Backend]   SVXY: READY
+[Backend]   TQQQ: READY
+[Backend]   UVXY: READY
+[Backend] ✓ Warmup complete - all OES instances ready
+✓ Warmup complete
+
+Starting mock trading session...
+Test date: 2025-10-09 (single-day mode)
+
+Starting mock trading session...
+
+[Backend] Checking if ready...
+[Backend] ✓ Backend is ready
+[Backend] Opening log files...
+[Backend]   Signal log: logs/rotation_trading/signals.jsonl
+[Backend]   Decision log: logs/rotation_trading/decisions.jsonl
+[Backend]   Trade log: logs/rotation_trading/trades.jsonl
+[Backend]   Position log: logs/rotation_trading/positions.jsonl
+[Feed] Loading CSV data for 6 symbols...
+[Feed] Loading SDS from data/equities/SDS_RTH_NH.csv
+[Feed] ✓ Loaded SDS: 376 bars
+[Feed] Loading SPXL from data/equities/SPXL_RTH_NH.csv
+[Feed] ✓ Loaded SPXL: 383 bars
+[Feed] Loading SQQQ from data/equities/SQQQ_RTH_NH.csv
+[Feed] ✓ Loaded SQQQ: 391 bars
+[Feed] Loading SVXY from data/equities/SVXY_RTH_NH.csv
+[Feed] ✓ Loaded SVXY: 376 bars
+[Feed] Loading TQQQ from data/equities/TQQQ_RTH_NH.csv
+[Feed] ✓ Loaded TQQQ: 391 bars
+[Feed] Loading UVXY from data/equities/UVXY_RTH_NH.csv
+[Feed] ✓ Loaded UVXY: 391 bars
+Waiting for backtest to complete...
+[DataMgr] update_symbol called for SDS (bar timestamp: 1760016600000)
+[DataMgr] update_symbol called for SPXL (bar timestamp: 1760016600000)
+[DataMgr] update_symbol called for SQQQ (bar timestamp: 1760016600000)
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #1: predicted_return=0, confidence=0, is_ready=0
+[OES]   TQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   TQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #2: predicted_return=0, confidence=0, is_ready=0
+[OES]   SQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #3: predicted_return=0, confidence=0, is_ready=0
+[OES]   SPXL: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SPXL: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #4: predicted_return=0, confidence=0, is_ready=0
+[OES]   SDS: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #5: predicted_return=0, confidence=0, is_ready=0
+[OES]   UVXY: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #6: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #7: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #8: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #9: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #10: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+
+Mock trading session complete
+
+========================================
+Session Summary
+========================================
+Bars processed: 391
+Signals generated: 2346
+Trades executed: 10
+Positions opened: 5
+Positions closed: 5
+Rotations: 0
+
+Total P&L: $-99935.531800 (-99.935532%)
+Final equity: $64.468200
+Max drawdown: 99.950005%
+
+Win rate: 0.000000%
+Avg win: 0.000000%
+Avg loss: 0.000000%
+Sharpe ratio: -23.408893
+MRD: 0.000000%
+========================================
+
+✓ Positive MRD: 0.000000%
+========================================
+Multi-Symbol Rotation Trading System
+========================================
+
+Mode: MOCK (Backtest)
+Symbols: 6 instruments
+  - TQQQ
+  - SQQQ
+  - SPXL
+  - SDS
+  - UVXY
+  - SVXY
+
+========================================
+Mock Trading Mode (Backtest)
+========================================
+
+✓ Loaded configuration from: config/rotation_strategy.json
+[OES::Constructor] Creating OES instance #0
+[OES::Constructor] Creating OES instance #1
+[OES::Constructor] Creating OES instance #2
+[OES::Constructor] Creating OES instance #3
+[OES::Constructor] Creating OES instance #4
+[OES::Constructor] Creating OES instance #5
+Loading warmup data...
+  TQQQ: 1564 bars (4 days warmup before 2025-10-10)
+  SQQQ: 1564 bars (4 days warmup before 2025-10-10)
+  SPXL: 1547 bars (4 days warmup before 2025-10-10)
+  SDS: 1469 bars (4 days warmup before 2025-10-10)
+  UVXY: 1562 bars (4 days warmup before 2025-10-10)
+  SVXY: 1361 bars (4 days warmup before 2025-10-10)
+
+[Backend] Starting warmup with 6 symbols
+[Backend]   SDS: 1469 warmup bars
+[Backend]   SPXL: 1547 warmup bars
+[Backend]   SQQQ: 1564 warmup bars
+[Backend]   SVXY: 1361 warmup bars
+[Backend]   TQQQ: 1564 warmup bars
+[Backend]   UVXY: 1562 warmup bars
+[OESManager::warmup] Starting warmup for SDS with 1469 bars
+[OES::on_bar] Call #0 - samples_seen=0, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #0)
+[OESManager::warmup]   Bar 0 processed
+[OES::on_bar] Call #1 - samples_seen=1, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #1)
+[OESManager::warmup]   Bar 1 processed
+[OES::on_bar] Call #2 - samples_seen=2, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #2)
+[OESManager::warmup]   Bar 2 processed
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.201233, bb20_.sd=3.31024, feats_[24]=0.201233, feats_[25]=3.31024
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.189921, bb20_.sd=3.31175, feats_[24]=0.189921, feats_[25]=3.31175
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.179804, bb20_.sd=3.31594, feats_[24]=0.179804, feats_[25]=3.31594
+[OESManager::warmup] Completed 1469 warmup bars for SDS
+[OESManager::warmup]   SDS: READY
+[OESManager::warmup] Starting warmup for SPXL with 1547 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1547 warmup bars for SPXL
+[OESManager::warmup]   SPXL: READY
+[OESManager::warmup] Starting warmup for SQQQ with 1564 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1564 warmup bars for SQQQ
+[OESManager::warmup]   SQQQ: READY
+[OESManager::warmup] Starting warmup for SVXY with 1361 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1361 warmup bars for SVXY
+[OESManager::warmup]   SVXY: READY
+[OESManager::warmup] Starting warmup for TQQQ with 1564 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1564 warmup bars for TQQQ
+[OESManager::warmup]   TQQQ: READY
+[OESManager::warmup] Starting warmup for UVXY with 1562 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 1562 warmup bars for UVXY
+[OESManager::warmup]   UVXY: READY
+[Backend]   SDS: READY
+[Backend]   SPXL: READY
+[Backend]   SQQQ: READY
+[Backend]   SVXY: READY
+[Backend]   TQQQ: READY
+[Backend]   UVXY: READY
+[Backend] ✓ Warmup complete - all OES instances ready
+✓ Warmup complete
+
+Starting mock trading session...
+Test date: 2025-10-10 (single-day mode)
+
+Starting mock trading session...
+
+[Backend] Checking if ready...
+[Backend] ✓ Backend is ready
+[Backend] Opening log files...
+[Backend]   Signal log: logs/rotation_trading/signals.jsonl
+[Backend]   Decision log: logs/rotation_trading/decisions.jsonl
+[Backend]   Trade log: logs/rotation_trading/trades.jsonl
+[Backend]   Position log: logs/rotation_trading/positions.jsonl
+[Feed] Loading CSV data for 6 symbols...
+[Feed] Loading SDS from data/equities/SDS_RTH_NH.csv
+[Feed] ✓ Loaded SDS: 389 bars
+[Feed] Loading SPXL from data/equities/SPXL_RTH_NH.csv
+[Feed] ✓ Loaded SPXL: 391 bars
+[Feed] Loading SQQQ from data/equities/SQQQ_RTH_NH.csv
+[Feed] ✓ Loaded SQQQ: 391 bars
+[Feed] Loading SVXY from data/equities/SVXY_RTH_NH.csv
+[Feed] ✓ Loaded SVXY: 384 bars
+[Feed] Loading TQQQ from data/equities/TQQQ_RTH_NH.csv
+[Feed] ✓ Loaded TQQQ: 391 bars
+[Feed] Loading UVXY from data/equities/UVXY_RTH_NH.csv
+[Feed] ✓ Loaded UVXY: 391 bars
+Waiting for backtest to complete...
+[DataMgr] update_symbol called for SDS (bar timestamp: 1760103000000)
+[DataMgr] update_symbol called for SPXL (bar timestamp: 1760103000000)
+[DataMgr] update_symbol called for SQQQ (bar timestamp: 1760103000000)
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #1: predicted_return=0, confidence=0, is_ready=0
+[OES]   TQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   TQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #2: predicted_return=0, confidence=0, is_ready=0
+[OES]   SQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #3: predicted_return=0, confidence=0, is_ready=0
+[OES]   SPXL: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SPXL: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #4: predicted_return=0, confidence=0, is_ready=0
+[OES]   SDS: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #5: predicted_return=0, confidence=0, is_ready=0
+[OES]   UVXY: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #6: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #7: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #8: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #9: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #10: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+
+Mock trading session complete
+
+========================================
+Session Summary
+========================================
+Bars processed: 391
+Signals generated: 2346
+Trades executed: 10
+Positions opened: 5
+Positions closed: 5
+Rotations: 0
+
+Total P&L: $-99964.436700 (-99.964437%)
+Final equity: $35.563300
+Max drawdown: 99.964592%
+
+Win rate: 0.000000%
+Avg win: 0.000000%
+Avg loss: 0.000000%
+Sharpe ratio: -22.814979
+MRD: 0.000000%
+========================================
+
+✓ Positive MRD: 0.000000%
+========================================
+Multi-Symbol Rotation Trading System
+========================================
+
+Mode: MOCK (Backtest)
+Symbols: 6 instruments
+  - TQQQ
+  - SQQQ
+  - SPXL
+  - SDS
+  - UVXY
+  - SVXY
+
+========================================
+Mock Trading Mode (Backtest)
+========================================
+
+✓ Loaded configuration from: config/rotation_strategy.json
+[OES::Constructor] Creating OES instance #0
+[OES::Constructor] Creating OES instance #1
+[OES::Constructor] Creating OES instance #2
+[OES::Constructor] Creating OES instance #3
+[OES::Constructor] Creating OES instance #4
+[OES::Constructor] Creating OES instance #5
+Loading warmup data...
+  TQQQ: 782 bars (4 days warmup before 2025-10-13)
+  SQQQ: 782 bars (4 days warmup before 2025-10-13)
+  SPXL: 774 bars (4 days warmup before 2025-10-13)
+  SDS: 765 bars (4 days warmup before 2025-10-13)
+  UVXY: 782 bars (4 days warmup before 2025-10-13)
+  SVXY: 760 bars (4 days warmup before 2025-10-13)
+
+[Backend] Starting warmup with 6 symbols
+[Backend]   SDS: 765 warmup bars
+[Backend]   SPXL: 774 warmup bars
+[Backend]   SQQQ: 782 warmup bars
+[Backend]   SVXY: 760 warmup bars
+[Backend]   TQQQ: 782 warmup bars
+[Backend]   UVXY: 782 warmup bars
+[OESManager::warmup] Starting warmup for SDS with 765 bars
+[OES::on_bar] Call #0 - samples_seen=0, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #0)
+[OESManager::warmup]   Bar 0 processed
+[OES::on_bar] Call #1 - samples_seen=1, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #1)
+[OESManager::warmup]   Bar 1 processed
+[OES::on_bar] Call #2 - samples_seen=2, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #2)
+[OESManager::warmup]   Bar 2 processed
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.202596, bb20_.sd=3.30879, feats_[24]=0.202596, feats_[25]=3.30879
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.191736, bb20_.sd=3.3126, feats_[24]=0.191736, feats_[25]=3.3126
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.181034, bb20_.sd=3.31448, feats_[24]=0.181034, feats_[25]=3.31448
+[OESManager::warmup] Completed 765 warmup bars for SDS
+[OESManager::warmup]   SDS: READY
+[OESManager::warmup] Starting warmup for SPXL with 774 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 774 warmup bars for SPXL
+[OESManager::warmup]   SPXL: READY
+[OESManager::warmup] Starting warmup for SQQQ with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for SQQQ
+[OESManager::warmup]   SQQQ: READY
+[OESManager::warmup] Starting warmup for SVXY with 760 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 760 warmup bars for SVXY
+[OESManager::warmup]   SVXY: READY
+[OESManager::warmup] Starting warmup for TQQQ with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for TQQQ
+[OESManager::warmup]   TQQQ: READY
+[OESManager::warmup] Starting warmup for UVXY with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for UVXY
+[OESManager::warmup]   UVXY: READY
+[Backend]   SDS: READY
+[Backend]   SPXL: READY
+[Backend]   SQQQ: READY
+[Backend]   SVXY: READY
+[Backend]   TQQQ: READY
+[Backend]   UVXY: READY
+[Backend] ✓ Warmup complete - all OES instances ready
+✓ Warmup complete
+
+Starting mock trading session...
+Test date: 2025-10-13 (single-day mode)
+
+Starting mock trading session...
+
+[Backend] Checking if ready...
+[Backend] ✓ Backend is ready
+[Backend] Opening log files...
+[Backend]   Signal log: logs/rotation_trading/signals.jsonl
+[Backend]   Decision log: logs/rotation_trading/decisions.jsonl
+[Backend]   Trade log: logs/rotation_trading/trades.jsonl
+[Backend]   Position log: logs/rotation_trading/positions.jsonl
+[Feed] Loading CSV data for 6 symbols...
+[Feed] Loading SDS from data/equities/SDS_RTH_NH.csv
+[Feed] ✓ Loaded SDS: 388 bars
+[Feed] Loading SPXL from data/equities/SPXL_RTH_NH.csv
+[Feed] ✓ Loaded SPXL: 384 bars
+[Feed] Loading SQQQ from data/equities/SQQQ_RTH_NH.csv
+[Feed] ✓ Loaded SQQQ: 391 bars
+[Feed] Loading SVXY from data/equities/SVXY_RTH_NH.csv
+[Feed] ✓ Loaded SVXY: 384 bars
+[Feed] Loading TQQQ from data/equities/TQQQ_RTH_NH.csv
+[Feed] ✓ Loaded TQQQ: 391 bars
+[Feed] Loading UVXY from data/equities/UVXY_RTH_NH.csv
+[Feed] ✓ Loaded UVXY: 391 bars
+Waiting for backtest to complete...
+[DataMgr] update_symbol called for SDS (bar timestamp: 1760362200000)
+[DataMgr] update_symbol called for SPXL (bar timestamp: 1760362200000)
+[DataMgr] update_symbol called for SQQQ (bar timestamp: 1760362200000)
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #1: predicted_return=0, confidence=0, is_ready=0
+[OES]   TQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   TQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #2: predicted_return=0, confidence=0, is_ready=0
+[OES]   SQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #3: predicted_return=0, confidence=0, is_ready=0
+[OES]   SPXL: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SPXL: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #4: predicted_return=0, confidence=0, is_ready=0
+[OES]   SDS: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #5: predicted_return=0, confidence=0, is_ready=0
+[OES]   UVXY: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #6: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #7: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #8: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #9: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #10: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+
+Mock trading session complete
+
+========================================
+Session Summary
+========================================
+Bars processed: 391
+Signals generated: 2346
+Trades executed: 12
+Positions opened: 6
+Positions closed: 6
+Rotations: 0
+
+Total P&L: $-99987.378700 (-99.987379%)
+Final equity: $12.621300
+Max drawdown: 99.987379%
+
+Win rate: 0.000000%
+Avg win: 0.000000%
+Avg loss: 0.000000%
+Sharpe ratio: -26.429322
+MRD: 0.000000%
+========================================
+
+✓ Positive MRD: 0.000000%
+========================================
+Multi-Symbol Rotation Trading System
+========================================
+
+Mode: MOCK (Backtest)
+Symbols: 6 instruments
+  - TQQQ
+  - SQQQ
+  - SPXL
+  - SDS
+  - UVXY
+  - SVXY
+
+========================================
+Mock Trading Mode (Backtest)
+========================================
+
+✓ Loaded configuration from: config/rotation_strategy.json
+[OES::Constructor] Creating OES instance #0
+[OES::Constructor] Creating OES instance #1
+[OES::Constructor] Creating OES instance #2
+[OES::Constructor] Creating OES instance #3
+[OES::Constructor] Creating OES instance #4
+[OES::Constructor] Creating OES instance #5
+Loading warmup data...
+  TQQQ: 782 bars (4 days warmup before 2025-10-14)
+  SQQQ: 782 bars (4 days warmup before 2025-10-14)
+  SPXL: 775 bars (4 days warmup before 2025-10-14)
+  SDS: 777 bars (4 days warmup before 2025-10-14)
+  UVXY: 782 bars (4 days warmup before 2025-10-14)
+  SVXY: 768 bars (4 days warmup before 2025-10-14)
+
+[Backend] Starting warmup with 6 symbols
+[Backend]   SDS: 777 warmup bars
+[Backend]   SPXL: 775 warmup bars
+[Backend]   SQQQ: 782 warmup bars
+[Backend]   SVXY: 768 warmup bars
+[Backend]   TQQQ: 782 warmup bars
+[Backend]   UVXY: 782 warmup bars
+[OESManager::warmup] Starting warmup for SDS with 777 bars
+[OES::on_bar] Call #0 - samples_seen=0, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #0)
+[OESManager::warmup]   Bar 0 processed
+[OES::on_bar] Call #1 - samples_seen=1, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #1)
+[OESManager::warmup]   Bar 1 processed
+[OES::on_bar] Call #2 - samples_seen=2, skip_feature_engine=0
+[OES::on_bar] Feature engine updated (call #2)
+[OESManager::warmup]   Bar 2 processed
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.348561, bb20_.sd=4.04751, feats_[24]=0.348561, feats_[25]=4.04751
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.341688, bb20_.sd=4.0874, feats_[24]=0.341688, feats_[25]=4.0874
+[FeatureEngine] BB features assigned at indices 24-29, bb20_.mean=0.335598, bb20_.sd=4.12841, feats_[24]=0.335598, feats_[25]=4.12841
+[OESManager::warmup] Completed 777 warmup bars for SDS
+[OESManager::warmup]   SDS: READY
+[OESManager::warmup] Starting warmup for SPXL with 775 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 775 warmup bars for SPXL
+[OESManager::warmup]   SPXL: READY
+[OESManager::warmup] Starting warmup for SQQQ with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for SQQQ
+[OESManager::warmup]   SQQQ: READY
+[OESManager::warmup] Starting warmup for SVXY with 768 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 768 warmup bars for SVXY
+[OESManager::warmup]   SVXY: READY
+[OESManager::warmup] Starting warmup for TQQQ with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for TQQQ
+[OESManager::warmup]   TQQQ: READY
+[OESManager::warmup] Starting warmup for UVXY with 782 bars
+[OESManager::warmup]   Bar 0 processed
+[OESManager::warmup]   Bar 1 processed
+[OESManager::warmup]   Bar 2 processed
+[OESManager::warmup] Completed 782 warmup bars for UVXY
+[OESManager::warmup]   UVXY: READY
+[Backend]   SDS: READY
+[Backend]   SPXL: READY
+[Backend]   SQQQ: READY
+[Backend]   SVXY: READY
+[Backend]   TQQQ: READY
+[Backend]   UVXY: READY
+[Backend] ✓ Warmup complete - all OES instances ready
+✓ Warmup complete
+
+Starting mock trading session...
+Test date: 2025-10-14 (single-day mode)
+
+Starting mock trading session...
+
+[Backend] Checking if ready...
+[Backend] ✓ Backend is ready
+[Backend] Opening log files...
+[Backend]   Signal log: logs/rotation_trading/signals.jsonl
+[Backend]   Decision log: logs/rotation_trading/decisions.jsonl
+[Backend]   Trade log: logs/rotation_trading/trades.jsonl
+[Backend]   Position log: logs/rotation_trading/positions.jsonl
+[Feed] Loading CSV data for 6 symbols...
+[Feed] Loading SDS from data/equities/SDS_RTH_NH.csv
+[Feed] ✓ Loaded SDS: 387 bars
+[Feed] Loading SPXL from data/equities/SPXL_RTH_NH.csv
+[Feed] ✓ Loaded SPXL: 388 bars
+[Feed] Loading SQQQ from data/equities/SQQQ_RTH_NH.csv
+[Feed] ✓ Loaded SQQQ: 391 bars
+[Feed] Loading SVXY from data/equities/SVXY_RTH_NH.csv
+[Feed] ✓ Loaded SVXY: 388 bars
+[Feed] Loading TQQQ from data/equities/TQQQ_RTH_NH.csv
+[Feed] ✓ Loaded TQQQ: 391 bars
+[Feed] Loading UVXY from data/equities/UVXY_RTH_NH.csv
+[Feed] ✓ Loaded UVXY: 391 bars
+Waiting for backtest to complete...
+[DataMgr] update_symbol called for SDS (bar timestamp: 1760448600000)
+[DataMgr] update_symbol called for SPXL (bar timestamp: 1760448600000)
+[DataMgr] update_symbol called for SQQQ (bar timestamp: 1760448600000)
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #1: predicted_return=0, confidence=0, is_ready=0
+[OES]   TQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   TQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #2: predicted_return=0, confidence=0, is_ready=0
+[OES]   SQQQ: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SQQQ: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #3: predicted_return=0, confidence=0, is_ready=0
+[OES]   SPXL: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES]   SPXL: Generated signal (type=0, prob=0.5)
+[OES] generate_signal #4: predicted_return=0, confidence=0, is_ready=0
+[OES]   SDS: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #5: predicted_return=0, confidence=0, is_ready=0
+[OES]   UVXY: NEUTRAL signal (prob=0.5) - might be due to NaN features
+[OES] generate_signal #6: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] generate_signal #7: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #8: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #9: predicted_return=0, confidence=0, is_ready=0
+[OES] generate_signal #10: predicted_return=0, confidence=0, is_ready=0
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] generate_all_signals: snapshot has 6 symbols: SDS SPXL SQQQ SVXY TQQQ UVXY 
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+[OES] Returning 6 signals
+
+Mock trading session complete
+
+========================================
+Session Summary
+========================================
+Bars processed: 391
+Signals generated: 2346
+Trades executed: 12
+Positions opened: 6
+Positions closed: 6
+Rotations: 0
+
+Total P&L: $-99982.230900 (-99.982231%)
+Final equity: $17.769100
+Max drawdown: 99.982231%
+
+Win rate: 0.000000%
+Avg win: 0.000000%
+Avg loss: 0.000000%
+Sharpe ratio: -24.818604
+MRD: 0.000000%
+========================================
+
+✓ Positive MRD: 0.000000%

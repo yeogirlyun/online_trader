@@ -1,0 +1,662 @@
+{
+  "analysis_date": "2025-10-05T23:18:46.580109",
+  "source_directory": "src",
+  "files_analyzed": 97,
+  "functions_analyzed": 61,
+  "total_issues": 63,
+  "issues_by_severity": {
+    "CRITICAL": 31,
+    "HIGH": 18,
+    "MEDIUM": 14,
+    "LOW": 0
+  },
+  "issues": [
+    {
+      "type": "inconsistent_literal_returns",
+      "severity": "HIGH",
+      "function": "main",
+      "file": "src/tools/analyze_dataset.cpp",
+      "line": 20,
+      "message": "HIGH: Function returns different literal values in different paths",
+      "recommendation": "Ensure consistent return behavior across all paths",
+      "literal_returns": [
+        "0",
+        "1"
+      ]
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "std::cerr << \"ERROR: Failed to parse CSV line \" << line_num << \": \" << e.what() << \"\\n\";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "std::cerr << \"Line: \" << line << \"\\n\";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "std::cerr << \"Fields: [\";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "if (i > 0) std::cerr << \", \";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "std::cerr << \"\\\"\" << fields[i] << \"\\\"\";"
+    },
+    {
+      "type": "exception_fallback_no_rethrow",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block returns without re-throwing exception",
+      "recommendation": "Must re-throw or provide comprehensive error handling",
+      "code_snippet": "return bars;"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "std::cerr << \"ERROR: Failed to parse CSV line \" << line_num << \": \" << e.what() << \"\\n\";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "std::cerr << \"Line: \" << line << \"\\n\";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "std::cerr << \"Fields: [\";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "if (i > 0) std::cerr << \", \";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "std::cerr << \"\\\"\" << fields[i] << \"\\\"\";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "std::cerr << \"ERROR: Failed to parse CSV line \" << line_num << \": \" << e.what() << \"\\n\";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "std::cerr << \"Line: \" << line << \"\\n\";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "std::cerr << \"Fields: [\";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "if (i > 0) std::cerr << \", \";"
+    },
+    {
+      "type": "exception_silent_continuation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 98,
+      "message": "CRITICAL: Catch block logs but continues execution silently",
+      "recommendation": "Must fail fast - either re-throw or return error state",
+      "code_snippet": "std::cerr << \"\\\"\" << fields[i] << \"\\\"\";"
+    },
+    {
+      "type": "minimal_financial_implementation",
+      "severity": "CRITICAL",
+      "function": "load_market_data",
+      "file": "src/core/data_io.cpp",
+      "line": 67,
+      "message": "CRITICAL: Financial function 'load_market_data' has suspiciously minimal implementation (2 statements)",
+      "recommendation": "EXTREME RISK: Financial calculations require proper implementation",
+      "statement_count": 2
+    },
+    {
+      "type": "stub_implementation_trivial",
+      "severity": "CRITICAL",
+      "function": "load_json",
+      "file": "src/core/data_io.cpp",
+      "line": 176,
+      "message": "CRITICAL: Critical function 'load_json' has trivial/stub implementation",
+      "recommendation": "Implement complete logic - function name suggests complex work",
+      "statement_count": 1
+    },
+    {
+      "type": "empty_critical_implementation",
+      "severity": "HIGH",
+      "function": "create_calibrator",
+      "file": "src/training/meta_calibration.cpp",
+      "line": 110,
+      "message": "HIGH: Critical function 'create_calibrator' has empty/minimal implementation",
+      "recommendation": "Implement proper logic immediately or remove function declaration",
+      "meaningful_statements": 0,
+      "total_statements": 0
+    },
+    {
+      "type": "declarations_only_implementation",
+      "severity": "MEDIUM",
+      "function": "create_calibrator",
+      "file": "src/training/meta_calibration.cpp",
+      "line": 110,
+      "message": "MEDIUM: Function 'create_calibrator' only declares variables without using them",
+      "recommendation": "Complete implementation or remove unused function"
+    },
+    {
+      "type": "empty_critical_implementation",
+      "severity": "HIGH",
+      "function": "create_calibrator",
+      "file": "src/training/meta_calibration.cpp",
+      "line": 226,
+      "message": "HIGH: Critical function 'create_calibrator' has empty/minimal implementation",
+      "recommendation": "Implement proper logic immediately or remove function declaration",
+      "meaningful_statements": 0,
+      "total_statements": 0
+    },
+    {
+      "type": "declarations_only_implementation",
+      "severity": "MEDIUM",
+      "function": "create_calibrator",
+      "file": "src/training/meta_calibration.cpp",
+      "line": 226,
+      "message": "MEDIUM: Function 'create_calibrator' only declares variables without using them",
+      "recommendation": "Complete implementation or remove unused function"
+    },
+    {
+      "type": "empty_critical_implementation",
+      "severity": "HIGH",
+      "function": "convert_features_to_tensor",
+      "file": "src/training/cpp_ppo_trainer.cpp",
+      "line": 39,
+      "message": "HIGH: Critical function 'convert_features_to_tensor' has empty/minimal implementation",
+      "recommendation": "Implement proper logic immediately or remove function declaration",
+      "meaningful_statements": 0,
+      "total_statements": 0
+    },
+    {
+      "type": "declarations_only_implementation",
+      "severity": "MEDIUM",
+      "function": "convert_features_to_tensor",
+      "file": "src/training/cpp_ppo_trainer.cpp",
+      "line": 39,
+      "message": "MEDIUM: Function 'convert_features_to_tensor' only declares variables without using them",
+      "recommendation": "Complete implementation or remove unused function"
+    },
+    {
+      "type": "exception_fallback_no_rethrow",
+      "severity": "CRITICAL",
+      "function": "parse_args_to_json",
+      "file": "src/cli/meta_cli_commands.cpp",
+      "line": 18,
+      "message": "CRITICAL: Catch block returns without re-throwing exception",
+      "recommendation": "Must re-throw or provide comprehensive error handling",
+      "code_snippet": "return j;"
+    },
+    {
+      "type": "stub_implementation_trivial",
+      "severity": "CRITICAL",
+      "function": "parse_args_to_json",
+      "file": "src/cli/meta_cli_commands.cpp",
+      "line": 8,
+      "message": "CRITICAL: Critical function 'parse_args_to_json' has trivial/stub implementation",
+      "recommendation": "Implement complete logic - function name suggests complex work",
+      "statement_count": 1
+    },
+    {
+      "type": "minimal_catch_block",
+      "severity": "HIGH",
+      "function": "parse_args_to_json",
+      "file": "src/cli/meta_cli_commands.cpp",
+      "line": 8,
+      "message": "HIGH: Minimal catch block may not handle exception properly",
+      "recommendation": "Ensure proper exception handling or re-throw",
+      "catch_body": "j[key] = val;"
+    },
+    {
+      "type": "minimal_catch_block",
+      "severity": "HIGH",
+      "function": "main",
+      "file": "src/cli/sentio_cli_main.cpp",
+      "line": 31,
+      "message": "HIGH: Minimal catch block may not handle exception properly",
+      "recommendation": "Ensure proper exception handling or re-throw",
+      "catch_body": "std::terminate();"
+    },
+    {
+      "type": "minimal_catch_block",
+      "severity": "HIGH",
+      "function": "main",
+      "file": "src/cli/sentio_cli_main.cpp",
+      "line": 31,
+      "message": "HIGH: Minimal catch block may not handle exception properly",
+      "recommendation": "Ensure proper exception handling or re-throw",
+      "catch_body": "std::terminate();"
+    },
+    {
+      "type": "stub_implementation_trivial",
+      "severity": "CRITICAL",
+      "function": "generate_bar_id",
+      "file": "src/common/utils.cpp",
+      "line": 47,
+      "message": "CRITICAL: Critical function 'generate_bar_id' has trivial/stub implementation",
+      "recommendation": "Implement complete logic - function name suggests complex work",
+      "statement_count": 0
+    },
+    {
+      "type": "empty_critical_implementation",
+      "severity": "HIGH",
+      "function": "generate_bar_id",
+      "file": "src/common/utils.cpp",
+      "line": 47,
+      "message": "HIGH: Critical function 'generate_bar_id' has empty/minimal implementation",
+      "recommendation": "Implement proper logic immediately or remove function declaration",
+      "meaningful_statements": 0,
+      "total_statements": 4
+    },
+    {
+      "type": "declarations_only_implementation",
+      "severity": "MEDIUM",
+      "function": "generate_bar_id",
+      "file": "src/common/utils.cpp",
+      "line": 47,
+      "message": "MEDIUM: Function 'generate_bar_id' only declares variables without using them",
+      "recommendation": "Complete implementation or remove unused function"
+    },
+    {
+      "type": "stub_implementation_trivial",
+      "severity": "CRITICAL",
+      "function": "extract_timestamp",
+      "file": "src/common/utils.cpp",
+      "line": 54,
+      "message": "CRITICAL: Critical function 'extract_timestamp' has trivial/stub implementation",
+      "recommendation": "Implement complete logic - function name suggests complex work",
+      "statement_count": 0
+    },
+    {
+      "type": "empty_critical_implementation",
+      "severity": "HIGH",
+      "function": "extract_timestamp",
+      "file": "src/common/utils.cpp",
+      "line": 54,
+      "message": "HIGH: Critical function 'extract_timestamp' has empty/minimal implementation",
+      "recommendation": "Implement proper logic immediately or remove function declaration",
+      "meaningful_statements": 0,
+      "total_statements": 1
+    },
+    {
+      "type": "return_only_implementation",
+      "severity": "HIGH",
+      "function": "extract_timestamp",
+      "file": "src/common/utils.cpp",
+      "line": 54,
+      "message": "HIGH: Function 'extract_timestamp' contains only a return statement",
+      "recommendation": "Implement function logic or remove if unnecessary"
+    },
+    {
+      "type": "declarations_only_implementation",
+      "severity": "MEDIUM",
+      "function": "extract_timestamp",
+      "file": "src/common/utils.cpp",
+      "line": 54,
+      "message": "MEDIUM: Function 'extract_timestamp' only declares variables without using them",
+      "recommendation": "Complete implementation or remove unused function"
+    },
+    {
+      "type": "suspiciously_short_function",
+      "severity": "MEDIUM",
+      "function": "extract_timestamp",
+      "file": "src/common/utils.cpp",
+      "line": 54,
+      "message": "MEDIUM: Function 'extract_timestamp' is suspiciously short (3 lines)",
+      "recommendation": "Review if function is properly implemented",
+      "line_count": 3
+    },
+    {
+      "type": "stub_implementation_trivial",
+      "severity": "CRITICAL",
+      "function": "extract_symbol_hash",
+      "file": "src/common/utils.cpp",
+      "line": 58,
+      "message": "CRITICAL: Critical function 'extract_symbol_hash' has trivial/stub implementation",
+      "recommendation": "Implement complete logic - function name suggests complex work",
+      "statement_count": 0
+    },
+    {
+      "type": "empty_critical_implementation",
+      "severity": "HIGH",
+      "function": "extract_symbol_hash",
+      "file": "src/common/utils.cpp",
+      "line": 58,
+      "message": "HIGH: Critical function 'extract_symbol_hash' has empty/minimal implementation",
+      "recommendation": "Implement proper logic immediately or remove function declaration",
+      "meaningful_statements": 0,
+      "total_statements": 1
+    },
+    {
+      "type": "return_only_implementation",
+      "severity": "HIGH",
+      "function": "extract_symbol_hash",
+      "file": "src/common/utils.cpp",
+      "line": 58,
+      "message": "HIGH: Function 'extract_symbol_hash' contains only a return statement",
+      "recommendation": "Implement function logic or remove if unnecessary"
+    },
+    {
+      "type": "declarations_only_implementation",
+      "severity": "MEDIUM",
+      "function": "extract_symbol_hash",
+      "file": "src/common/utils.cpp",
+      "line": 58,
+      "message": "MEDIUM: Function 'extract_symbol_hash' only declares variables without using them",
+      "recommendation": "Complete implementation or remove unused function"
+    },
+    {
+      "type": "suspiciously_short_function",
+      "severity": "MEDIUM",
+      "function": "extract_symbol_hash",
+      "file": "src/common/utils.cpp",
+      "line": 58,
+      "message": "MEDIUM: Function 'extract_symbol_hash' is suspiciously short (3 lines)",
+      "recommendation": "Review if function is properly implemented",
+      "line_count": 3
+    },
+    {
+      "type": "inconsistent_literal_returns",
+      "severity": "HIGH",
+      "function": "write_jsonl",
+      "file": "src/common/utils.cpp",
+      "line": 179,
+      "message": "HIGH: Function returns different literal values in different paths",
+      "recommendation": "Ensure consistent return behavior across all paths",
+      "literal_returns": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "type": "inconsistent_literal_returns",
+      "severity": "HIGH",
+      "function": "write_csv",
+      "file": "src/common/utils.cpp",
+      "line": 188,
+      "message": "HIGH: Function returns different literal values in different paths",
+      "recommendation": "Ensure consistent return behavior across all paths",
+      "literal_returns": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "type": "declarations_only_implementation",
+      "severity": "MEDIUM",
+      "function": "ms_to_timestamp",
+      "file": "src/common/utils.cpp",
+      "line": 320,
+      "message": "MEDIUM: Function 'ms_to_timestamp' only declares variables without using them",
+      "recommendation": "Complete implementation or remove unused function"
+    },
+    {
+      "type": "declarations_only_implementation",
+      "severity": "MEDIUM",
+      "function": "log_dir",
+      "file": "src/common/utils.cpp",
+      "line": 451,
+      "message": "MEDIUM: Function 'log_dir' only declares variables without using them",
+      "recommendation": "Complete implementation or remove unused function"
+    },
+    {
+      "type": "suspiciously_short_function",
+      "severity": "MEDIUM",
+      "function": "log_dir",
+      "file": "src/common/utils.cpp",
+      "line": 451,
+      "message": "MEDIUM: Function 'log_dir' is suspiciously short (3 lines)",
+      "recommendation": "Review if function is properly implemented",
+      "line_count": 3
+    },
+    {
+      "type": "declarations_only_implementation",
+      "severity": "MEDIUM",
+      "function": "ensure_log_dir",
+      "file": "src/common/utils.cpp",
+      "line": 454,
+      "message": "MEDIUM: Function 'ensure_log_dir' only declares variables without using them",
+      "recommendation": "Complete implementation or remove unused function"
+    },
+    {
+      "type": "declarations_only_implementation",
+      "severity": "MEDIUM",
+      "function": "iso_now",
+      "file": "src/common/utils.cpp",
+      "line": 458,
+      "message": "MEDIUM: Function 'iso_now' only declares variables without using them",
+      "recommendation": "Complete implementation or remove unused function"
+    },
+    {
+      "type": "inconsistent_literal_returns",
+      "severity": "HIGH",
+      "function": "csv_to_binary",
+      "file": "src/common/binary_data.cpp",
+      "line": 270,
+      "message": "HIGH: Function returns different literal values in different paths",
+      "recommendation": "Ensure consistent return behavior across all paths",
+      "literal_returns": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "type": "inconsistent_literal_returns",
+      "severity": "HIGH",
+      "function": "validate_binary_file",
+      "file": "src/common/binary_data.cpp",
+      "line": 353,
+      "message": "HIGH: Function returns different literal values in different paths",
+      "recommendation": "Ensure consistent return behavior across all paths",
+      "literal_returns": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "type": "minimal_financial_implementation",
+      "severity": "CRITICAL",
+      "function": "create_strategy",
+      "file": "src/strategy/istrategy.cpp",
+      "line": 29,
+      "message": "CRITICAL: Financial function 'create_strategy' has suspiciously minimal implementation (1 statements)",
+      "recommendation": "EXTREME RISK: Financial calculations require proper implementation",
+      "statement_count": 1
+    },
+    {
+      "type": "simplified_logic_comment",
+      "severity": "CRITICAL",
+      "function": "get_available_strategies",
+      "file": "src/strategy/istrategy.cpp",
+      "line": 103,
+      "message": "CRITICAL: Simplified/fallback logic detected (keyword: 'cheat')",
+      "recommendation": "Implement proper logic immediately. Comment contains 'cheat' indicating incomplete implementation",
+      "keyword": "cheat",
+      "comment_line": "strategies.push_back(\"cheat\");  // Cheat strategy for validation",
+      "following_code": "#ifdef MOMENTUM_SCALPER_AVAILABLE"
+    },
+    {
+      "type": "simplified_logic_comment",
+      "severity": "CRITICAL",
+      "function": "get_available_strategies",
+      "file": "src/strategy/istrategy.cpp",
+      "line": 91,
+      "message": "CRITICAL: Simplified/fallback logic detected (keyword: 'default')",
+      "recommendation": "Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation",
+      "keyword": "default",
+      "comment_line": "strategies.push_back(\"xgb\");    // Default maps to 25Intraday",
+      "following_code": "strategies.push_back(\"xgb-8\");  // XGBoost over 8-detector feature set"
+    },
+    {
+      "type": "declarations_only_implementation",
+      "severity": "MEDIUM",
+      "function": "get_available_strategies",
+      "file": "src/strategy/istrategy.cpp",
+      "line": 87,
+      "message": "MEDIUM: Function 'get_available_strategies' only declares variables without using them",
+      "recommendation": "Complete implementation or remove unused function"
+    },
+    {
+      "type": "exception_fallback_literal",
+      "severity": "CRITICAL",
+      "function": "is_valid_strategy",
+      "file": "src/strategy/istrategy.cpp",
+      "line": 116,
+      "message": "CRITICAL: Catch block returns literal/default value instead of re-throwing",
+      "recommendation": "Re-throw exception or crash with detailed error. NEVER return fallback values.",
+      "code_snippet": "return false;"
+    },
+    {
+      "type": "minimal_financial_implementation",
+      "severity": "CRITICAL",
+      "function": "is_valid_strategy",
+      "file": "src/strategy/istrategy.cpp",
+      "line": 112,
+      "message": "CRITICAL: Financial function 'is_valid_strategy' has suspiciously minimal implementation (1 statements)",
+      "recommendation": "EXTREME RISK: Financial calculations require proper implementation",
+      "statement_count": 1
+    },
+    {
+      "type": "inconsistent_literal_returns",
+      "severity": "HIGH",
+      "function": "is_valid_strategy",
+      "file": "src/strategy/istrategy.cpp",
+      "line": 112,
+      "message": "HIGH: Function returns different literal values in different paths",
+      "recommendation": "Ensure consistent return behavior across all paths",
+      "literal_returns": [
+        "true",
+        "false"
+      ]
+    },
+    {
+      "type": "minimal_catch_block",
+      "severity": "HIGH",
+      "function": "is_valid_strategy",
+      "file": "src/strategy/istrategy.cpp",
+      "line": 112,
+      "message": "HIGH: Minimal catch block may not handle exception properly",
+      "recommendation": "Ensure proper exception handling or re-throw",
+      "catch_body": "return false;"
+    },
+    {
+      "type": "minimal_financial_implementation",
+      "severity": "CRITICAL",
+      "function": "string_to_strategy_type",
+      "file": "src/strategy/istrategy.cpp",
+      "line": 121,
+      "message": "CRITICAL: Financial function 'string_to_strategy_type' has suspiciously minimal implementation (2 statements)",
+      "recommendation": "EXTREME RISK: Financial calculations require proper implementation",
+      "statement_count": 2
+    },
+    {
+      "type": "simplified_logic_comment",
+      "severity": "CRITICAL",
+      "function": "strategy_type_to_string",
+      "file": "src/strategy/istrategy.cpp",
+      "line": 161,
+      "message": "EXTREME RISK: Simplified/fallback logic detected (keyword: 'default')",
+      "recommendation": "Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation",
+      "keyword": "default",
+      "comment_line": "case StrategyType::OPTIMIZED_SGO: return \"sgo\";  // Enhanced SGO is now default",
+      "following_code": "case StrategyType::SGO_META: return \"sgo_meta\";"
+    },
+    {
+      "type": "minimal_financial_implementation",
+      "severity": "CRITICAL",
+      "function": "strategy_type_to_string",
+      "file": "src/strategy/istrategy.cpp",
+      "line": 159,
+      "message": "CRITICAL: Financial function 'strategy_type_to_string' has suspiciously minimal implementation (1 statements)",
+      "recommendation": "EXTREME RISK: Financial calculations require proper implementation",
+      "statement_count": 1
+    }
+  ]
+}

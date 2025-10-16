@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Service Label (unique identifier) -->
+    <key>Label</key>
+    <string>com.onlinetrader.autostart</string>
+
+    <!-- Program to Run -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Volumes/ExternalSSD/Dev/C++/online_trader/scripts/launch_trading.sh</string>
+        <string>live</string>
+    </array>
+
+    <!-- Working Directory -->
+    <key>WorkingDirectory</key>
+    <string>/Volumes/ExternalSSD/Dev/C++/online_trader</string>
+
+    <!-- Schedule: Monday-Friday at 9:15 AM ET -->
+    <!-- Note: During DST (March-November), 9:15 AM ET = 1:15 PM (13:15) UTC-4 = 13:15 local -->
+    <!--       During Standard Time (Nov-March), 9:15 AM ET = 2:15 PM (14:15) UTC-5 = 14:15 local -->
+    <!-- We use ET timezone which launchd handles automatically -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <!-- Monday -->
+        <dict>
+            <key>Weekday</key>
+            <integer>1</integer>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>15</integer>
+        </dict>
+        <!-- Tuesday -->
+        <dict>
+            <key>Weekday</key>
+            <integer>2</integer>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>15</integer>
+        </dict>
+        <!-- Wednesday -->
+        <dict>
+            <key>Weekday</key>
+            <integer>3</integer>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>15</integer>
+        </dict>
+        <!-- Thursday -->
+        <dict>
+            <key>Weekday</key>
+            <integer>4</integer>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>15</integer>
+        </dict>
+        <!-- Friday -->
+        <dict>
+            <key>Weekday</key>
+            <integer>5</integer>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>15</integer>
+        </dict>
+    </array>
+
+    <!-- Logging -->
+    <key>StandardOutPath</key>
+    <string>/Volumes/ExternalSSD/Dev/C++/online_trader/logs/launchd_stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Volumes/ExternalSSD/Dev/C++/online_trader/logs/launchd_stderr.log</string>
+
+    <!-- Environment Variables -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin</string>
+        <key>TZ</key>
+        <string>America/New_York</string>
+    </dict>
+
+    <!-- Run only at scheduled times (not continuously) -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <!-- Don't keep alive (exit after running) -->
+    <key>KeepAlive</key>
+    <false/>
+
+    <!-- Allow execution even when user not logged in (optional) -->
+    <!-- Uncomment if you want trading to start even if you're not logged in -->
+    <!-- <key>SessionCreate</key>
+    <true/> -->
+</dict>
+</plist>

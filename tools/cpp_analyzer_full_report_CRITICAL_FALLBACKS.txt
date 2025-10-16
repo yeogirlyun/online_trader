@@ -1,0 +1,403 @@
+╔════════════════════════════════════════════════════════════════╗
+║     CRITICAL FALLBACK ISSUES - IMMEDIATE ACTION REQUIRED      ║
+╚════════════════════════════════════════════════════════════════╝
+
+⚠️  31 CRITICAL FALLBACK MECHANISMS DETECTED
+⚠️  These MUST be fixed before any production deployment
+⚠️  Fallback mechanisms mask bugs and cause financial losses
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "ERROR: Failed to parse CSV line " << line_num << ": " << e.what() << "\n";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #2
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Line: " << line << "\n";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #3
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Fields: [";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #4
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    if (i > 0) std::cerr << ", ";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #5
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "\"" << fields[i] << "\"";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #6
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return bars;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #7
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "ERROR: Failed to parse CSV line " << line_num << ": " << e.what() << "\n";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #8
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Line: " << line << "\n";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #9
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Fields: [";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #10
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    if (i > 0) std::cerr << ", ";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #11
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "\"" << fields[i] << "\"";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #12
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "ERROR: Failed to parse CSV line " << line_num << ": " << e.what() << "\n";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #13
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Line: " << line << "\n";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #14
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "Fields: [";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #15
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    if (i > 0) std::cerr << ", ";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #16
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_silent_continuation
+Function: load_market_data
+Location: src/core/data_io.cpp:98
+Message: CRITICAL: Catch block logs but continues execution silently
+Action Required: Must fail fast - either re-throw or return error state
+
+Problematic Code:
+    std::cerr << "\"" << fields[i] << "\"";
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #17
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: load_market_data
+Location: src/core/data_io.cpp:67
+Message: CRITICAL: Financial function 'load_market_data' has suspiciously minimal implementation (2 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #18
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: load_json
+Location: src/core/data_io.cpp:176
+Message: CRITICAL: Critical function 'load_json' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #19
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_no_rethrow
+Function: parse_args_to_json
+Location: src/cli/meta_cli_commands.cpp:18
+Message: CRITICAL: Catch block returns without re-throwing exception
+Action Required: Must re-throw or provide comprehensive error handling
+
+Problematic Code:
+    return j;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #20
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: parse_args_to_json
+Location: src/cli/meta_cli_commands.cpp:8
+Message: CRITICAL: Critical function 'parse_args_to_json' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #21
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: generate_bar_id
+Location: src/common/utils.cpp:47
+Message: CRITICAL: Critical function 'generate_bar_id' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #22
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: extract_timestamp
+Location: src/common/utils.cpp:54
+Message: CRITICAL: Critical function 'extract_timestamp' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #23
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: stub_implementation_trivial
+Function: extract_symbol_hash
+Location: src/common/utils.cpp:58
+Message: CRITICAL: Critical function 'extract_symbol_hash' has trivial/stub implementation
+Action Required: Implement complete logic - function name suggests complex work
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #24
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: create_strategy
+Location: src/strategy/istrategy.cpp:29
+Message: CRITICAL: Financial function 'create_strategy' has suspiciously minimal implementation (1 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #25
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: get_available_strategies
+Location: src/strategy/istrategy.cpp:103
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'cheat')
+Action Required: Implement proper logic immediately. Comment contains 'cheat' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #26
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: get_available_strategies
+Location: src/strategy/istrategy.cpp:91
+Message: CRITICAL: Simplified/fallback logic detected (keyword: 'default')
+Action Required: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #27
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: exception_fallback_literal
+Function: is_valid_strategy
+Location: src/strategy/istrategy.cpp:116
+Message: CRITICAL: Catch block returns literal/default value instead of re-throwing
+Action Required: Re-throw exception or crash with detailed error. NEVER return fallback values.
+
+Problematic Code:
+    return false;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #28
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: is_valid_strategy
+Location: src/strategy/istrategy.cpp:112
+Message: CRITICAL: Financial function 'is_valid_strategy' has suspiciously minimal implementation (1 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #29
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: string_to_strategy_type
+Location: src/strategy/istrategy.cpp:121
+Message: CRITICAL: Financial function 'string_to_strategy_type' has suspiciously minimal implementation (2 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #30
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: simplified_logic_comment
+Function: strategy_type_to_string
+Location: src/strategy/istrategy.cpp:161
+Message: EXTREME RISK: Simplified/fallback logic detected (keyword: 'default')
+Action Required: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ISSUE #31
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type: minimal_financial_implementation
+Function: strategy_type_to_string
+Location: src/strategy/istrategy.cpp:159
+Message: CRITICAL: Financial function 'strategy_type_to_string' has suspiciously minimal implementation (1 statements)
+Action Required: EXTREME RISK: Financial calculations require proper implementation
+
+

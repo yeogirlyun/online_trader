@@ -1,0 +1,2 @@
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"STATE_TRANSITION (prob=0.569494)","should_trade":true,"target_state":"BASE_ONLY","timestamp":"2025-10-08 10:28:00 America/New_York"}
+{"bars_held":0,"current_equity":100004.2,"current_state":"BASE_ONLY","position_pnl_pct":4.1999999999970894e-05,"reason":"MIN_HOLD_PERIOD (held 0 bars)","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-08 10:29:01 America/New_York"}

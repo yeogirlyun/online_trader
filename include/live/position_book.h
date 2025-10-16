@@ -105,6 +105,18 @@ public:
      */
     void set_position(const std::string& symbol, int64_t qty, double avg_price);
 
+    /**
+     * @brief Check if all positions are flat
+     * @return true if no open positions
+     */
+    bool is_flat() const;
+
+    /**
+     * @brief Get hash of current positions (for EOD verification)
+     * @return String hash of all positions
+     */
+    std::string positions_hash() const;
+
 private:
     std::map<std::string, BrokerPosition> positions_;
     std::vector<ExecutionReport> execution_history_;

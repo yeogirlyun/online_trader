@@ -1,0 +1,57 @@
+{
+  "best_mrb": 0.12741489066666042,
+  "best_params": {
+    "buy_threshold": 0.5364034940494977,
+    "sell_threshold": 0.48729033728508264,
+    "bb_amplification_factor": 0.05318626772699841,
+    "ewrls_lambda": 0.993527224547718
+  },
+  "n_trials": 50,
+  "fold_results": [
+    {
+      "fold": 0,
+      "skip_blocks": 0,
+      "mrb": 0.12741489066666042,
+      "penalized_mrb": 0.12741489066666042,
+      "win_rate": 52.52854812398042,
+      "trades_per_block": 123.58333333333333,
+      "penalty": 0.0
+    },
+    {
+      "fold": 1,
+      "skip_blocks": 2,
+      "mrb": 0.12741489066666042,
+      "penalized_mrb": 0.12741489066666042,
+      "win_rate": 52.52854812398042,
+      "trades_per_block": 123.58333333333333,
+      "penalty": 0.0
+    },
+    {
+      "fold": 2,
+      "skip_blocks": 4,
+      "mrb": 0.12741489066666042,
+      "penalized_mrb": 0.12741489066666042,
+      "win_rate": 52.52854812398042,
+      "trades_per_block": 123.58333333333333,
+      "penalty": 0.0
+    },
+    {
+      "fold": 3,
+      "skip_blocks": 6,
+      "mrb": 0.12741489066666042,
+      "penalized_mrb": 0.12741489066666042,
+      "win_rate": 52.52854812398042,
+      "trades_per_block": 123.58333333333333,
+      "penalty": 0.0
+    },
+    {
+      "fold": 4,
+      "skip_blocks": 8,
+      "mrb": 0.12741489066666042,
+      "penalized_mrb": 0.12741489066666042,
+      "win_rate": 52.52854812398042,
+      "trades_per_block": 123.58333333333333,
+      "penalty": 0.0
+    }
+  ]
+}

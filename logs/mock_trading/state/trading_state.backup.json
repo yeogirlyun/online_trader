@@ -1,0 +1,12 @@
+{
+  "bars_held": 0,
+  "checksum": "e900f4cefe36f884ac7e66556f5d1bef25fb2a2cf19803addece10d1b01abbd7",
+  "entry_equity": 100058.82937017473,
+  "last_bar_time_str": "2025-10-09 15:44:00",
+  "last_bar_timestamp": 1760039040000,
+  "positions": [],
+  "psm_state": 0,
+  "save_count": 1872239601,
+  "save_timestamp": 1760107470001,
+  "session_id": "20251010_104425"
+}

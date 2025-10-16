@@ -1,0 +1,20 @@
+{
+  "optimization_type": "extensive_phase1",
+  "dataset": "SPY_4blocks.csv",
+  "n_trials": 200,
+  "best_mrb": 0.1524,
+  "best_params": {
+    "buy_threshold": 0.54,
+    "sell_threshold": 0.41,
+    "ewrls_lambda": 0.994,
+    "bb_amplification_factor": 0.01
+  },
+  "target_mrb": 0.5,
+  "baseline_mrb": 0.22,
+  "improvement_absolute": -0.0676,
+  "improvement_relative_pct": -30.727272727272727,
+  "gap_to_target": 0.3476,
+  "progress_to_target_pct": 30.48,
+  "tuning_time": 24.736474990844727,
+  "total_time": 24.740719079971313
+}

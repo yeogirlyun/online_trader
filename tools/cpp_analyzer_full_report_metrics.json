@@ -1,0 +1,30 @@
+{
+  "analysis_date": "2025-10-05T23:18:46.580631",
+  "files_analyzed": 97,
+  "functions_analyzed": 61,
+  "files_with_issues": 9,
+  "functions_with_issues": 22,
+  "contamination_rate_percent": 9.28,
+  "total_issues": 63,
+  "financial_risk_count": 0,
+  "issues_by_type": {
+    "inconsistent_literal_returns": 6,
+    "exception_silent_continuation": 15,
+    "exception_fallback_no_rethrow": 2,
+    "minimal_financial_implementation": 5,
+    "stub_implementation_trivial": 5,
+    "empty_critical_implementation": 6,
+    "declarations_only_implementation": 11,
+    "minimal_catch_block": 4,
+    "return_only_implementation": 2,
+    "suspiciously_short_function": 3,
+    "simplified_logic_comment": 3,
+    "exception_fallback_literal": 1
+  },
+  "issues_by_severity": {
+    "CRITICAL": 31,
+    "HIGH": 18,
+    "MEDIUM": 14,
+    "LOW": 0
+  }
+}

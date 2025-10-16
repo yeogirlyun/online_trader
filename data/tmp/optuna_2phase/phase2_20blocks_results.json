@@ -1,0 +1,25 @@
+{
+  "phase": 2,
+  "dataset": "SPY_20blocks.csv",
+  "phase1_best_params": {
+    "buy_threshold": 0.52,
+    "sell_threshold": 0.45,
+    "ewrls_lambda": 0.994,
+    "bb_amplification_factor": 0.09
+  },
+  "phase1_mrb": 0.207,
+  "phase2_best_params": {
+    "h1_weight": 0.45000000000000007,
+    "h5_weight": 0.2,
+    "bb_period": 15,
+    "bb_std_dev": 2.5,
+    "bb_proximity": 0.4,
+    "regularization": 0.001
+  },
+  "phase2_mrb": 0.0405,
+  "improvement_absolute": -0.16649999999999998,
+  "improvement_relative": -80.43478260869566,
+  "n_trials": 100,
+  "tuning_time": 94.01742196083069,
+  "total_time": 94.03286504745483
+}

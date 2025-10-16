@@ -1,0 +1,3 @@
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"STATE_TRANSITION (prob=0.637104)","should_trade":true,"target_state":"BASE_BULL_3X","timestamp":"2025-10-09 11:25:00 America/New_York"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-09 11:26:00 America/New_York"}
+{"bars_held":0,"current_equity":100000.0,"current_state":"CASH_ONLY","position_pnl_pct":0.0,"reason":"NO_CHANGE","should_trade":false,"target_state":"CASH_ONLY","timestamp":"2025-10-09 11:27:00 America/New_York"}

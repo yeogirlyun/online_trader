@@ -6,6 +6,24 @@
 namespace sentio {
 
 /**
+ * @brief EOD liquidation status
+ */
+enum class EodStatus {
+    PENDING,      // No EOD action taken yet today
+    IN_PROGRESS,  // EOD liquidation in progress
+    DONE          // EOD liquidation completed
+};
+
+/**
+ * @brief EOD state for a trading day
+ */
+struct EodState {
+    EodStatus status{EodStatus::PENDING};
+    std::string positions_hash;  // Hash of positions when DONE (for verification)
+    int64_t last_attempt_epoch{0};  // Unix timestamp (seconds) of last liquidation attempt
+};
+
+/**
  * @brief Persistent state tracking for End-of-Day (EOD) liquidation
  *
  * Ensures idempotent EOD execution - prevents double liquidation on process restart
@@ -43,6 +61,20 @@ public:
      * @return true if EOD already done for this date
      */
     bool is_eod_complete(const std::string& et_date) const;
+
+    /**
+     * @brief Load EOD state for given ET date
+     * @param et_date ET date in YYYY-MM-DD format
+     * @return EodState (PENDING if no state exists)
+     */
+    EodState load(const std::string& et_date) const;
+
+    /**
+     * @brief Save EOD state for given ET date
+     * @param et_date ET date in YYYY-MM-DD format
+     * @param state EOD state to save
+     */
+    void save(const std::string& et_date, const EodState& state);
 
 private:
     std::string state_file_;

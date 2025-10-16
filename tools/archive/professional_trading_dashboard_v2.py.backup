@@ -1,0 +1,1007 @@
+#!/usr/bin/env python3
+"""
+Professional Trading Visualization Dashboard
+============================================
+
+A comprehensive trading visualization tool that creates professional-grade charts
+and analysis for trade books. Features include:
+
+- Interactive candlestick charts with trade overlays
+- Equity curve with drawdown analysis
+- Trade-by-trade P&L visualization
+- Volume analysis and trade timing
+- Performance metrics dashboard
+- Risk metrics and statistics
+- Professional styling and layout
+
+Requirements:
+- plotly
+- pandas
+- numpy
+- mplfinance (optional, for additional chart types)
+
+Usage:
+    python professional_trading_dashboard.py --tradebook trades.jsonl --data SPY_RTH_NH.csv
+"""
+
+import argparse
+import json
+import os
+import sys
+from datetime import datetime, timezone
+from typing import List, Dict, Any, Tuple, Optional
+import pandas as pd
+import numpy as np
+import pytz
+
+try:
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    import plotly.express as px
+    from plotly.offline import plot
+except ImportError:
+    print("❌ Plotly not installed. Install with: pip install plotly")
+    sys.exit(1)
+
+try:
+    import mplfinance as mpf
+except ImportError:
+    mpf = None
+    print("⚠️ mplfinance not installed. Install with: pip install mplfinance for additional chart types")
+
+
+class TradingDashboard:
+    """Professional trading visualization dashboard"""
+
+    def __init__(self, tradebook_path: str, data_path: str, signals_path: str = None, start_equity: float = 100000.0):
+        self.tradebook_path = tradebook_path
+        self.data_path = data_path
+        self.signals_path = signals_path
+        self.start_equity = start_equity
+        self.trades = []
+        self.signals = {}  # Map bar_id -> signal
+        self.market_data = None
+        self.equity_curve = None
+        self.performance_metrics = {}
+        
+    def load_data(self):
+        """Load tradebook, signals, and market data"""
+        print("📊 Loading tradebook...")
+        self.trades = self._load_tradebook()
+
+        if self.signals_path:
+            print("🎯 Loading signals...")
+            self.signals = self._load_signals()
+
+        print("📈 Loading market data...")
+        self.market_data = self._load_market_data()
+
+        print("📊 Calculating equity curve...")
+        self.equity_curve = self._calculate_equity_curve()
+
+        print("📊 Calculating performance metrics...")
+        self.performance_metrics = self._calculate_performance_metrics()
+        
+    def _load_tradebook(self) -> List[Dict[str, Any]]:
+        """Load tradebook from JSONL file"""
+        trades = []
+        with open(self.tradebook_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    trades.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+        return trades
+
+    def _load_signals(self) -> Dict[int, Dict[str, Any]]:
+        """Load signals from JSONL file, indexed by bar_id"""
+        signals = {}
+        with open(self.signals_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    signal = json.loads(line)
+                    bar_id = signal.get('bar_id')
+                    if bar_id:
+                        signals[bar_id] = signal
+                except json.JSONDecodeError:
+                    continue
+        print(f"   Loaded {len(signals)} signals")
+        return signals
+    
+    def _load_market_data(self) -> pd.DataFrame:
+        """Load market data from CSV"""
+        if not os.path.exists(self.data_path):
+            print(f"⚠️ Market data file not found: {self.data_path}")
+            return None
+            
+        df = pd.read_csv(self.data_path)
+        
+        # Convert timestamp to datetime (force UTC and convert to tz-naive)
+        if 'ts_utc' in df.columns:
+            df['datetime'] = pd.to_datetime(df['ts_utc'], utc=True).dt.tz_localize(None)
+        elif 'ts_nyt_epoch' in df.columns:
+            df['datetime'] = pd.to_datetime(df['ts_nyt_epoch'], unit='s', utc=True).dt.tz_localize(None)
+        else:
+            print("❌ No timestamp column found in market data")
+            return None
+            
+        # Ensure OHLC columns are numeric
+        for col in ['open', 'high', 'low', 'close', 'volume']:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+                
+        return df.dropna()
+    
+    def _calculate_equity_curve(self) -> pd.DataFrame:
+        """Calculate equity curve from trades"""
+        if not self.trades:
+            return None
+            
+        # Create equity curve data
+        equity_data = []
+        current_equity = self.start_equity
+        
+        for trade in self.trades:
+            # Extract trade information
+            timestamp = trade.get('timestamp_ms', trade.get('timestamp', trade.get('time', '')))
+            equity_after = trade.get('portfolio_value', trade.get('equity_after', current_equity))
+            pnl = equity_after - current_equity
+
+            equity_data.append({
+                'timestamp': timestamp,
+                'equity': equity_after,
+                'pnl': pnl,
+                'trade_type': trade.get('action', trade.get('side', 'unknown')),
+                'symbol': trade.get('symbol', 'unknown'),
+                'quantity': trade.get('quantity', trade.get('size', 0)),
+                'price': trade.get('price', trade.get('fill_price', 0))
+            })
+
+            current_equity = equity_after
+            
+        return pd.DataFrame(equity_data)
+    
+    def _calculate_performance_metrics(self) -> Dict[str, Any]:
+        """Calculate comprehensive performance metrics"""
+        if self.equity_curve is None or self.equity_curve.empty:
+            return {}
+
+        equity = self.equity_curve['equity'].values
+        returns = np.diff(equity) / equity[:-1]
+
+        # Extract test period dates
+        start_date = None
+        end_date = None
+        if self.trades:
+            timestamps = [t.get('timestamp_ms', 0) for t in self.trades if t.get('timestamp_ms', 0) > 0]
+            if timestamps:
+                first_ts = min(timestamps)
+                last_ts = max(timestamps)
+                # Convert to ET timezone
+                start_dt = datetime.fromtimestamp(first_ts / 1000, tz=timezone.utc).astimezone(pytz.timezone('America/New_York'))
+                end_dt = datetime.fromtimestamp(last_ts / 1000, tz=timezone.utc).astimezone(pytz.timezone('America/New_York'))
+                start_date = start_dt.strftime('%b %d, %Y')
+                end_date = end_dt.strftime('%b %d, %Y')
+
+        # Calculate number of blocks (estimate based on days)
+        num_blocks = 0
+        if self.market_data is not None and not self.market_data.empty:
+            # Count unique days in market data
+            if 'datetime' in self.market_data.columns:
+                dates = pd.to_datetime(self.market_data['datetime']).dt.date
+                num_unique_days = dates.nunique()
+                # Estimate blocks (assuming ~20 bars per day, ~480 bars per block)
+                num_blocks = max(1, int(num_unique_days / 20))
+
+        # Basic metrics
+        total_return = (equity[-1] - equity[0]) / equity[0] * 100
+        total_trades = len(self.trades)
+        winning_trades = len([t for t in self.trades if t.get('pnl', 0) > 0])
+        losing_trades = total_trades - winning_trades
+        
+        # Risk metrics
+        volatility = np.std(returns) * np.sqrt(252) * 100  # Annualized
+        sharpe_ratio = np.mean(returns) / np.std(returns) * np.sqrt(252) if np.std(returns) > 0 else 0
+        
+        # Drawdown analysis
+        peak = np.maximum.accumulate(equity)
+        drawdown = (equity - peak) / peak * 100
+        max_drawdown = np.min(drawdown)
+        
+        # Trade analysis
+        pnls = [t.get('pnl', 0) for t in self.trades]
+        avg_win = np.mean([p for p in pnls if p > 0]) if any(p > 0 for p in pnls) else 0
+        avg_loss = np.mean([p for p in pnls if p < 0]) if any(p < 0 for p in pnls) else 0
+        
+        return {
+            'total_return': total_return,
+            'total_trades': total_trades,
+            'winning_trades': winning_trades,
+            'losing_trades': losing_trades,
+            'win_rate': winning_trades / total_trades * 100 if total_trades > 0 else 0,
+            'volatility': volatility,
+            'sharpe_ratio': sharpe_ratio,
+            'max_drawdown': max_drawdown,
+            'avg_win': avg_win,
+            'avg_loss': avg_loss,
+            'profit_factor': abs(avg_win / avg_loss) if avg_loss != 0 else float('inf'),
+            'equity_curve': equity,
+            'drawdown': drawdown,
+            'start_date': start_date,
+            'end_date': end_date,
+            'num_blocks': num_blocks
+        }
+
+    def _get_base_prices_for_trades(self, trades: List[Dict], market_data: pd.DataFrame) -> List[float]:
+        """Get base ticker (SPY/QQQ) prices for trade timestamps for chart placement"""
+        prices = []
+
+        # Pre-convert market data datetime to ensure it's timezone-naive and sorted
+        if not market_data.empty and 'datetime' in market_data.columns:
+            market_times = pd.to_datetime(market_data['datetime'])
+            if hasattr(market_times, 'dt') and market_times.dt.tz is not None:
+                market_times = market_times.dt.tz_localize(None)
+
+        for trade in trades:
+            # Convert UTC timestamp to ET to match market data
+            trade_time = pd.to_datetime(trade.get('timestamp_ms', 0), unit='ms') - pd.Timedelta(hours=4)
+
+            # Find closest bar in market data
+            if not market_data.empty and 'datetime' in market_data.columns:
+                # Find the closest bar by time
+                time_diffs = abs(market_times - trade_time)
+                closest_idx = time_diffs.idxmin()
+
+                # Use open price (matches when signal was generated and trade executed)
+                base_price = float(market_data.loc[closest_idx, 'open'])
+                prices.append(base_price)
+            else:
+                # Fallback to instrument price if no market data
+                prices.append(trade.get('price', 0))
+
+        return prices
+
+    def create_candlestick_chart(self) -> go.Figure:
+        """Create professional candlestick chart with trade overlays"""
+        if self.market_data is None:
+            print("❌ No market data available for candlestick chart")
+            return None
+
+        # Filter market data to trading period only
+        if self.trades:
+            first_trade_ts = min(t.get('timestamp_ms', 0) for t in self.trades)
+            last_trade_ts = max(t.get('timestamp_ms', 0) for t in self.trades)
+
+            # Convert to datetime for filtering (convert UTC to ET to match market data)
+            first_dt = pd.to_datetime(first_trade_ts, unit='ms') - pd.Timedelta(hours=4)  # UTC to ET
+            last_dt = pd.to_datetime(last_trade_ts, unit='ms') - pd.Timedelta(hours=4)    # UTC to ET
+
+            # Ensure market data datetime is also tz-naive
+            if hasattr(self.market_data['datetime'], 'dt'):
+                if self.market_data['datetime'].dt.tz is not None:
+                    market_dt = self.market_data['datetime'].dt.tz_localize(None)
+                else:
+                    market_dt = self.market_data['datetime']
+            else:
+                market_dt = pd.to_datetime(self.market_data['datetime'])
+
+            # Filter market data to ±1 day buffer around trading period
+            buffer = pd.Timedelta(days=1)
+            mask = (market_dt >= first_dt - buffer) & (market_dt <= last_dt + buffer)
+            filtered_data = self.market_data[mask].copy()
+
+            # Further filter to only show Regular Trading Hours (9:30 AM - 4:00 PM ET)
+            if not filtered_data.empty and 'datetime' in filtered_data.columns:
+                filtered_data['hour'] = pd.to_datetime(filtered_data['datetime']).dt.hour
+                filtered_data['minute'] = pd.to_datetime(filtered_data['datetime']).dt.minute
+                rth_mask = (
+                    ((filtered_data['hour'] == 9) & (filtered_data['minute'] >= 30)) |
+                    ((filtered_data['hour'] >= 10) & (filtered_data['hour'] < 16))
+                )
+                filtered_data = filtered_data[rth_mask].copy()
+                filtered_data = filtered_data.drop(columns=['hour', 'minute'])
+
+            print(f"📊 Filtered market data: {len(self.market_data)} → {len(filtered_data)} bars (RTH only)")
+        else:
+            filtered_data = self.market_data
+
+        fig = make_subplots(
+            rows=2, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.08,
+            subplot_titles=('Price Chart with Trades & Signals', 'Portfolio Value & P/L'),
+            row_heights=[0.6, 0.4]
+        )
+        
+        # Add SPY open and close prices as separate lines
+        print(f"   Adding SPY price lines with {len(filtered_data)} bars")
+
+        # Open price line (where trades execute)
+        fig.add_trace(
+            go.Scatter(
+                x=filtered_data['datetime'].tolist(),
+                y=filtered_data['open'].tolist(),
+                mode='lines',
+                name='SPY Open (trade price)',
+                line=dict(color='#2E86DE', width=2),
+                showlegend=True,
+                connectgaps=False
+            ),
+            row=1, col=1
+        )
+
+        # Close price line for reference
+        fig.add_trace(
+            go.Scatter(
+                x=filtered_data['datetime'].tolist(),
+                y=filtered_data['close'].tolist(),
+                mode='lines',
+                name='SPY Close',
+                line=dict(color='#999999', width=1, dash='dot'),
+                showlegend=True,
+                connectgaps=False,
+                opacity=0.5
+            ),
+            row=1, col=1
+        )
+        
+        # Add trade markers
+        if self.trades:
+            buy_trades = [t for t in self.trades if t.get('action', '').lower() in ['buy', 'long']]
+            sell_trades = [t for t in self.trades if t.get('action', '').lower() in ['sell', 'short']]
+            
+            # Buy trades (green triangles) with enhanced info
+            if buy_trades:
+                # Convert UTC timestamps to ET to match portfolio curve and market data
+                buy_times = [pd.to_datetime(t.get('timestamp_ms', 0), unit='ms') - pd.Timedelta(hours=4) for t in buy_trades]
+                # Use SPY price for Y-coordinate (where the trade appears on the chart)
+                buy_prices = self._get_base_prices_for_trades(buy_trades, filtered_data)
+                buy_hover = []
+                for t in buy_trades:
+                    signal = self.signals.get(t.get('bar_id'))
+                    hover_text = (
+                        f"<b>BUY {t.get('symbol', 'N/A')}</b><br>" +
+                        f"Price: ${t.get('price', 0):.2f}<br>" +
+                        f"Quantity: {t.get('quantity', 0):.2f}<br>" +
+                        f"Value: ${t.get('trade_value', 0):,.2f}<br>" +
+                        f"Reason: {t.get('reason', 'N/A')}<br>"
+                    )
+                    if signal:
+                        hover_text += (
+                            f"Signal: {signal.get('signal_type', 'N/A')}<br>" +
+                            f"Probability: {signal.get('probability', 0):.3f}<br>" +
+                            f"Ensemble: {signal.get('ensemble_agreement', 0):.2f}<br>"
+                        )
+                    hover_text += f"Portfolio: ${t.get('portfolio_value', 0):,.2f}"
+                    buy_hover.append(hover_text)
+                fig.add_trace(
+                    go.Scatter(
+                        x=buy_times,
+                        y=buy_prices,
+                        mode='markers',
+                        marker=dict(symbol='triangle-up', size=14, color='#26a69a', line=dict(width=1, color='white')),
+                        name='Buy Trades',
+                        text=buy_hover,
+                        hovertemplate='%{text}<extra></extra>'
+                    ),
+                    row=1, col=1
+                )
+            
+            # Sell trades (red triangles) with enhanced info
+            if sell_trades:
+                # Convert UTC timestamps to ET to match portfolio curve and market data
+                sell_times = [pd.to_datetime(t.get('timestamp_ms', 0), unit='ms') - pd.Timedelta(hours=4) for t in sell_trades]
+                # Use SPY price for Y-coordinate (where the trade appears on the chart)
+                sell_prices = self._get_base_prices_for_trades(sell_trades, filtered_data)
+                sell_hover = []
+                for t in sell_trades:
+                    signal = self.signals.get(t.get('bar_id'))
+                    hover_text = (
+                        f"<b>SELL {t.get('symbol', 'N/A')}</b><br>" +
+                        f"Price: ${t.get('price', 0):.2f}<br>" +
+                        f"Quantity: {t.get('quantity', 0):.2f}<br>" +
+                        f"Value: ${t.get('trade_value', 0):,.2f}<br>" +
+                        f"Reason: {t.get('reason', 'N/A')}<br>"
+                    )
+                    if signal:
+                        hover_text += (
+                            f"Signal: {signal.get('signal_type', 'N/A')}<br>" +
+                            f"Probability: {signal.get('probability', 0):.3f}<br>" +
+                            f"Ensemble: {signal.get('ensemble_agreement', 0):.2f}<br>"
+                        )
+                    hover_text += f"Portfolio: ${t.get('portfolio_value', 0):,.2f}"
+                    sell_hover.append(hover_text)
+                fig.add_trace(
+                    go.Scatter(
+                        x=sell_times,
+                        y=sell_prices,
+                        mode='markers',
+                        marker=dict(symbol='triangle-down', size=14, color='#ef5350', line=dict(width=1, color='white')),
+                        name='Sell Trades',
+                        text=sell_hover,
+                        hovertemplate='%{text}<extra></extra>'
+                    ),
+                    row=1, col=1
+                )
+
+        # Portfolio value chart (row 2)
+        if self.equity_curve is not None and not self.equity_curve.empty:
+            print(f"   Adding portfolio value line with {len(self.equity_curve)} points")
+            # Convert timestamps from UTC to ET timezone to match market data
+            equity_times = pd.to_datetime(self.equity_curve['timestamp'], unit='ms', errors='coerce')
+            # Assume UTC and convert to ET (America/New_York) - subtract 4 hours for EDT
+            equity_times = equity_times - pd.Timedelta(hours=4)
+            print(f"   Equity curve time range (ET): {equity_times.min()} to {equity_times.max()}")
+            print(f"   Equity value range: ${self.equity_curve['equity'].min():,.2f} to ${self.equity_curve['equity'].max():,.2f}")
+
+            fig.add_trace(
+                go.Scatter(
+                    x=equity_times.tolist(),
+                    y=self.equity_curve['equity'].tolist(),
+                    mode='lines+markers',
+                    name='Portfolio Value (at trades)',
+                    line=dict(color='#EE5A6F', width=2, shape='hv'),  # 'hv' = step plot
+                    marker=dict(size=6, color='#EE5A6F'),
+                    connectgaps=False,
+                    hovertemplate='<b>Portfolio</b><br>Time: %{x}<br>Value: $%{y:,.2f}<extra></extra>'
+                ),
+                row=2, col=1
+            )
+
+            # Set Y-axis range to show only the variation (not from zero)
+            equity_values = self.equity_curve['equity'].values
+            min_equity = np.min(equity_values)
+            max_equity = np.max(equity_values)
+            range_padding = (max_equity - min_equity) * 0.1  # 10% padding
+            fig.update_yaxes(
+                range=[min_equity - range_padding, max_equity + range_padding],
+                row=2, col=1
+            )
+
+            # Add starting equity reference line
+            fig.add_hline(
+                y=self.start_equity,
+                line_dash="dash",
+                line_color="gray",
+                opacity=0.5,
+                row=2, col=1,
+                annotation_text=f"Start: ${self.start_equity:,.0f}",
+                annotation_position="right"
+            )
+
+        # Update layout
+        fig.update_layout(
+            title={
+                'text': f'OnlineEnsemble Trading Analysis - {len(self.trades)} Trades (RTH Only)',
+                'x': 0.5,
+                'xanchor': 'center'
+            },
+            xaxis_rangeslider_visible=True,  # Enable horizontal scrollbar
+            height=1000,
+            showlegend=True,
+            template='plotly_white',
+            hovermode='x unified'
+        )
+
+        # Set initial x-axis range to show ~4 hours (240 minutes) for better detail
+        # User can scroll horizontally to see all data
+        if len(filtered_data) > 0:
+            first_time = filtered_data['datetime'].iloc[0]
+            # Show first 4 hours (240 minutes) initially
+            initial_range = [
+                first_time,
+                pd.to_datetime(first_time) + pd.Timedelta(hours=4)
+            ]
+            fig.update_xaxes(range=initial_range, row=1, col=1)
+
+        # Configure x-axes to hide non-trading hours (removes overnight gaps)
+        fig.update_xaxes(
+            rangebreaks=[
+                dict(bounds=[16, 9.5], pattern="hour"),  # Hide 4pm-9:30am
+            ]
+        )
+
+        # Update axes labels
+        fig.update_yaxes(title_text="Price ($)", row=1, col=1)
+        fig.update_yaxes(title_text="Portfolio Value ($)", row=2, col=1)
+        fig.update_xaxes(title_text="Date/Time (ET)", row=2, col=1)
+
+        # Set Y-axis range for price chart to focus on actual price range
+        if not filtered_data.empty:
+            price_min = filtered_data['low'].min()
+            price_max = filtered_data['high'].max()
+            price_range = price_max - price_min
+            padding = price_range * 0.05  # 5% padding
+            fig.update_yaxes(
+                range=[price_min - padding, price_max + padding],
+                row=1, col=1
+            )
+
+        return fig
+    
+    def create_equity_curve_chart(self) -> go.Figure:
+        """Create equity curve with drawdown analysis"""
+        if self.equity_curve is None:
+            print("❌ No equity curve data available")
+            return None
+            
+        fig = make_subplots(
+            rows=2, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.1,
+            subplot_titles=('Equity Curve', 'Drawdown'),
+            row_heights=[0.7, 0.3]
+        )
+        
+        # Equity curve
+        fig.add_trace(
+            go.Scatter(
+                x=self.equity_curve['timestamp'],
+                y=self.equity_curve['equity'],
+                mode='lines',
+                name='Equity',
+                line=dict(color='blue', width=2),
+                hovertemplate='<b>Equity</b><br>Time: %{x}<br>Value: $%{y:,.2f}<extra></extra>'
+            ),
+            row=1, col=1
+        )
+        
+        # Drawdown
+        if 'drawdown' in self.performance_metrics:
+            fig.add_trace(
+                go.Scatter(
+                    x=self.equity_curve['timestamp'],
+                    y=self.performance_metrics['drawdown'],
+                    mode='lines',
+                    name='Drawdown',
+                    line=dict(color='red', width=2),
+                    fill='tonexty',
+                    fillcolor='rgba(255,0,0,0.3)',
+                    hovertemplate='<b>Drawdown</b><br>Time: %{x}<br>Drawdown: %{y:.2f}%<extra></extra>'
+                ),
+                row=2, col=1
+            )
+        
+        # Update layout
+        fig.update_layout(
+            title='Equity Curve and Drawdown Analysis',
+            height=600,
+            showlegend=True,
+            template='plotly_white'
+        )
+        
+        return fig
+    
+    def create_pnl_chart(self) -> go.Figure:
+        """Create trade-by-trade P&L chart"""
+        if not self.trades:
+            print("❌ No trades available for P&L chart")
+            return None
+            
+        pnls = [t.get('pnl', t.get('profit_loss', 0)) for t in self.trades]
+        trade_numbers = list(range(1, len(pnls) + 1))
+        
+        # Color bars based on profit/loss
+        colors = ['green' if pnl > 0 else 'red' for pnl in pnls]
+        
+        fig = go.Figure()
+        
+        fig.add_trace(
+            go.Bar(
+                x=trade_numbers,
+                y=pnls,
+                marker_color=colors,
+                name='P&L',
+                hovertemplate='<b>Trade %{x}</b><br>P&L: $%{y:,.2f}<extra></extra>'
+            )
+        )
+        
+        # Add cumulative P&L line
+        cumulative_pnl = np.cumsum(pnls)
+        fig.add_trace(
+            go.Scatter(
+                x=trade_numbers,
+                y=cumulative_pnl,
+                mode='lines',
+                name='Cumulative P&L',
+                line=dict(color='blue', width=2),
+                hovertemplate='<b>Cumulative P&L</b><br>Trade: %{x}<br>Total: $%{y:,.2f}<extra></extra>'
+            )
+        )
+        
+        fig.update_layout(
+            title='Trade-by-Trade P&L Analysis',
+            xaxis_title='Trade Number',
+            yaxis_title='P&L ($)',
+            height=500,
+            template='plotly_white'
+        )
+        
+        return fig
+    
+    def create_performance_dashboard(self) -> go.Figure:
+        """Create comprehensive performance metrics dashboard"""
+        if not self.performance_metrics:
+            print("❌ No performance metrics available")
+            return None
+            
+        metrics = self.performance_metrics
+        
+        # Create subplots for different metric categories
+        fig = make_subplots(
+            rows=2, cols=2,
+            subplot_titles=('Returns', 'Risk Metrics', 'Trade Statistics', 'Performance Summary'),
+            specs=[[{"type": "indicator"}, {"type": "indicator"}],
+                   [{"type": "indicator"}, {"type": "indicator"}]]
+        )
+        
+        # Returns
+        fig.add_trace(
+            go.Indicator(
+                mode="number+delta",
+                value=metrics['total_return'],
+                number={'suffix': '%'},
+                title={'text': "Total Return"},
+                delta={'reference': 0}
+            ),
+            row=1, col=1
+        )
+        
+        # Risk metrics
+        fig.add_trace(
+            go.Indicator(
+                mode="number",
+                value=metrics['max_drawdown'],
+                number={'suffix': '%'},
+                title={'text': "Max Drawdown"}
+            ),
+            row=1, col=2
+        )
+        
+        # Trade statistics
+        fig.add_trace(
+            go.Indicator(
+                mode="number",
+                value=metrics['win_rate'],
+                number={'suffix': '%'},
+                title={'text': "Win Rate"}
+            ),
+            row=2, col=1
+        )
+        
+        # Performance summary
+        fig.add_trace(
+            go.Indicator(
+                mode="number",
+                value=metrics['sharpe_ratio'],
+                number={'valueformat': '.2f'},
+                title={'text': "Sharpe Ratio"}
+            ),
+            row=2, col=2
+        )
+        
+        fig.update_layout(
+            title='Performance Metrics Dashboard',
+            height=600,
+            template='plotly_white'
+        )
+        
+        return fig
+    
+    def _parse_timestamp(self, timestamp_str: str) -> datetime:
+        """Parse timestamp string to datetime"""
+        try:
+            # Try different timestamp formats
+            if timestamp_str.isdigit():
+                return datetime.fromtimestamp(int(timestamp_str), tz=timezone.utc)
+            else:
+                return datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+        except:
+            return datetime.now()
+    
+    def generate_dashboard(self, output_file: str = "professional_trading_dashboard.html"):
+        """Generate focused trading dashboard with candlestick and P/L only"""
+        print("🚀 Generating professional trading dashboard...")
+
+        # Create focused charts only
+        charts = {}
+
+        # Candlestick chart (main chart with trades)
+        candlestick_fig = self.create_candlestick_chart()
+        if candlestick_fig:
+            charts['candlestick'] = candlestick_fig
+
+        # Generate HTML dashboard
+        html_content = self._generate_html_dashboard(charts)
+        
+        # Save to file
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        
+        print(f"✅ Professional trading dashboard saved to: {output_file}")
+        return output_file
+    
+    def _generate_html_dashboard(self, charts: Dict[str, go.Figure]) -> str:
+        """Generate HTML dashboard with all charts"""
+        html_parts = []
+        
+        # HTML header
+        html_parts.append("""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Professional Trading Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .dashboard { max-width: 1600px; margin: 0 auto; }
+        .chart-container { background: white; margin: 20px 0; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .metrics-summary { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .metric-item { display: inline-block; margin: 10px 20px; text-align: center; }
+        .metric-value { font-size: 24px; font-weight: bold; color: #2c3e50; }
+        .metric-label { font-size: 14px; color: #7f8c8d; }
+        h1 { color: #2c3e50; text-align: center; }
+        h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+
+        /* JP Morgan style trade table */
+        .trade-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        .trade-table thead {
+            background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+            border-top: 2px solid #003d82;
+            border-bottom: 2px solid #003d82;
+        }
+        .trade-table th {
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #003d82;
+            border-right: 1px solid #dee2e6;
+        }
+        .trade-table th:last-child { border-right: none; }
+        .trade-table tbody tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s;
+        }
+        .trade-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        .trade-table tbody tr:nth-child(even) {
+            background-color: #fdfdfd;
+        }
+        .trade-table td {
+            padding: 10px;
+            color: #212529;
+            border-right: 1px solid #f1f3f5;
+        }
+        .trade-table td:last-child { border-right: none; }
+        .trade-table .time {
+            font-size: 11px;
+            color: #6c757d;
+        }
+        .trade-table .symbol {
+            font-weight: 600;
+            color: #003d82;
+        }
+        .trade-table .action-buy {
+            color: #28a745;
+            font-weight: 600;
+        }
+        .trade-table .action-sell {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        .trade-table .number {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+        .trade-table .portfolio-value {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #003d82;
+        }
+        .trade-table .reason {
+            font-size: 11px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>📊 Professional Trading Dashboard</h1>
+        """)
+        
+        # Performance metrics summary
+        if self.performance_metrics:
+            # Build test period string
+            test_period_str = ""
+            start_date = self.performance_metrics.get('start_date')
+            end_date = self.performance_metrics.get('end_date')
+            num_blocks = self.performance_metrics.get('num_blocks', 0)
+
+            if start_date and end_date:
+                test_period_str = f"<p style='text-align: center; color: #7f8c8d; margin-top: 0;'>Test Period: {start_date} - {end_date}"
+                if num_blocks > 0:
+                    test_period_str += f" ({num_blocks} blocks)"
+                test_period_str += "</p>"
+
+            performance_html = f"""
+        <div class="metrics-summary">
+            <h2>📈 Performance Summary</h2>
+            {test_period_str}
+            <div class="metric-item">
+                <div class="metric-value">{self.performance_metrics.get('total_return', 0):.2f}%</div>
+                <div class="metric-label">Total Return</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value">{self.performance_metrics.get('max_drawdown', 0):.2f}%</div>
+                <div class="metric-label">Max Drawdown</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value">{self.performance_metrics.get('win_rate', 0):.2f}%</div>
+                <div class="metric-label">Win Rate</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value">{self.performance_metrics.get('sharpe_ratio', 0):.2f}</div>
+                <div class="metric-label">Sharpe Ratio</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value">{self.performance_metrics.get('total_trades', 0)}</div>
+                <div class="metric-label">Total Trades</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value">{self.performance_metrics.get('num_daily_trades', 0):.2f}</div>
+                <div class="metric-label">Daily Trades</div>
+            </div>
+        </div>
+            """
+            html_parts.append(performance_html)
+        
+        # Add charts
+        for chart_name, fig in charts.items():
+            html_parts.append(f"""
+        <div class="chart-container">
+            <h2>📊 {chart_name.title()} Chart</h2>
+            <div id="{chart_name}-chart"></div>
+        </div>
+        """)
+
+        # Add trade statement table (JP Morgan style)
+        if self.trades:
+            html_parts.append("""
+        <div class="chart-container">
+            <h2>📋 Trade Statement</h2>
+            <table class="trade-table">
+                <thead>
+                    <tr>
+                        <th>Trade Date/Time</th>
+                        <th>Symbol</th>
+                        <th>Action</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Trade Value</th>
+                        <th>Cash Balance</th>
+                        <th>Portfolio Value</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+            """)
+
+            for trade in self.trades:
+                # Format timestamp
+                ts_ms = trade.get('timestamp_ms', 0)
+                dt = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc)
+                dt_et = dt.astimezone(pytz.timezone('America/New_York'))
+                date_str = dt_et.strftime('%Y-%m-%d')
+                time_str = dt_et.strftime('%H:%M:%S ET')
+
+                # Format action with color
+                action = trade.get('action', 'N/A').upper()
+                action_class = 'buy' if action == 'BUY' else 'sell'
+
+                # Format values
+                symbol = trade.get('symbol', 'N/A')
+                quantity = trade.get('quantity', 0)
+                price = trade.get('price', 0)
+                trade_value = trade.get('trade_value', 0)
+                cash_balance = trade.get('cash_balance', 0)
+                portfolio_value = trade.get('portfolio_value', 0)
+                reason = trade.get('reason', 'N/A')
+
+                html_parts.append(f"""
+                    <tr>
+                        <td>{date_str}<br><span class="time">{time_str}</span></td>
+                        <td class="symbol">{symbol}</td>
+                        <td class="action-{action_class}">{action}</td>
+                        <td class="number">{quantity:.2f}</td>
+                        <td class="number">${price:.2f}</td>
+                        <td class="number">${trade_value:,.2f}</td>
+                        <td class="number">${cash_balance:,.2f}</td>
+                        <td class="portfolio-value">${portfolio_value:,.2f}</td>
+                        <td class="reason">{reason}</td>
+                    </tr>
+                """)
+
+            html_parts.append("""
+                </tbody>
+            </table>
+        </div>
+            """)
+        
+        # Add JavaScript for charts - use simple, direct approach
+        html_parts.append("""
+        <script>
+        """)
+
+        for chart_name, fig in charts.items():
+            # Use Plotly's built-in JSON encoder which handles numpy arrays
+            from plotly.io import to_json
+            fig_json_str = to_json(fig)
+
+            html_parts.append(f"""
+            // Render {chart_name} chart
+            var figData_{chart_name} = {fig_json_str};
+            Plotly.newPlot(
+                '{chart_name}-chart',
+                figData_{chart_name}.data,
+                figData_{chart_name}.layout,
+                {{responsive: true}}
+            );
+            """)
+
+        html_parts.append("""
+        </script>
+    </div>
+</body>
+</html>
+        """)
+        
+        return ''.join(html_parts)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Professional Trading Visualization Dashboard"
+    )
+    parser.add_argument("--tradebook", required=True, help="Path to trade book JSONL file")
+    parser.add_argument("--signals", help="Path to signals JSONL file (optional, for probability info)")
+    parser.add_argument("--data", default="data/equities/QQQ_RTH_NH.csv", help="Market data CSV file")
+    parser.add_argument("--output", default="professional_trading_dashboard.html", help="Output HTML file")
+    parser.add_argument("--start-equity", type=float, default=100000.0, help="Starting equity")
+
+    args = parser.parse_args()
+    
+    # Validate inputs
+    if not os.path.exists(args.tradebook):
+        print(f"❌ Trade book not found: {args.tradebook}")
+        return 1
+    
+    # Create dashboard
+    dashboard = TradingDashboard(args.tradebook, args.data, args.signals, args.start_equity)
+    
+    try:
+        dashboard.load_data()
+        dashboard.generate_dashboard(args.output)
+        print(f"🎉 Professional trading dashboard generated successfully!")
+        print(f"📊 Open {args.output} in your browser to view the dashboard")
+        return 0
+    except Exception as e:
+        print(f"❌ Error generating dashboard: {e}")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

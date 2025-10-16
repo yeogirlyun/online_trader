@@ -1,0 +1,418 @@
+╔════════════════════════════════════════════════════════════════╗
+║     FALLBACK DETECTION ANALYSIS REPORT                         ║
+╚════════════════════════════════════════════════════════════════╝
+
+Analysis Date: 2025-10-05 23:18:46
+Source Directory: src
+Files Analyzed: 97
+Functions Analyzed: 61
+Total Issues Found: 63
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SUMMARY BY SEVERITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  CRITICAL: 31 issues
+  HIGH: 18 issues
+  MEDIUM: 14 issues
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED ISSUES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[1] HIGH - inconsistent_literal_returns
+    Function: main
+    Location: src/tools/analyze_dataset.cpp:20
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[2] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "ERROR: Failed to parse CSV line " << line_num << ": " << e.what() << "\n";
+
+[3] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Line: " << line << "\n";
+
+[4] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Fields: [";
+
+[5] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: if (i > 0) std::cerr << ", ";
+
+[6] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "\"" << fields[i] << "\"";
+
+[7] CRITICAL - exception_fallback_no_rethrow
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return bars;
+
+[8] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "ERROR: Failed to parse CSV line " << line_num << ": " << e.what() << "\n";
+
+[9] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Line: " << line << "\n";
+
+[10] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Fields: [";
+
+[11] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: if (i > 0) std::cerr << ", ";
+
+[12] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "\"" << fields[i] << "\"";
+
+[13] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "ERROR: Failed to parse CSV line " << line_num << ": " << e.what() << "\n";
+
+[14] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Line: " << line << "\n";
+
+[15] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "Fields: [";
+
+[16] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: if (i > 0) std::cerr << ", ";
+
+[17] CRITICAL - exception_silent_continuation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:98
+    Message: CRITICAL: Catch block logs but continues execution silently
+    Recommendation: Must fail fast - either re-throw or return error state
+    Code: std::cerr << "\"" << fields[i] << "\"";
+
+[18] CRITICAL - minimal_financial_implementation
+    Function: load_market_data
+    Location: src/core/data_io.cpp:67
+    Message: CRITICAL: Financial function 'load_market_data' has suspiciously minimal implementation (2 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[19] CRITICAL - stub_implementation_trivial
+    Function: load_json
+    Location: src/core/data_io.cpp:176
+    Message: CRITICAL: Critical function 'load_json' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[20] HIGH - empty_critical_implementation
+    Function: create_calibrator
+    Location: src/training/meta_calibration.cpp:110
+    Message: HIGH: Critical function 'create_calibrator' has empty/minimal implementation
+    Recommendation: Implement proper logic immediately or remove function declaration
+
+[21] MEDIUM - declarations_only_implementation
+    Function: create_calibrator
+    Location: src/training/meta_calibration.cpp:110
+    Message: MEDIUM: Function 'create_calibrator' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[22] HIGH - empty_critical_implementation
+    Function: create_calibrator
+    Location: src/training/meta_calibration.cpp:226
+    Message: HIGH: Critical function 'create_calibrator' has empty/minimal implementation
+    Recommendation: Implement proper logic immediately or remove function declaration
+
+[23] MEDIUM - declarations_only_implementation
+    Function: create_calibrator
+    Location: src/training/meta_calibration.cpp:226
+    Message: MEDIUM: Function 'create_calibrator' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[24] HIGH - empty_critical_implementation
+    Function: convert_features_to_tensor
+    Location: src/training/cpp_ppo_trainer.cpp:39
+    Message: HIGH: Critical function 'convert_features_to_tensor' has empty/minimal implementation
+    Recommendation: Implement proper logic immediately or remove function declaration
+
+[25] MEDIUM - declarations_only_implementation
+    Function: convert_features_to_tensor
+    Location: src/training/cpp_ppo_trainer.cpp:39
+    Message: MEDIUM: Function 'convert_features_to_tensor' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[26] CRITICAL - exception_fallback_no_rethrow
+    Function: parse_args_to_json
+    Location: src/cli/meta_cli_commands.cpp:18
+    Message: CRITICAL: Catch block returns without re-throwing exception
+    Recommendation: Must re-throw or provide comprehensive error handling
+    Code: return j;
+
+[27] CRITICAL - stub_implementation_trivial
+    Function: parse_args_to_json
+    Location: src/cli/meta_cli_commands.cpp:8
+    Message: CRITICAL: Critical function 'parse_args_to_json' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[28] HIGH - minimal_catch_block
+    Function: parse_args_to_json
+    Location: src/cli/meta_cli_commands.cpp:8
+    Message: HIGH: Minimal catch block may not handle exception properly
+    Recommendation: Ensure proper exception handling or re-throw
+
+[29] HIGH - minimal_catch_block
+    Function: main
+    Location: src/cli/sentio_cli_main.cpp:31
+    Message: HIGH: Minimal catch block may not handle exception properly
+    Recommendation: Ensure proper exception handling or re-throw
+
+[30] HIGH - minimal_catch_block
+    Function: main
+    Location: src/cli/sentio_cli_main.cpp:31
+    Message: HIGH: Minimal catch block may not handle exception properly
+    Recommendation: Ensure proper exception handling or re-throw
+
+[31] CRITICAL - stub_implementation_trivial
+    Function: generate_bar_id
+    Location: src/common/utils.cpp:47
+    Message: CRITICAL: Critical function 'generate_bar_id' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[32] HIGH - empty_critical_implementation
+    Function: generate_bar_id
+    Location: src/common/utils.cpp:47
+    Message: HIGH: Critical function 'generate_bar_id' has empty/minimal implementation
+    Recommendation: Implement proper logic immediately or remove function declaration
+
+[33] MEDIUM - declarations_only_implementation
+    Function: generate_bar_id
+    Location: src/common/utils.cpp:47
+    Message: MEDIUM: Function 'generate_bar_id' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[34] CRITICAL - stub_implementation_trivial
+    Function: extract_timestamp
+    Location: src/common/utils.cpp:54
+    Message: CRITICAL: Critical function 'extract_timestamp' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[35] HIGH - empty_critical_implementation
+    Function: extract_timestamp
+    Location: src/common/utils.cpp:54
+    Message: HIGH: Critical function 'extract_timestamp' has empty/minimal implementation
+    Recommendation: Implement proper logic immediately or remove function declaration
+
+[36] HIGH - return_only_implementation
+    Function: extract_timestamp
+    Location: src/common/utils.cpp:54
+    Message: HIGH: Function 'extract_timestamp' contains only a return statement
+    Recommendation: Implement function logic or remove if unnecessary
+
+[37] MEDIUM - declarations_only_implementation
+    Function: extract_timestamp
+    Location: src/common/utils.cpp:54
+    Message: MEDIUM: Function 'extract_timestamp' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[38] MEDIUM - suspiciously_short_function
+    Function: extract_timestamp
+    Location: src/common/utils.cpp:54
+    Message: MEDIUM: Function 'extract_timestamp' is suspiciously short (3 lines)
+    Recommendation: Review if function is properly implemented
+
+[39] CRITICAL - stub_implementation_trivial
+    Function: extract_symbol_hash
+    Location: src/common/utils.cpp:58
+    Message: CRITICAL: Critical function 'extract_symbol_hash' has trivial/stub implementation
+    Recommendation: Implement complete logic - function name suggests complex work
+
+[40] HIGH - empty_critical_implementation
+    Function: extract_symbol_hash
+    Location: src/common/utils.cpp:58
+    Message: HIGH: Critical function 'extract_symbol_hash' has empty/minimal implementation
+    Recommendation: Implement proper logic immediately or remove function declaration
+
+[41] HIGH - return_only_implementation
+    Function: extract_symbol_hash
+    Location: src/common/utils.cpp:58
+    Message: HIGH: Function 'extract_symbol_hash' contains only a return statement
+    Recommendation: Implement function logic or remove if unnecessary
+
+[42] MEDIUM - declarations_only_implementation
+    Function: extract_symbol_hash
+    Location: src/common/utils.cpp:58
+    Message: MEDIUM: Function 'extract_symbol_hash' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[43] MEDIUM - suspiciously_short_function
+    Function: extract_symbol_hash
+    Location: src/common/utils.cpp:58
+    Message: MEDIUM: Function 'extract_symbol_hash' is suspiciously short (3 lines)
+    Recommendation: Review if function is properly implemented
+
+[44] HIGH - inconsistent_literal_returns
+    Function: write_jsonl
+    Location: src/common/utils.cpp:179
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[45] HIGH - inconsistent_literal_returns
+    Function: write_csv
+    Location: src/common/utils.cpp:188
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[46] MEDIUM - declarations_only_implementation
+    Function: ms_to_timestamp
+    Location: src/common/utils.cpp:320
+    Message: MEDIUM: Function 'ms_to_timestamp' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[47] MEDIUM - declarations_only_implementation
+    Function: log_dir
+    Location: src/common/utils.cpp:451
+    Message: MEDIUM: Function 'log_dir' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[48] MEDIUM - suspiciously_short_function
+    Function: log_dir
+    Location: src/common/utils.cpp:451
+    Message: MEDIUM: Function 'log_dir' is suspiciously short (3 lines)
+    Recommendation: Review if function is properly implemented
+
+[49] MEDIUM - declarations_only_implementation
+    Function: ensure_log_dir
+    Location: src/common/utils.cpp:454
+    Message: MEDIUM: Function 'ensure_log_dir' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[50] MEDIUM - declarations_only_implementation
+    Function: iso_now
+    Location: src/common/utils.cpp:458
+    Message: MEDIUM: Function 'iso_now' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[51] HIGH - inconsistent_literal_returns
+    Function: csv_to_binary
+    Location: src/common/binary_data.cpp:270
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[52] HIGH - inconsistent_literal_returns
+    Function: validate_binary_file
+    Location: src/common/binary_data.cpp:353
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[53] CRITICAL - minimal_financial_implementation
+    Function: create_strategy
+    Location: src/strategy/istrategy.cpp:29
+    Message: CRITICAL: Financial function 'create_strategy' has suspiciously minimal implementation (1 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[54] CRITICAL - simplified_logic_comment
+    Function: get_available_strategies
+    Location: src/strategy/istrategy.cpp:103
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'cheat')
+    Recommendation: Implement proper logic immediately. Comment contains 'cheat' indicating incomplete implementation
+
+[55] CRITICAL - simplified_logic_comment
+    Function: get_available_strategies
+    Location: src/strategy/istrategy.cpp:91
+    Message: CRITICAL: Simplified/fallback logic detected (keyword: 'default')
+    Recommendation: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+[56] MEDIUM - declarations_only_implementation
+    Function: get_available_strategies
+    Location: src/strategy/istrategy.cpp:87
+    Message: MEDIUM: Function 'get_available_strategies' only declares variables without using them
+    Recommendation: Complete implementation or remove unused function
+
+[57] CRITICAL - exception_fallback_literal
+    Function: is_valid_strategy
+    Location: src/strategy/istrategy.cpp:116
+    Message: CRITICAL: Catch block returns literal/default value instead of re-throwing
+    Recommendation: Re-throw exception or crash with detailed error. NEVER return fallback values.
+    Code: return false;
+
+[58] CRITICAL - minimal_financial_implementation
+    Function: is_valid_strategy
+    Location: src/strategy/istrategy.cpp:112
+    Message: CRITICAL: Financial function 'is_valid_strategy' has suspiciously minimal implementation (1 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[59] HIGH - inconsistent_literal_returns
+    Function: is_valid_strategy
+    Location: src/strategy/istrategy.cpp:112
+    Message: HIGH: Function returns different literal values in different paths
+    Recommendation: Ensure consistent return behavior across all paths
+
+[60] HIGH - minimal_catch_block
+    Function: is_valid_strategy
+    Location: src/strategy/istrategy.cpp:112
+    Message: HIGH: Minimal catch block may not handle exception properly
+    Recommendation: Ensure proper exception handling or re-throw
+
+[61] CRITICAL - minimal_financial_implementation
+    Function: string_to_strategy_type
+    Location: src/strategy/istrategy.cpp:121
+    Message: CRITICAL: Financial function 'string_to_strategy_type' has suspiciously minimal implementation (2 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+
+[62] CRITICAL - simplified_logic_comment
+    Function: strategy_type_to_string
+    Location: src/strategy/istrategy.cpp:161
+    Message: EXTREME RISK: Simplified/fallback logic detected (keyword: 'default')
+    Recommendation: Implement proper logic immediately. Comment contains 'default' indicating incomplete implementation
+
+[63] CRITICAL - minimal_financial_implementation
+    Function: strategy_type_to_string
+    Location: src/strategy/istrategy.cpp:159
+    Message: CRITICAL: Financial function 'strategy_type_to_string' has suspiciously minimal implementation (1 statements)
+    Recommendation: EXTREME RISK: Financial calculations require proper implementation
+

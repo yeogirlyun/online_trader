@@ -1,0 +1,60 @@
+
+========================================
+MOCK TRADING SESSION - FINAL REPORT
+========================================
+Session Date: 2025-10-08
+Session ID: mock_20251008_1759984243
+Speed Multiplier: 39.0x
+
+CONFIGURATION
+----------------------------------------
+Initial Capital: $100,000.00
+Buying Power: $200,000.00
+Market Impact: 5.0 bps
+Bid-Ask Spread: 2.0 bps
+
+MORNING SESSION (9:30 AM - 12:45 PM)
+----------------------------------------
+Parameters: Baseline
+Trades: 9600
+P&L: $-2532.93
+Return: -2.5329%
+
+MIDDAY OPTIMIZATION (12:45 PM)
+----------------------------------------
+Status: Complete
+Baseline MRB: 0.0000%
+Optimized MRB: 0.0000%
+Improvement: 0.0000%
+Decision: Keep Baseline
+
+AFTERNOON SESSION (1:00 PM - 4:00 PM)
+----------------------------------------
+Parameters: Baseline
+Trades: 9600
+P&L: $-2532.93
+Return: -2.5329%
+
+EOD CLOSING (3:58 PM)
+----------------------------------------
+All Positions Liquidated: ✓
+Final Cash: $94934.14
+Portfolio: 100% Cash
+
+SUMMARY
+----------------------------------------
+Total Trades: 19200
+Total P&L: $-5065.86
+Total Return: -5.0659%
+Final Capital: $94934.14
+
+Status: ✓ SUCCESS
+
+OUTPUT FILES
+----------------------------------------
+Session Directory: /Volumes/ExternalSSD/Dev/C++/online_trader/logs/mock_trading/mock_20251008_1759984243
+Dashboard: /Volumes/ExternalSSD/Dev/C++/online_trader/data/dashboards/mock_20251008_1759984243_dashboard.html
+
+========================================
+Session completed at 2025-10-09 13:34:07
+========================================

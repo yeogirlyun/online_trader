@@ -200,4 +200,23 @@ void PositionBook::set_position(const std::string& symbol, int64_t qty, double a
     positions_[symbol] = pos;
 }
 
+bool PositionBook::is_flat() const {
+    for (const auto& [symbol, pos] : positions_) {
+        if (pos.qty != 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string PositionBook::positions_hash() const {
+    std::ostringstream oss;
+    for (const auto& [symbol, pos] : positions_) {
+        if (pos.qty != 0) {
+            oss << symbol << ":" << pos.qty << ";";
+        }
+    }
+    return oss.str();
+}
+
 } // namespace sentio

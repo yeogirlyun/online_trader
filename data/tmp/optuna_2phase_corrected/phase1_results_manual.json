@@ -1,0 +1,14 @@
+{
+  "strategy": "C",
+  "dataset": "SPY_4blocks.csv",
+  "best_value": 0.22,
+  "best_params": {
+    "buy_threshold": 0.55,
+    "sell_threshold": 0.43,
+    "ewrls_lambda": 0.992,
+    "bb_amplification_factor": 0.08
+  },
+  "total_trials": 50,
+  "tuning_time": 9.6,
+  "source": "From Phase 1 optimization log (Trial 13)"
+}

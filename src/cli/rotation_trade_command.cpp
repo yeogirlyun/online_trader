@@ -807,7 +807,26 @@ int RotationTradeCommand::generate_summary_dashboard(
 
     log_system("✅ Summary saved: " + summary_file);
 
-    return 0;
+    // Generate aggregate HTML dashboard
+    log_system("");
+    log_system("📊 Generating aggregate HTML dashboard...");
+
+    std::string aggregate_html = output_dir + "/aggregate_summary.html";
+    std::string cmd = "python3 scripts/rotation_trading_aggregate_dashboard.py";
+    cmd += " --batch-dir " + options_.log_dir;
+    cmd += " --output " + aggregate_html;
+    cmd += " --start-date " + options_.start_date;
+    cmd += " --end-date " + options_.end_date;
+
+    int result = std::system(cmd.c_str());
+
+    if (result == 0) {
+        log_system("✅ Aggregate dashboard generated: " + aggregate_html);
+    } else {
+        log_system("❌ Aggregate dashboard generation failed");
+    }
+
+    return result;
 }
 
 } // namespace cli

@@ -1,6 +1,7 @@
 #include "cli/rotation_trade_command.h"
 #include "common/utils.h"
 #include "common/time_utils.h"
+#include "live/polygon_client.hpp"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iostream>
@@ -168,6 +169,7 @@ RotationTradingBackend::Config RotationTradeCommand::load_config() {
                 config.oes_config.bb_std_dev = oes.value("bb_std_dev", 2.0);
                 config.oes_config.bb_proximity_threshold = oes.value("bb_proximity_threshold", 0.30);
                 config.oes_config.regularization = oes.value("regularization", 0.01);
+                config.oes_config.initial_variance = oes.value("initial_variance", 100.0);
 
                 if (oes.contains("horizon_weights")) {
                     config.oes_config.horizon_weights = oes["horizon_weights"].get<std::vector<double>>();
@@ -359,6 +361,22 @@ std::map<std::string, std::vector<Bar>> RotationTradeCommand::load_warmup_data()
         }
     }
 
+    // **VALIDATION**: Ensure all expected symbols were loaded
+    if (warmup_data.size() != options_.symbols.size()) {
+        log_system("");
+        log_system("❌ SYMBOL VALIDATION FAILED!");
+        log_system("Expected " + std::to_string(options_.symbols.size()) + " symbols, but loaded " + std::to_string(warmup_data.size()));
+        log_system("");
+        log_system("Expected symbols:");
+        for (const auto& sym : options_.symbols) {
+            bool loaded = warmup_data.find(sym) != warmup_data.end();
+            log_system("  " + sym + ": " + (loaded ? "✓ LOADED" : "❌ FAILED"));
+        }
+        log_system("");
+        throw std::runtime_error("Symbol validation failed: Not all symbols loaded successfully");
+    }
+
+    log_system("✓ Symbol validation passed: All " + std::to_string(warmup_data.size()) + " symbols loaded successfully");
     log_system("");
     return warmup_data;
 }
@@ -513,12 +531,78 @@ int RotationTradeCommand::execute_live_trading() {
     log_system("✓ Warmup complete");
     log_system("");
 
-    // TODO: Create Alpaca WebSocket feed for live bars
-    // For now, this is a placeholder - the actual WebSocket integration
-    // would go here using AlpacaMultiSymbolFeed
+    // Create FIFO reader for live bars (from Python WebSocket bridge)
+    log_system("Connecting to Python WebSocket bridge (FIFO)...");
+    auto polygon_client = std::make_shared<PolygonClient>("", "");  // Unused params for FIFO mode
 
-    log_system("⚠️  Live WebSocket feed not yet implemented");
-    log_system("   Use mock mode for now");
+    if (!polygon_client->connect()) {
+        log_system("❌ Failed to connect to FIFO!");
+        return 1;
+    }
+
+    // Subscribe to all symbols
+    polygon_client->subscribe(options_.symbols);
+
+    // Start trading
+    log_system("Starting live rotation trading session...");
+    log_system("");
+
+    if (!backend_->start_trading()) {
+        log_system("❌ Failed to start trading!");
+        return 1;
+    }
+
+    // Set up bar callback to trigger backend on each bar
+    std::atomic<int> bar_count{0};
+    auto bar_callback = [this, &bar_count](const std::string& symbol, const Bar& bar) {
+        if (g_shutdown_requested) {
+            return;
+        }
+
+        // Update data manager with new bar
+        data_manager_->update_symbol(symbol, bar);
+
+        // Process bar (generate signals, make trades)
+        backend_->on_bar();
+
+        bar_count++;
+
+        // Log progress every 10 bars
+        if (bar_count % 10 == 0) {
+            log_system("Bars processed: " + std::to_string(bar_count.load()));
+        }
+    };
+
+    // Start FIFO reader
+    polygon_client->start(bar_callback);
+
+    log_system("✓ Live trading active - listening for bars from Python bridge");
+    log_system("  FIFO path: /tmp/alpaca_bars.fifo");
+    log_system("  Press Ctrl+C to stop");
+    log_system("");
+
+    // Wait for shutdown signal
+    while (!g_shutdown_requested) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Check if EOD
+        if (backend_->is_eod(get_minutes_since_open())) {
+            log_system("");
+            log_system("EOD time reached - liquidating positions...");
+            backend_->liquidate_all_positions("EOD");
+            break;
+        }
+    }
+
+    // Stop trading
+    log_system("");
+    log_system("Stopping live trading...");
+    polygon_client->stop();
+    backend_->stop_trading();
+
+    // Print summary
+    auto stats = backend_->get_session_stats();
+    print_summary(stats);
 
     return 0;
 }
@@ -687,12 +771,12 @@ std::vector<std::string> RotationTradeCommand::extract_trading_days(
     std::vector<std::string> trading_days;
     std::set<std::string> unique_dates;
 
-    // Read SPY data file to extract trading days
-    std::string spy_file = options_.data_dir + "/SPY_RTH_NH.csv";
-    std::ifstream file(spy_file);
+    // Use SQQQ as reference (one of the rotation trading symbols)
+    std::string reference_file = options_.data_dir + "/SQQQ_RTH_NH.csv";
+    std::ifstream file(reference_file);
 
     if (!file.is_open()) {
-        log_system("❌ Could not open " + spy_file);
+        log_system("❌ Could not open " + reference_file);
         return trading_days;
     }
 

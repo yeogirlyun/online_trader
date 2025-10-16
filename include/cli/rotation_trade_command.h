@@ -31,9 +31,9 @@ public:
         bool is_mock_mode = false;
         std::string data_dir = "data/equities";
 
-        // Symbols to trade (12 instruments - removed gold miners NUGT/DUST)
+        // Symbols to trade (12 instruments - removed gold miners NUGT/DUST, using SVIX instead of SVXY)
         std::vector<std::string> symbols = {
-            "ERX", "ERY", "FAS", "FAZ", "SDS", "SSO", "SQQQ", "SVXY", "TNA", "TQQQ", "TZA", "UVXY"
+            "ERX", "ERY", "FAS", "FAZ", "SDS", "SSO", "SQQQ", "SVIX", "TNA", "TQQQ", "TZA", "UVXY"
         };
 
         // Capital

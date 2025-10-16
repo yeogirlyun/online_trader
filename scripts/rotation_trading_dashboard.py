@@ -45,8 +45,8 @@ class RotationTradingDashboard:
         self.start_equity = start_equity
         self.data_dir = data_dir
 
-        # All expected symbols (rotation strategy uses 6 instruments)
-        self.all_symbols = ['SDS', 'SPXL', 'SQQQ', 'SVIX', 'TQQQ', 'UVXY']
+        # All expected symbols (rotation strategy uses 12 instruments - removed gold miners NUGT/DUST)
+        self.all_symbols = ['ERX', 'ERY', 'FAS', 'FAZ', 'SDS', 'SSO', 'SQQQ', 'SVXY', 'TNA', 'TQQQ', 'TZA', 'UVXY']
 
         # Data structures
         self.trades = []
@@ -423,23 +423,34 @@ class RotationTradingDashboard:
         # Calculate height: header (70px) + (7 rows * 45px) + padding = 70 + 315 + 80 = 465px
         row_heights.append(520)  # Enough for all 7 rows without scrolling (increased to accommodate taller header)
 
+        # Calculate safe vertical spacing for any number of symbols
+        # Max spacing = 1/(rows-1), use 80% of max to be safe
+        max_spacing = 1.0 / (total_rows - 1) if total_rows > 1 else 0.05
+        vertical_spacing = min(0.025, max_spacing * 0.8)
+
         fig = make_subplots(
             rows=total_rows,
             cols=1,
             subplot_titles=subplot_titles,
-            vertical_spacing=0.035,  # 3.5% spacing between subplots
+            vertical_spacing=vertical_spacing,
             specs=subplot_specs,
             row_heights=row_heights
         )
 
-        # Color map for symbols
+        # Color map for symbols (12 distinct colors - removed gold miners NUGT/DUST)
         colors = {
+            'ERX': '#FF4500',   # Orange Red
+            'ERY': '#8B0000',   # Dark Red
+            'FAS': '#00CED1',   # Dark Turquoise
+            'FAZ': '#4169E1',   # Royal Blue
             'SDS': '#FF6B6B',   # Red
-            'SPXL': '#4ECDC4',  # Turquoise
-            'SQQQ': '#FF6B9D',  # Pink
-            'SVXY': '#26DE81',  # Green
-            'TQQQ': '#00D9FF',  # Cyan
-            'UVXY': '#FFA502',  # Orange
+            'SSO': '#32CD32',   # Lime Green
+            'SQQQ': '#FF1493',  # Deep Pink
+            'SVXY': '#7FFF00',  # Chartreuse
+            'TNA': '#FF8C00',   # Dark Orange
+            'TQQQ': '#00BFFF',  # Deep Sky Blue
+            'TZA': '#DC143C',   # Crimson
+            'UVXY': '#9370DB',  # Medium Purple
         }
 
         # Plot each symbol (chart + table)

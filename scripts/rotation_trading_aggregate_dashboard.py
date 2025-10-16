@@ -46,8 +46,8 @@ class AggregateDashboard:
         self.start_equity = start_equity
         self.data_dir = data_dir
 
-        # All expected symbols
-        self.all_symbols = ['SDS', 'SPXL', 'SQQQ', 'SVIX', 'TQQQ', 'UVXY']
+        # All expected symbols (12 instruments - removed gold miners NUGT/DUST)
+        self.all_symbols = ['ERX', 'ERY', 'FAS', 'FAZ', 'SDS', 'SSO', 'SQQQ', 'SVXY', 'TNA', 'TQQQ', 'TZA', 'UVXY']
 
         # Data structures
         self.daily_data = {}  # date -> {trades, equity_curve, pnl, etc}
@@ -170,6 +170,17 @@ class AggregateDashboard:
 
         num_days = len(self.daily_data)
 
+        # Calculate MRD (Mean Return per Day) from daily metrics
+        daily_returns = []
+        if len(self.daily_metrics) > 0:
+            prev_equity = self.start_equity
+            for day_metric in self.daily_metrics:
+                day_equity = day_metric['equity']
+                day_return = (day_equity - prev_equity) / prev_equity * 100
+                daily_returns.append(day_return)
+                prev_equity = day_equity
+        avg_mrd = np.mean(daily_returns) if daily_returns else 0.0
+
         return {
             'total_trades': len(self.all_trades),
             'total_exits': len(all_exits),
@@ -183,7 +194,8 @@ class AggregateDashboard:
             'avg_loss': np.mean([t.get('pnl', 0.0) for t in losing_trades]) if losing_trades else 0.0,
             'profit_factor': abs(sum(t.get('pnl', 0.0) for t in winning_trades) / sum(t.get('pnl', 0.0) for t in losing_trades)) if losing_trades else float('inf'),
             'num_days': num_days,
-            'avg_pnl_per_day': total_pnl / num_days if num_days > 0 else 0.0
+            'avg_pnl_per_day': total_pnl / num_days if num_days > 0 else 0.0,
+            'avg_mrd': avg_mrd
         }
 
     def _load_price_data(self, symbol, date_list):
@@ -255,10 +267,10 @@ class AggregateDashboard:
         subplot_titles = []
         row_heights = []
 
-        # Row 1: Portfolio Summary
+        # Row 1: Portfolio Summary (transposed: 2 rows - header + data row)
         subplot_specs.append([{"type": "table"}])
         subplot_titles.append("<b>Portfolio Performance Summary</b>")
-        row_heights.append(400)
+        row_heights.append(150)
 
         # Row 2: Per-Symbol Performance Summary
         subplot_specs.append([{"type": "table"}])
@@ -340,40 +352,39 @@ class AggregateDashboard:
         return output_path
 
     def _add_portfolio_summary(self, fig, row):
-        """Add portfolio summary table"""
+        """Add portfolio summary table (transposed: metrics as columns)"""
         pm = self.portfolio_metrics
 
         fig.add_trace(
             go.Table(
                 header=dict(
-                    values=['<b>Metric</b>', '<b>Value</b>'],
+                    values=['<b>Test Period</b>', '<b>Trading Days</b>', '<b>Total Trades</b>', '<b>Total Exits</b>',
+                            '<b>Win Rate</b>', '<b>Total P&L</b>', '<b>Total Return</b>', '<b>Average MRD</b>',
+                            '<b>Final Equity</b>', '<b>Avg P&L/Day</b>', '<b>Profit Factor</b>'],
                     fill_color='#667eea',
-                    font=dict(color='white', size=18, family='Arial'),
+                    font=dict(color='white', size=16, family='Arial'),
                     align='center',
-                    height=50,
+                    height=45,
                     line=dict(color='#667eea', width=0)
                 ),
                 cells=dict(
                     values=[
-                        ['Test Period', 'Trading Days', 'Total Trades', 'Total Exits', 'Win Rate',
-                         'Total P&L', 'Total Return', 'Final Equity', 'Avg P&L/Day', 'Profit Factor'],
-                        [
-                            f"{self.start_date} to {self.end_date}",
-                            f"{pm['num_days']}",
-                            f"{pm['total_trades']}",
-                            f"{pm['total_exits']}",
-                            f"{pm['win_rate']:.1f}%",
-                            f"${pm['total_pnl']:+,.2f}",
-                            f"{pm['total_return']:+.2f}%",
-                            f"${pm['final_equity']:,.2f}",
-                            f"${pm['avg_pnl_per_day']:+,.2f}",
-                            f"{pm['profit_factor']:.2f}"
-                        ]
+                        [f"{self.start_date} to {self.end_date}"],
+                        [f"{pm['num_days']}"],
+                        [f"{pm['total_trades']}"],
+                        [f"{pm['total_exits']}"],
+                        [f"{pm['win_rate']:.1f}%"],
+                        [f"${pm['total_pnl']:+,.2f}"],
+                        [f"{pm['total_return']:+.2f}%"],
+                        [f"{pm['avg_mrd']:+.3f}%"],
+                        [f"${pm['final_equity']:,.2f}"],
+                        [f"${pm['avg_pnl_per_day']:+,.2f}"],
+                        [f"{pm['profit_factor']:.2f}"]
                     ],
                     fill_color='white',
-                    font=dict(size=16, family='Arial'),
-                    align=['left', 'right'],
-                    height=35
+                    font=dict(size=15, family='Arial'),
+                    align='center',
+                    height=40
                 )
             ),
             row=row, col=1
@@ -475,10 +486,20 @@ class AggregateDashboard:
         trading_dates = sorted(self.daily_data.keys())
         times, prices = self._load_price_data(symbol, trading_dates)
 
-        # Color mapping
+        # Color mapping (12 distinct colors - removed gold miners NUGT/DUST)
         colors = {
-            'TQQQ': '#10b981', 'SQQQ': '#ef4444', 'SPXL': '#3b82f6',
-            'SDS': '#f59e0b', 'UVXY': '#8b5cf6', 'SVIX': '#ec4899'
+            'ERX': '#FF4500',   # Orange Red
+            'ERY': '#8B0000',   # Dark Red
+            'FAS': '#00CED1',   # Dark Turquoise
+            'FAZ': '#4169E1',   # Royal Blue
+            'SDS': '#FF6B6B',   # Red
+            'SSO': '#32CD32',   # Lime Green
+            'SQQQ': '#FF1493',  # Deep Pink
+            'SVXY': '#7FFF00',  # Chartreuse
+            'TNA': '#FF8C00',   # Dark Orange
+            'TQQQ': '#00BFFF',  # Deep Sky Blue
+            'TZA': '#DC143C',   # Crimson
+            'UVXY': '#9370DB',  # Medium Purple
         }
         color = colors.get(symbol, '#6366f1')
 

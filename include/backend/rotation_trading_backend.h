@@ -6,6 +6,8 @@
 #include "data/multi_symbol_data_manager.h"
 #include "live/alpaca_client.hpp"
 #include "common/types.h"
+#include "common/data_validator.h"
+#include "backend/trading_monitor.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -300,11 +302,15 @@ private:
      * @param decision Position decision
      * @param execution_price Price
      * @param shares Shares traded
+     * @param realized_pnl Realized P&L for EXIT trades (optional)
+     * @param realized_pnl_pct Realized P&L % for EXIT trades (optional)
      */
     void log_trade(
         const RotationPositionManager::PositionDecision& decision,
         double execution_price,
-        int shares
+        int shares,
+        double realized_pnl = std::numeric_limits<double>::quiet_NaN(),
+        double realized_pnl_pct = std::numeric_limits<double>::quiet_NaN()
     );
 
     /**
@@ -335,6 +341,10 @@ private:
     // Broker (for live trading)
     std::shared_ptr<AlpacaClient> broker_;
 
+    // Data quality and monitoring
+    DataValidator data_validator_;
+    TradingMonitor trading_monitor_;
+
     // State
     bool trading_active_{false};
     bool is_warmup_{true};  // True during warmup, false during actual trading
@@ -344,6 +354,13 @@ private:
     std::map<std::string, double> position_entry_costs_;  // CRITICAL FIX: Track entry cost per position for accurate exit accounting
     std::map<std::string, int> position_shares_;  // CRITICAL FIX: Track shares per position
     std::map<std::string, double> realized_pnls_;  // For learning updates
+
+    // Per-symbol trade history for adaptive volatility adjustment
+    struct TradeHistory {
+        double pnl_pct;       // P&L percentage
+        int64_t timestamp;    // When the trade closed
+    };
+    std::map<std::string, std::deque<TradeHistory>> symbol_trade_history_;  // Last 2 trades per symbol
 
     // Logging
     std::ofstream signal_log_;

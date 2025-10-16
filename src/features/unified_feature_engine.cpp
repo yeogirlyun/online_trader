@@ -1,705 +1,583 @@
 #include "features/unified_feature_engine.h"
-#include "common/utils.h"
-#include <algorithm>
 #include <cmath>
-#include <numeric>
+#include <cstring>
+#include <sstream>
+#include <iomanip>
+#include <algorithm>
 #include <iostream>
+
+// OpenSSL for SHA1 hashing (already in dependencies)
+#include <openssl/sha.h>
 
 namespace sentio {
 namespace features {
 
-// IncrementalSMA implementation
-IncrementalSMA::IncrementalSMA(int period) : period_(period) {
-    // Note: std::deque doesn't have reserve(), but that's okay
-}
+// =============================================================================
+// SHA1 Hash Utility
+// =============================================================================
 
-double IncrementalSMA::update(double value) {
-    if (values_.size() >= period_) {
-        sum_ -= values_.front();
-        values_.pop_front();
+std::string sha1_hex(const std::string& s) {
+    unsigned char hash[SHA_DIGEST_LENGTH];
+    SHA1(reinterpret_cast<const unsigned char*>(s.data()), s.size(), hash);
+
+    std::ostringstream os;
+    os << std::hex << std::setfill('0');
+    for (unsigned char c : hash) {
+        os << std::setw(2) << static_cast<int>(c);
     }
-    
-    values_.push_back(value);
-    sum_ += value;
-    
-    return get_value();
+    return os.str();
 }
 
-// IncrementalEMA implementation
-IncrementalEMA::IncrementalEMA(int period, double alpha) {
-    if (alpha < 0) {
-        alpha_ = 2.0 / (period + 1.0);  // Standard EMA alpha
-    } else {
-        alpha_ = alpha;
-    }
+// =============================================================================
+// UnifiedFeatureEngineV2 Implementation
+// =============================================================================
+
+UnifiedFeatureEngine::UnifiedFeatureEngine(EngineConfig cfg)
+    : cfg_(cfg),
+      rsi14_(cfg.rsi14),
+      rsi21_(cfg.rsi21),
+      atr14_(cfg.atr14),
+      bb20_(cfg.bb20, cfg.bb_k),
+      stoch14_(cfg.stoch14),
+      will14_(cfg.will14),
+      macd_(),  // Uses default periods 12/26/9
+      roc5_(cfg.roc5),
+      roc10_(cfg.roc10),
+      roc20_(cfg.roc20),
+      cci20_(cfg.cci20),
+      don20_(cfg.don20),
+      keltner_(cfg.keltner_ema, cfg.keltner_atr, cfg.keltner_mult),
+      obv_(),
+      vwap_(),
+      ema10_(cfg.ema10),
+      ema20_(cfg.ema20),
+      ema50_(cfg.ema50),
+      sma10_ring_(cfg.sma10),
+      sma20_ring_(cfg.sma20),
+      sma50_ring_(cfg.sma50),
+      scaler_(cfg.robust ? Scaler::Type::ROBUST : Scaler::Type::STANDARD)
+{
+    build_schema_();
+    feats_.assign(schema_.names.size(), std::numeric_limits<double>::quiet_NaN());
 }
 
-double IncrementalEMA::update(double value) {
-    if (!initialized_) {
-        ema_value_ = value;
-        initialized_ = true;
-    } else {
-        ema_value_ = alpha_ * value + (1.0 - alpha_) * ema_value_;
-    }
-    return ema_value_;
-}
+void UnifiedFeatureEngine::build_schema_() {
+    std::vector<std::string> n;
 
-// IncrementalRSI implementation
-IncrementalRSI::IncrementalRSI(int period) 
-    : gain_sma_(period), loss_sma_(period) {
-}
-
-double IncrementalRSI::update(double price) {
-    if (first_update_) {
-        prev_price_ = price;
-        first_update_ = false;
-        return 50.0;  // Neutral RSI
-    }
-    
-    double change = price - prev_price_;
-    double gain = std::max(0.0, change);
-    double loss = std::max(0.0, -change);
-    
-    gain_sma_.update(gain);
-    loss_sma_.update(loss);
-    
-    prev_price_ = price;
-    
-    return get_value();
-}
-
-double IncrementalRSI::get_value() const {
-    if (!is_ready()) return 50.0;
-    
-    double avg_gain = gain_sma_.get_value();
-    double avg_loss = loss_sma_.get_value();
-    
-    if (avg_loss == 0.0) return 100.0;
-    
-    double rs = avg_gain / avg_loss;
-    return 100.0 - (100.0 / (1.0 + rs));
-}
-
-// UnifiedFeatureEngine implementation
-UnifiedFeatureEngine::UnifiedFeatureEngine(const Config& config) : config_(config) {
-    initialize_calculators();
-    cached_features_.resize(config_.total_features(), 0.0);
-
-    // Initialize feature schema
-    initialize_feature_schema();
-}
-
-void UnifiedFeatureEngine::initialize_calculators() {
-    // Initialize SMA calculators for various periods
-    std::vector<int> sma_periods = {5, 10, 20, 50, 100, 200};
-    for (int period : sma_periods) {
-        sma_calculators_["sma_" + std::to_string(period)] = 
-            std::make_unique<IncrementalSMA>(period);
-    }
-    
-    // Initialize EMA calculators
-    std::vector<int> ema_periods = {5, 10, 20, 50};
-    for (int period : ema_periods) {
-        ema_calculators_["ema_" + std::to_string(period)] = 
-            std::make_unique<IncrementalEMA>(period);
-    }
-    
-    // Initialize RSI calculators
-    std::vector<int> rsi_periods = {14, 21};
-    for (int period : rsi_periods) {
-        rsi_calculators_["rsi_" + std::to_string(period)] =
-            std::make_unique<IncrementalRSI>(period);
-    }
-}
-
-void UnifiedFeatureEngine::initialize_feature_schema() {
-    // Initialize feature schema with all 126 feature names
-    feature_schema_.version = 3;  // Bump when changing feature set
-    feature_schema_.feature_names = get_feature_names();
-    feature_schema_.finalize();
-
-    std::cout << "[FeatureEngine] Initialized schema v" << feature_schema_.version
-              << " with " << feature_schema_.feature_names.size()
-              << " features, hash=" << feature_schema_.hash << std::endl;
-}
-
-void UnifiedFeatureEngine::update(const Bar& bar) {
-    // DEBUG: Track bar history size WITH INSTANCE POINTER
-    size_t size_before = bar_history_.size();
-
-    // Add to history
-    bar_history_.push_back(bar);
-
-    size_t size_after_push = bar_history_.size();
-
-    // Maintain max history size
-    if (bar_history_.size() > config_.max_history_size) {
-        bar_history_.pop_front();
+    // ==========================================================================
+    // Time features (cyclical encoding for intraday patterns)
+    // ==========================================================================
+    if (cfg_.time) {
+        n.push_back("time.hour_sin");
+        n.push_back("time.hour_cos");
+        n.push_back("time.minute_sin");
+        n.push_back("time.minute_cos");
+        n.push_back("time.dow_sin");
+        n.push_back("time.dow_cos");
+        n.push_back("time.dom_sin");
+        n.push_back("time.dom_cos");
     }
 
-    size_t size_final = bar_history_.size();
+    // ==========================================================================
+    // Core price/volume features (always included)
+    // ==========================================================================
+    n.push_back("price.close");
+    n.push_back("price.open");
+    n.push_back("price.high");
+    n.push_back("price.low");
+    n.push_back("price.return_1");
+    n.push_back("volume.raw");
 
-    // DEBUG: Log size changes (every 100 bars to avoid spam)
-    static int update_count = 0;
-    update_count++;
-    if (update_count <= 10 || update_count % 100 == 0 || size_final < 70) {
-        std::cout << "[UFE@" << (void*)this << "] update #" << update_count
-                  << ": before=" << size_before
-                  << " → after_push=" << size_after_push
-                  << " → final=" << size_final
-                  << " (max=" << config_.max_history_size
-                  << ", ready=" << (size_final >= 64 ? "YES" : "NO") << ")"
-                  << std::endl;
+    // ==========================================================================
+    // Moving Averages (always included for baseline)
+    // ==========================================================================
+    n.push_back("sma10");
+    n.push_back("sma20");
+    n.push_back("sma50");
+    n.push_back("ema10");
+    n.push_back("ema20");
+    n.push_back("ema50");
+    n.push_back("price_vs_sma20");  // (close - sma20) / sma20
+    n.push_back("price_vs_ema20");  // (close - ema20) / ema20
+
+    // ==========================================================================
+    // Volatility Features
+    // ==========================================================================
+    if (cfg_.volatility) {
+        n.push_back("atr14");
+        n.push_back("atr14_pct");  // ATR / close
+        n.push_back("bb20.mean");
+        n.push_back("bb20.sd");
+        n.push_back("bb20.upper");
+        n.push_back("bb20.lower");
+        n.push_back("bb20.percent_b");
+        n.push_back("bb20.bandwidth");
+        n.push_back("keltner.middle");
+        n.push_back("keltner.upper");
+        n.push_back("keltner.lower");
     }
 
-    // Update returns
-    update_returns(bar);
+    // ==========================================================================
+    // Momentum Features
+    // ==========================================================================
+    if (cfg_.momentum) {
+        n.push_back("rsi14");
+        n.push_back("rsi21");
+        n.push_back("stoch14.k");
+        n.push_back("stoch14.d");
+        n.push_back("stoch14.slow");
+        n.push_back("will14");
+        n.push_back("macd.line");
+        n.push_back("macd.signal");
+        n.push_back("macd.hist");
+        n.push_back("roc5");
+        n.push_back("roc10");
+        n.push_back("roc20");
+        n.push_back("cci20");
+    }
 
-    // Update incremental calculators
-    update_calculators(bar);
+    // ==========================================================================
+    // Volume Features
+    // ==========================================================================
+    if (cfg_.volume) {
+        n.push_back("obv");
+        n.push_back("vwap");
+        n.push_back("vwap_dist");  // (close - vwap) / vwap
+    }
 
-    // Invalidate cache
-    invalidate_cache();
+    // ==========================================================================
+    // Donchian Channels (pattern/breakout detection)
+    // ==========================================================================
+    n.push_back("don20.up");
+    n.push_back("don20.mid");
+    n.push_back("don20.dn");
+    n.push_back("don20.position");  // (close - dn) / (up - dn)
+
+    // ==========================================================================
+    // Candlestick Pattern Features (from v1.0)
+    // ==========================================================================
+    if (cfg_.patterns) {
+        n.push_back("pattern.doji");           // Body < 10% of range
+        n.push_back("pattern.hammer");         // Lower shadow > 2x body
+        n.push_back("pattern.shooting_star");  // Upper shadow > 2x body
+        n.push_back("pattern.engulfing_bull"); // Bullish engulfing
+        n.push_back("pattern.engulfing_bear"); // Bearish engulfing
+    }
+
+    // ==========================================================================
+    // Finalize schema and compute hash
+    // ==========================================================================
+    schema_.names = std::move(n);
+
+    // Concatenate names and critical config for hash
+    std::ostringstream cat;
+    for (const auto& name : schema_.names) {
+        cat << name << "\n";
+    }
+    cat << "cfg:"
+        << cfg_.rsi14 << ","
+        << cfg_.bb20 << ","
+        << cfg_.bb_k << ","
+        << cfg_.macd_fast << ","
+        << cfg_.macd_slow << ","
+        << cfg_.macd_sig;
+
+    schema_.sha1_hash = sha1_hex(cat.str());
 }
 
-void UnifiedFeatureEngine::update_returns(const Bar& bar) {
-    if (!bar_history_.empty() && bar_history_.size() > 1) {
-        double prev_close = bar_history_[bar_history_.size() - 2].close;
-        double current_close = bar.close;
-        
-        double return_val = (current_close - prev_close) / prev_close;
-        double log_return = std::log(current_close / prev_close);
-        
-        returns_.push_back(return_val);
-        log_returns_.push_back(log_return);
-        
-        // Maintain max size
-        if (returns_.size() > config_.max_history_size) {
-            returns_.pop_front();
-            log_returns_.pop_front();
+bool UnifiedFeatureEngine::update(const Bar& b) {
+    // ==========================================================================
+    // Update all indicators (O(1) incremental)
+    // ==========================================================================
+
+    // Volatility
+    atr14_.update(b.high, b.low, b.close);
+    bb20_.update(b.close);
+    keltner_.update(b.high, b.low, b.close);
+
+    // Momentum
+    rsi14_.update(b.close);
+    rsi21_.update(b.close);
+    stoch14_.update(b.high, b.low, b.close);
+    will14_.update(b.high, b.low, b.close);
+    macd_.update(b.close);
+    roc5_.update(b.close);
+    roc10_.update(b.close);
+    roc20_.update(b.close);
+    cci20_.update(b.high, b.low, b.close);
+
+    // Channels
+    don20_.update(b.high, b.low);
+
+    // Volume
+    obv_.update(b.close, b.volume);
+    vwap_.update(b.close, b.volume);
+
+    // Moving averages
+    ema10_.update(b.close);
+    ema20_.update(b.close);
+    ema50_.update(b.close);
+    sma10_ring_.push(b.close);
+    sma20_ring_.push(b.close);
+    sma50_ring_.push(b.close);
+
+    // Store previous close BEFORE updating (for 1-bar return calculation)
+    prevPrevClose_ = prevClose_;
+
+    // Calculate and store 1-bar return for volatility calculation
+    if (!std::isnan(prevClose_) && prevClose_ > 0.0) {
+        double bar_return = (b.close - prevClose_) / prevClose_;
+        recent_returns_.push_back(bar_return);
+
+        // Keep only last MAX_RETURNS_HISTORY returns
+        if (recent_returns_.size() > MAX_RETURNS_HISTORY) {
+            recent_returns_.pop_front();
         }
     }
+
+    // Store current bar values for derived features
+    prevTimestamp_ = b.timestamp_ms;
+    prevClose_ = b.close;
+    prevOpen_ = b.open;
+    prevHigh_ = b.high;
+    prevLow_ = b.low;
+    prevVolume_ = b.volume;
+
+    // Recompute feature vector
+    recompute_vector_();
+
+    seeded_ = true;
+    ++bar_count_;
+    return true;
 }
 
-void UnifiedFeatureEngine::update_calculators(const Bar& bar) {
-    double close = bar.close;
-    
-    // Update SMA calculators
-    for (auto& [name, calc] : sma_calculators_) {
-        calc->update(close);
-    }
-    
-    // Update EMA calculators
-    for (auto& [name, calc] : ema_calculators_) {
-        calc->update(close);
-    }
-    
-    // Update RSI calculators
-    for (auto& [name, calc] : rsi_calculators_) {
-        calc->update(close);
-    }
-}
+void UnifiedFeatureEngine::recompute_vector_() {
+    size_t k = 0;
 
-void UnifiedFeatureEngine::invalidate_cache() {
-    cache_valid_ = false;
-}
+    // ==========================================================================
+    // Time features (cyclical encoding from v1.0)
+    // ==========================================================================
+    if (cfg_.time && prevTimestamp_ > 0) {
+        time_t timestamp = prevTimestamp_ / 1000;
+        struct tm* time_info = gmtime(&timestamp);
 
-std::vector<double> UnifiedFeatureEngine::get_features() const {
-    if (cache_valid_ && config_.enable_caching) {
-        return cached_features_;
-    }
-    
-    std::vector<double> features;
-    features.reserve(config_.total_features());
-    
-    if (bar_history_.empty()) {
-        // Return zeros if no data
-        features.resize(config_.total_features(), 0.0);
-        return features;
-    }
-    
-    const Bar& current_bar = bar_history_.back();
-    
-    // 1. Time features (8)
-    if (config_.enable_time_features) {
-        auto time_features = calculate_time_features(current_bar);
-        features.insert(features.end(), time_features.begin(), time_features.end());
-    }
-    
-    // 2. Price action features (12)
-    if (config_.enable_price_action) {
-        auto price_features = calculate_price_action_features();
-        features.insert(features.end(), price_features.begin(), price_features.end());
-    }
-    
-    // 3. Moving average features (16)
-    if (config_.enable_moving_averages) {
-        auto ma_features = calculate_moving_average_features();
-        features.insert(features.end(), ma_features.begin(), ma_features.end());
-    }
-    
-    // 4. Momentum features (20)
-    if (config_.enable_momentum) {
-        auto momentum_features = calculate_momentum_features();
-        features.insert(features.end(), momentum_features.begin(), momentum_features.end());
-    }
-    
-    // 5. Volatility features (15)
-    if (config_.enable_volatility) {
-        auto vol_features = calculate_volatility_features();
-        features.insert(features.end(), vol_features.begin(), vol_features.end());
-    }
-    
-    // 6. Volume features (12)
-    if (config_.enable_volume) {
-        auto volume_features = calculate_volume_features();
-        features.insert(features.end(), volume_features.begin(), volume_features.end());
-    }
-    
-    // 7. Statistical features (10)
-    if (config_.enable_statistical) {
-        auto stat_features = calculate_statistical_features();
-        features.insert(features.end(), stat_features.begin(), stat_features.end());
-    }
-    
-    // 8. Pattern features (8)
-    if (config_.enable_pattern_detection) {
-        auto pattern_features = calculate_pattern_features();
-        features.insert(features.end(), pattern_features.begin(), pattern_features.end());
-    }
-    
-    // 9. Price lag features (10)
-    if (config_.enable_price_lags) {
-        auto price_lag_features = calculate_price_lag_features();
-        features.insert(features.end(), price_lag_features.begin(), price_lag_features.end());
-    }
-    
-    // 10. Return lag features (15)
-    if (config_.enable_return_lags) {
-        auto return_lag_features = calculate_return_lag_features();
-        features.insert(features.end(), return_lag_features.begin(), return_lag_features.end());
-    }
-    
-    // Ensure we have the right number of features
-    features.resize(config_.total_features(), 0.0);
+        if (time_info) {
+            double hour = time_info->tm_hour;
+            double minute = time_info->tm_min;
+            double day_of_week = time_info->tm_wday;     // 0-6 (Sunday=0)
+            double day_of_month = time_info->tm_mday;    // 1-31
 
-    // CRITICAL: Apply NaN guards and clamping
-    sanitize_features(features);
-
-    // Validate feature count matches schema
-    if (!feature_schema_.feature_names.empty() &&
-        features.size() != feature_schema_.feature_names.size()) {
-        std::cerr << "[FeatureEngine] ERROR: Feature size mismatch: got "
-                  << features.size() << ", expected "
-                  << feature_schema_.feature_names.size() << std::endl;
-    }
-
-    // Cache results
-    if (config_.enable_caching) {
-        cached_features_ = features;
-        cache_valid_ = true;
-    }
-
-    return features;
-}
-
-std::vector<double> UnifiedFeatureEngine::calculate_time_features(const Bar& bar) const {
-    std::vector<double> features(config_.time_features, 0.0);
-    
-    // Convert timestamp to time components
-    time_t timestamp = bar.timestamp_ms / 1000;
-    struct tm* time_info = gmtime(&timestamp);
-    
-    if (time_info) {
-        // Cyclical encoding of time components
-        double hour = time_info->tm_hour;
-        double minute = time_info->tm_min;
-        double day_of_week = time_info->tm_wday;
-        double day_of_month = time_info->tm_mday;
-        
-        // Hour cyclical encoding (24 hours)
-        features[0] = std::sin(2 * M_PI * hour / 24.0);
-        features[1] = std::cos(2 * M_PI * hour / 24.0);
-        
-        // Minute cyclical encoding (60 minutes)
-        features[2] = std::sin(2 * M_PI * minute / 60.0);
-        features[3] = std::cos(2 * M_PI * minute / 60.0);
-        
-        // Day of week cyclical encoding (7 days)
-        features[4] = std::sin(2 * M_PI * day_of_week / 7.0);
-        features[5] = std::cos(2 * M_PI * day_of_week / 7.0);
-        
-        // Day of month cyclical encoding (31 days)
-        features[6] = std::sin(2 * M_PI * day_of_month / 31.0);
-        features[7] = std::cos(2 * M_PI * day_of_month / 31.0);
-    }
-    
-    return features;
-}
-
-std::vector<double> UnifiedFeatureEngine::calculate_price_action_features() const {
-    std::vector<double> features(config_.price_action_features, 0.0);
-    
-    if (bar_history_.size() < 2) return features;
-    
-    const Bar& current = bar_history_.back();
-    const Bar& previous = bar_history_[bar_history_.size() - 2];
-    
-    // Basic OHLC ratios
-    features[0] = safe_divide(current.high - current.low, current.close);  // Range/Close
-    features[1] = safe_divide(current.close - current.open, current.close);  // Body/Close
-    features[2] = safe_divide(current.high - std::max(current.open, current.close), current.close);  // Upper shadow
-    features[3] = safe_divide(std::min(current.open, current.close) - current.low, current.close);  // Lower shadow
-    
-    // Gap analysis
-    features[4] = safe_divide(current.open - previous.close, previous.close);  // Gap
-    
-    // Price position within range
-    features[5] = safe_divide(current.close - current.low, current.high - current.low);  // Close position
-    
-    // Volatility measures
-    features[6] = safe_divide(current.high - current.low, previous.close);  // True range ratio
-    
-    // Price momentum
-    features[7] = safe_divide(current.close - previous.close, previous.close);  // Return
-    features[8] = safe_divide(current.high - previous.high, previous.high);  // High momentum
-    features[9] = safe_divide(current.low - previous.low, previous.low);  // Low momentum
-    
-    // Volume-price relationship
-    features[10] = safe_divide(current.volume, previous.volume + 1.0) - 1.0;  // Volume change
-    features[11] = safe_divide(current.volume * std::abs(current.close - current.open), current.close);  // Volume intensity
-    
-    return features;
-}
-
-std::vector<double> UnifiedFeatureEngine::calculate_moving_average_features() const {
-    std::vector<double> features(config_.moving_average_features, 0.0);
-    
-    if (bar_history_.empty()) return features;
-    
-    double current_price = bar_history_.back().close;
-    int idx = 0;
-    
-    // SMA ratios
-    for (const auto& [name, calc] : sma_calculators_) {
-        if (idx >= config_.moving_average_features) break;
-        if (calc->is_ready()) {
-            features[idx] = safe_divide(current_price, calc->get_value()) - 1.0;
-        }
-        idx++;
-    }
-    
-    // EMA ratios
-    for (const auto& [name, calc] : ema_calculators_) {
-        if (idx >= config_.moving_average_features) break;
-        if (calc->is_ready()) {
-            features[idx] = safe_divide(current_price, calc->get_value()) - 1.0;
-        }
-        idx++;
-    }
-    
-    return features;
-}
-
-std::vector<double> UnifiedFeatureEngine::calculate_momentum_features() const {
-    std::vector<double> features(config_.momentum_features, 0.0);
-    
-    int idx = 0;
-    
-    // RSI features
-    for (const auto& [name, calc] : rsi_calculators_) {
-        if (idx >= config_.momentum_features) break;
-        if (calc->is_ready()) {
-            features[idx] = calc->get_value() / 100.0;  // Normalize to [0,1]
-        }
-        idx++;
-    }
-    
-    // Simple momentum features
-    if (bar_history_.size() >= 10 && idx < config_.momentum_features) {
-        double current = bar_history_.back().close;
-        double past_5 = bar_history_[bar_history_.size() - 6].close;
-        double past_10 = bar_history_[bar_history_.size() - 11].close;
-        
-        features[idx++] = safe_divide(current - past_5, past_5);  // 5-period momentum
-        features[idx++] = safe_divide(current - past_10, past_10);  // 10-period momentum
-    }
-    
-    // Rate of change features
-    if (returns_.size() >= 5 && idx < config_.momentum_features) {
-        // Recent return statistics
-        auto recent_returns = std::vector<double>(returns_.end() - 5, returns_.end());
-        double mean_return = std::accumulate(recent_returns.begin(), recent_returns.end(), 0.0) / 5.0;
-        features[idx++] = mean_return;
-    }
-    
-    return features;
-}
-
-std::vector<double> UnifiedFeatureEngine::calculate_volatility_features() const {
-    std::vector<double> features(config_.volatility_features, 0.0);
-    
-    if (bar_history_.size() < 20) return features;
-    
-    // ATR-based features
-    double atr_14 = calculate_atr(14);
-    double atr_20 = calculate_atr(20);
-    double current_price = bar_history_.back().close;
-    
-    features[0] = safe_divide(atr_14, current_price);  // ATR ratio
-    features[1] = safe_divide(atr_20, current_price);  // ATR 20 ratio
-    
-    // Return volatility
-    if (returns_.size() >= 20) {
-        auto recent_returns = std::vector<double>(returns_.end() - 20, returns_.end());
-        double mean_return = std::accumulate(recent_returns.begin(), recent_returns.end(), 0.0) / 20.0;
-        
-        double variance = 0.0;
-        for (double ret : recent_returns) {
-            variance += (ret - mean_return) * (ret - mean_return);
-        }
-        variance /= 19.0;  // Sample variance
-        
-        features[2] = std::sqrt(variance);  // Return volatility
-        features[3] = std::sqrt(variance * 252);  // Annualized volatility
-    }
-    
-    return features;
-}
-
-std::vector<double> UnifiedFeatureEngine::calculate_volume_features() const {
-    std::vector<double> features(config_.volume_features, 0.0);
-    
-    if (bar_history_.size() < 2) return features;
-    
-    const Bar& current = bar_history_.back();
-    
-    // Volume ratios and trends
-    if (bar_history_.size() >= 20) {
-        // Calculate average volume over last 20 periods
-        double avg_volume = 0.0;
-        for (size_t i = bar_history_.size() - 20; i < bar_history_.size(); ++i) {
-            avg_volume += bar_history_[i].volume;
-        }
-        avg_volume /= 20.0;
-        
-        features[0] = safe_divide(current.volume, avg_volume) - 1.0;  // Volume ratio
-    }
-    
-    // Volume-price correlation
-    features[1] = current.volume * std::abs(current.close - current.open);  // Volume intensity
-    
-    return features;
-}
-
-std::vector<double> UnifiedFeatureEngine::calculate_statistical_features() const {
-    std::vector<double> features(config_.statistical_features, 0.0);
-    
-    if (returns_.size() < 20) return features;
-    
-    // Return distribution statistics
-    auto recent_returns = std::vector<double>(returns_.end() - std::min(20UL, returns_.size()), returns_.end());
-    
-    // Skewness approximation
-    double mean_return = std::accumulate(recent_returns.begin(), recent_returns.end(), 0.0) / recent_returns.size();
-    double variance = 0.0;
-    double skew_sum = 0.0;
-    
-    for (double ret : recent_returns) {
-        double diff = ret - mean_return;
-        variance += diff * diff;
-        skew_sum += diff * diff * diff;
-    }
-    
-    variance /= (recent_returns.size() - 1);
-    double std_dev = std::sqrt(variance);
-    
-    if (std_dev > 1e-8) {
-        features[0] = skew_sum / (recent_returns.size() * std_dev * std_dev * std_dev);  // Skewness
-    }
-    
-    return features;
-}
-
-std::vector<double> UnifiedFeatureEngine::calculate_pattern_features() const {
-    std::vector<double> features(config_.pattern_features, 0.0);
-    
-    if (bar_history_.size() < 2) return features;
-    
-    const Bar& current = bar_history_.back();
-    
-    // Basic candlestick patterns
-    features[0] = is_doji(current) ? 1.0 : 0.0;
-    features[1] = is_hammer(current) ? 1.0 : 0.0;
-    features[2] = is_shooting_star(current) ? 1.0 : 0.0;
-    
-    if (bar_history_.size() >= 2) {
-        features[3] = is_engulfing_bullish(bar_history_.size() - 1) ? 1.0 : 0.0;
-        features[4] = is_engulfing_bearish(bar_history_.size() - 1) ? 1.0 : 0.0;
-    }
-    
-    return features;
-}
-
-std::vector<double> UnifiedFeatureEngine::calculate_price_lag_features() const {
-    std::vector<double> features(config_.price_lag_features, 0.0);
-    
-    if (bar_history_.empty()) return features;
-    
-    double current_price = bar_history_.back().close;
-    std::vector<int> lags = {1, 2, 3, 5, 10, 15, 20, 30, 50, 100};
-    
-    for (size_t i = 0; i < lags.size() && i < features.size(); ++i) {
-        int lag = lags[i];
-        if (static_cast<int>(bar_history_.size()) > lag) {
-            double lagged_price = bar_history_[bar_history_.size() - 1 - lag].close;
-            features[i] = safe_divide(current_price, lagged_price) - 1.0;
+            // Cyclical encoding (sine/cosine to preserve continuity)
+            feats_[k++] = std::sin(2.0 * M_PI * hour / 24.0);           // hour_sin
+            feats_[k++] = std::cos(2.0 * M_PI * hour / 24.0);           // hour_cos
+            feats_[k++] = std::sin(2.0 * M_PI * minute / 60.0);         // minute_sin
+            feats_[k++] = std::cos(2.0 * M_PI * minute / 60.0);         // minute_cos
+            feats_[k++] = std::sin(2.0 * M_PI * day_of_week / 7.0);     // dow_sin
+            feats_[k++] = std::cos(2.0 * M_PI * day_of_week / 7.0);     // dow_cos
+            feats_[k++] = std::sin(2.0 * M_PI * day_of_month / 31.0);   // dom_sin
+            feats_[k++] = std::cos(2.0 * M_PI * day_of_month / 31.0);   // dom_cos
+        } else {
+            // If time parsing fails, fill with NaN
+            for (int i = 0; i < 8; ++i) {
+                feats_[k++] = std::numeric_limits<double>::quiet_NaN();
+            }
         }
     }
-    
-    return features;
-}
 
-std::vector<double> UnifiedFeatureEngine::calculate_return_lag_features() const {
-    std::vector<double> features(config_.return_lag_features, 0.0);
-    
-    std::vector<int> lags = {1, 2, 3, 5, 10, 15, 20, 30, 50, 100, 150, 200, 250, 300, 500};
-    
-    for (size_t i = 0; i < lags.size() && i < features.size(); ++i) {
-        int lag = lags[i];
-        if (static_cast<int>(returns_.size()) > lag) {
-            features[i] = returns_[returns_.size() - 1 - lag];
+    // ==========================================================================
+    // Core price/volume
+    // ==========================================================================
+    feats_[k++] = prevClose_;
+    feats_[k++] = prevOpen_;
+    feats_[k++] = prevHigh_;
+    feats_[k++] = prevLow_;
+    feats_[k++] = safe_return(prevClose_, prevPrevClose_);  // 1-bar return
+    feats_[k++] = prevVolume_;
+
+    // ==========================================================================
+    // Moving Averages
+    // ==========================================================================
+    double sma10 = sma10_ring_.full() ? sma10_ring_.mean() : std::numeric_limits<double>::quiet_NaN();
+    double sma20 = sma20_ring_.full() ? sma20_ring_.mean() : std::numeric_limits<double>::quiet_NaN();
+    double sma50 = sma50_ring_.full() ? sma50_ring_.mean() : std::numeric_limits<double>::quiet_NaN();
+    double ema10 = ema10_.get_value();
+    double ema20 = ema20_.get_value();
+    double ema50 = ema50_.get_value();
+
+    feats_[k++] = sma10;
+    feats_[k++] = sma20;
+    feats_[k++] = sma50;
+    feats_[k++] = ema10;
+    feats_[k++] = ema20;
+    feats_[k++] = ema50;
+
+    // Price vs MA ratios
+    feats_[k++] = (!std::isnan(sma20) && sma20 != 0) ? (prevClose_ - sma20) / sma20 : std::numeric_limits<double>::quiet_NaN();
+    feats_[k++] = (!std::isnan(ema20) && ema20 != 0) ? (prevClose_ - ema20) / ema20 : std::numeric_limits<double>::quiet_NaN();
+
+    // ==========================================================================
+    // Volatility
+    // ==========================================================================
+    if (cfg_.volatility) {
+        feats_[k++] = atr14_.value;
+        feats_[k++] = (prevClose_ != 0 && !std::isnan(atr14_.value)) ? atr14_.value / prevClose_ : std::numeric_limits<double>::quiet_NaN();
+
+        // Debug BB NaN issue - check Welford stats when BB produces NaN
+        if (bar_count_ > 100 && std::isnan(bb20_.sd)) {
+            static int late_nan_count = 0;
+            if (late_nan_count < 10) {
+                std::cerr << "[FeatureEngine CRITICAL] BB.sd is NaN!"
+                          << " bar_count=" << bar_count_
+                          << ", bb20_.win.size=" << bb20_.win.size()
+                          << ", bb20_.win.capacity=" << bb20_.win.capacity()
+                          << ", bb20_.win.full=" << bb20_.win.full()
+                          << ", bb20_.win.welford_n=" << bb20_.win.welford_n()
+                          << ", bb20_.win.welford_m2=" << bb20_.win.welford_m2()
+                          << ", bb20_.win.variance=" << bb20_.win.variance()
+                          << ", bb20_.is_ready=" << bb20_.is_ready()
+                          << ", bb20_.mean=" << bb20_.mean
+                          << ", bb20_.sd=" << bb20_.sd
+                          << ", prevClose=" << prevClose_ << std::endl;
+                late_nan_count++;
+            }
         }
+
+        size_t bb_start_idx = k;
+        feats_[k++] = bb20_.mean;
+        feats_[k++] = bb20_.sd;
+        feats_[k++] = bb20_.upper;
+        feats_[k++] = bb20_.lower;
+        feats_[k++] = bb20_.percent_b;
+        feats_[k++] = bb20_.bandwidth;
+
+        // Debug: Check if any BB features are NaN after assignment
+        if (bar_count_ > 100) {
+            static int bb_assign_debug = 0;
+            if (bb_assign_debug < 3) {
+                std::cerr << "[FeatureEngine] BB features assigned at indices " << bb_start_idx << "-" << (k-1)
+                          << ", bb20_.mean=" << bb20_.mean
+                          << ", bb20_.sd=" << bb20_.sd
+                          << ", feats_[" << bb_start_idx << "]=" << feats_[bb_start_idx]
+                          << ", feats_[" << (bb_start_idx+1) << "]=" << feats_[bb_start_idx+1]
+                          << std::endl;
+                bb_assign_debug++;
+            }
+        }
+        feats_[k++] = keltner_.middle;
+        feats_[k++] = keltner_.upper;
+        feats_[k++] = keltner_.lower;
     }
-    
-    return features;
-}
 
-// Utility methods
-double UnifiedFeatureEngine::safe_divide(double numerator, double denominator, double fallback) const {
-    if (std::abs(denominator) < 1e-10) {
-        return fallback;
+    // ==========================================================================
+    // Momentum
+    // ==========================================================================
+    if (cfg_.momentum) {
+        feats_[k++] = rsi14_.value;
+        feats_[k++] = rsi21_.value;
+        feats_[k++] = stoch14_.k;
+        feats_[k++] = stoch14_.d;
+        feats_[k++] = stoch14_.slow;
+        feats_[k++] = will14_.r;
+        feats_[k++] = macd_.macd;
+        feats_[k++] = macd_.signal;
+        feats_[k++] = macd_.hist;
+        feats_[k++] = roc5_.value;
+        feats_[k++] = roc10_.value;
+        feats_[k++] = roc20_.value;
+        feats_[k++] = cci20_.value;
     }
-    return numerator / denominator;
-}
 
-double UnifiedFeatureEngine::calculate_atr(int period) const {
-    if (static_cast<int>(bar_history_.size()) < period + 1) return 0.0;
-    
-    double atr_sum = 0.0;
-    for (int i = 0; i < period; ++i) {
-        size_t idx = bar_history_.size() - 1 - i;
-        atr_sum += calculate_true_range(idx);
+    // ==========================================================================
+    // Volume
+    // ==========================================================================
+    if (cfg_.volume) {
+        feats_[k++] = obv_.value;
+        feats_[k++] = vwap_.value;
+        double vwap_dist = (!std::isnan(vwap_.value) && vwap_.value != 0)
+                           ? (prevClose_ - vwap_.value) / vwap_.value
+                           : std::numeric_limits<double>::quiet_NaN();
+        feats_[k++] = vwap_dist;
     }
-    
-    return atr_sum / period;
+
+    // ==========================================================================
+    // Donchian
+    // ==========================================================================
+    feats_[k++] = don20_.up;
+    feats_[k++] = don20_.mid;
+    feats_[k++] = don20_.dn;
+
+    // Donchian position: (close - dn) / (up - dn)
+    double don_range = don20_.up - don20_.dn;
+    double don_pos = (don_range != 0 && !std::isnan(don20_.up) && !std::isnan(don20_.dn))
+                     ? (prevClose_ - don20_.dn) / don_range
+                     : std::numeric_limits<double>::quiet_NaN();
+    feats_[k++] = don_pos;
+
+    // ==========================================================================
+    // Candlestick Pattern Features (from v1.0)
+    // ==========================================================================
+    if (cfg_.patterns) {
+        double range = prevHigh_ - prevLow_;
+        double body = std::abs(prevClose_ - prevOpen_);
+        double upper_shadow = prevHigh_ - std::max(prevOpen_, prevClose_);
+        double lower_shadow = std::min(prevOpen_, prevClose_) - prevLow_;
+
+        // Doji: body < 10% of range
+        bool is_doji = (range > 0) && (body / range < 0.1);
+        feats_[k++] = is_doji ? 1.0 : 0.0;
+
+        // Hammer: lower shadow > 2x body, upper shadow < body
+        bool is_hammer = (lower_shadow > 2.0 * body) && (upper_shadow < body);
+        feats_[k++] = is_hammer ? 1.0 : 0.0;
+
+        // Shooting star: upper shadow > 2x body, lower shadow < body
+        bool is_shooting_star = (upper_shadow > 2.0 * body) && (lower_shadow < body);
+        feats_[k++] = is_shooting_star ? 1.0 : 0.0;
+
+        // Engulfing patterns require previous bar - use prevPrevClose_
+        bool engulfing_bull = false;
+        bool engulfing_bear = false;
+        if (!std::isnan(prevPrevClose_)) {
+            bool prev_bearish = prevPrevClose_ < prevOpen_;  // Prev bar was bearish
+            bool curr_bullish = prevClose_ > prevOpen_;       // Current bar is bullish
+            bool engulfs = (prevOpen_ < prevPrevClose_) && (prevClose_ > prevOpen_);
+            engulfing_bull = prev_bearish && curr_bullish && engulfs;
+
+            bool prev_bullish = prevPrevClose_ > prevOpen_;
+            bool curr_bearish = prevClose_ < prevOpen_;
+            engulfs = (prevOpen_ > prevPrevClose_) && (prevClose_ < prevOpen_);
+            engulfing_bear = prev_bullish && curr_bearish && engulfs;
+        }
+        feats_[k++] = engulfing_bull ? 1.0 : 0.0;
+        feats_[k++] = engulfing_bear ? 1.0 : 0.0;
+    }
 }
 
-double UnifiedFeatureEngine::calculate_true_range(size_t index) const {
-    if (index == 0 || index >= bar_history_.size()) return 0.0;
-    
-    const Bar& current = bar_history_[index];
-    const Bar& previous = bar_history_[index - 1];
-    
-    double tr1 = current.high - current.low;
-    double tr2 = std::abs(current.high - previous.close);
-    double tr3 = std::abs(current.low - previous.close);
-    
-    return std::max({tr1, tr2, tr3});
+int UnifiedFeatureEngine::warmup_remaining() const {
+    // Conservative: max lookback across all indicators
+    int max_period = std::max({
+        cfg_.rsi14, cfg_.rsi21, cfg_.atr14, cfg_.bb20,
+        cfg_.stoch14, cfg_.will14, cfg_.macd_slow, cfg_.don20,
+        cfg_.sma50, cfg_.ema50
+    });
+
+    // Need at least max_period + 1 bars for all indicators to be valid
+    int required_bars = max_period + 1;
+    return std::max(0, required_bars - static_cast<int>(bar_count_));
 }
 
-// Pattern detection helpers
-bool UnifiedFeatureEngine::is_doji(const Bar& bar) const {
-    double body = std::abs(bar.close - bar.open);
-    double range = bar.high - bar.low;
-    return range > 0 && (body / range) < 0.1;
-}
+std::vector<std::string> UnifiedFeatureEngine::get_unready_indicators() const {
+    std::vector<std::string> unready;
 
-bool UnifiedFeatureEngine::is_hammer(const Bar& bar) const {
-    double body = std::abs(bar.close - bar.open);
-    double lower_shadow = std::min(bar.open, bar.close) - bar.low;
-    double upper_shadow = bar.high - std::max(bar.open, bar.close);
-    
-    return lower_shadow > 2 * body && upper_shadow < body;
-}
+    // Check each indicator's readiness
+    if (!bb20_.is_ready()) unready.push_back("BB20");
+    if (!rsi14_.is_ready()) unready.push_back("RSI14");
+    if (!rsi21_.is_ready()) unready.push_back("RSI21");
+    if (!atr14_.is_ready()) unready.push_back("ATR14");
+    if (!stoch14_.is_ready()) unready.push_back("Stoch14");
+    if (!will14_.is_ready()) unready.push_back("Will14");
+    if (!don20_.is_ready()) unready.push_back("Don20");
 
-bool UnifiedFeatureEngine::is_shooting_star(const Bar& bar) const {
-    double body = std::abs(bar.close - bar.open);
-    double lower_shadow = std::min(bar.open, bar.close) - bar.low;
-    double upper_shadow = bar.high - std::max(bar.open, bar.close);
-    
-    return upper_shadow > 2 * body && lower_shadow < body;
-}
+    // Check moving averages
+    if (bar_count_ < static_cast<size_t>(cfg_.sma10)) unready.push_back("SMA10");
+    if (bar_count_ < static_cast<size_t>(cfg_.sma20)) unready.push_back("SMA20");
+    if (bar_count_ < static_cast<size_t>(cfg_.sma50)) unready.push_back("SMA50");
+    if (bar_count_ < static_cast<size_t>(cfg_.ema10)) unready.push_back("EMA10");
+    if (bar_count_ < static_cast<size_t>(cfg_.ema20)) unready.push_back("EMA20");
+    if (bar_count_ < static_cast<size_t>(cfg_.ema50)) unready.push_back("EMA50");
 
-bool UnifiedFeatureEngine::is_engulfing_bullish(size_t index) const {
-    if (index == 0 || index >= bar_history_.size()) return false;
-    
-    const Bar& current = bar_history_[index];
-    const Bar& previous = bar_history_[index - 1];
-    
-    bool prev_bearish = previous.close < previous.open;
-    bool curr_bullish = current.close > current.open;
-    bool engulfs = current.open < previous.close && current.close > previous.open;
-    
-    return prev_bearish && curr_bullish && engulfs;
-}
-
-bool UnifiedFeatureEngine::is_engulfing_bearish(size_t index) const {
-    if (index == 0 || index >= bar_history_.size()) return false;
-    
-    const Bar& current = bar_history_[index];
-    const Bar& previous = bar_history_[index - 1];
-    
-    bool prev_bullish = previous.close > previous.open;
-    bool curr_bearish = current.close < current.open;
-    bool engulfs = current.open > previous.close && current.close < previous.open;
-    
-    return prev_bullish && curr_bearish && engulfs;
+    return unready;
 }
 
 void UnifiedFeatureEngine::reset() {
-    bar_history_.clear();
-    returns_.clear();
-    log_returns_.clear();
-    
-    // Reset calculators
-    initialize_calculators();
-    
-    invalidate_cache();
+    *this = UnifiedFeatureEngine(cfg_);
 }
 
-bool UnifiedFeatureEngine::is_ready() const {
-    // Need at least 64 bars to align with FeatureSequenceManager requirement
-    // This ensures both feature engine and sequence manager become ready together
-    bool ready = bar_history_.size() >= 64;
+std::string UnifiedFeatureEngine::serialize() const {
+    std::ostringstream os;
+    os << std::setprecision(17);
 
-    // DEBUG: Log first few checks and any checks that fail WITH INSTANCE POINTER
-    static int check_count = 0;
-    check_count++;
-    if (check_count <= 10 || !ready) {
-        std::cout << "[UFE@" << (void*)this << "] is_ready() check #" << check_count
-                  << ": bar_history_.size()=" << bar_history_.size()
-                  << " (need 64) → " << (ready ? "READY" : "NOT_READY")
-                  << std::endl;
+    os << "prevTimestamp " << prevTimestamp_ << "\n";
+    os << "prevClose " << prevClose_ << "\n";
+    os << "prevPrevClose " << prevPrevClose_ << "\n";
+    os << "prevOpen " << prevOpen_ << "\n";
+    os << "prevHigh " << prevHigh_ << "\n";
+    os << "prevLow " << prevLow_ << "\n";
+    os << "prevVolume " << prevVolume_ << "\n";
+    os << "bar_count " << bar_count_ << "\n";
+    os << "obv " << obv_.value << "\n";
+    os << "vwap " << vwap_.sumPV << " " << vwap_.sumV << "\n";
+
+    // Add EMA/indicator states if exact resume needed
+    // (Omitted for brevity; can be extended)
+
+    return os.str();
+}
+
+void UnifiedFeatureEngine::restore(const std::string& blob) {
+    reset();
+
+    std::istringstream is(blob);
+    std::string key;
+
+    while (is >> key) {
+        if (key == "prevTimestamp") is >> prevTimestamp_;
+        else if (key == "prevClose") is >> prevClose_;
+        else if (key == "prevPrevClose") is >> prevPrevClose_;
+        else if (key == "prevOpen") is >> prevOpen_;
+        else if (key == "prevHigh") is >> prevHigh_;
+        else if (key == "prevLow") is >> prevLow_;
+        else if (key == "prevVolume") is >> prevVolume_;
+        else if (key == "bar_count") is >> bar_count_;
+        else if (key == "obv") is >> obv_.value;
+        else if (key == "vwap") is >> vwap_.sumPV >> vwap_.sumV;
+    }
+}
+
+double UnifiedFeatureEngine::get_realized_volatility(int lookback) const {
+    if (recent_returns_.empty() || static_cast<int>(recent_returns_.size()) < lookback) {
+        return 0.0;  // Insufficient data
     }
 
-    return ready;
+    // Calculate standard deviation of returns over lookback period
+    double sum = 0.0;
+    int count = 0;
+
+    // Get the last 'lookback' returns
+    auto it = recent_returns_.rbegin();
+    while (count < lookback && it != recent_returns_.rend()) {
+        sum += *it;
+        ++count;
+        ++it;
+    }
+
+    double mean = sum / count;
+
+    // Calculate variance
+    double sum_sq_diff = 0.0;
+    it = recent_returns_.rbegin();
+    count = 0;
+    while (count < lookback && it != recent_returns_.rend()) {
+        double diff = *it - mean;
+        sum_sq_diff += diff * diff;
+        ++count;
+        ++it;
+    }
+
+    double variance = sum_sq_diff / (count - 1);  // Sample variance
+    return std::sqrt(variance);  // Standard deviation
 }
 
-std::vector<std::string> UnifiedFeatureEngine::get_feature_names() const {
-    std::vector<std::string> names;
-    names.reserve(config_.total_features());
-    
-    // Time features
-    names.insert(names.end(), {"hour_sin", "hour_cos", "minute_sin", "minute_cos", 
-                              "dow_sin", "dow_cos", "dom_sin", "dom_cos"});
-    
-    // Add more feature names as needed...
-    // (This is a simplified version for now)
-    
-    return names;
+double UnifiedFeatureEngine::get_annualized_volatility() const {
+    double realized_vol = get_realized_volatility(20);  // 20-bar lookback
+
+    // Annualize: volatility * sqrt(minutes per year)
+    // Assuming 1-minute bars, 390 minutes/day, 252 trading days/year
+    // Total minutes per year = 390 * 252 = 98,280
+    double annualization_factor = std::sqrt(390.0 * 252.0);
+
+    return realized_vol * annualization_factor;
 }
 
 } // namespace features
 } // namespace sentio
-

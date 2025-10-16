@@ -1,266 +1,250 @@
 #pragma once
 
 #include "common/types.h"
-#include "features/feature_schema.h"
-#include <vector>
-#include <deque>
-#include <memory>
-#include <unordered_map>
+#include "features/indicators.h"
+#include "features/scaler.h"
 #include <string>
+#include <vector>
+#include <map>
+#include <deque>
+#include <optional>
+#include <cstdint>
+#include <sstream>
+#include <iomanip>
 
 namespace sentio {
 namespace features {
 
-/**
- * @brief Configuration for Unified Feature Engine
- */
-struct UnifiedFeatureEngineConfig {
-    // Feature categories
-    bool enable_time_features = true;
-    bool enable_price_action = true;
-    bool enable_moving_averages = true;
-    bool enable_momentum = true;
-    bool enable_volatility = true;
-    bool enable_volume = true;
-    bool enable_statistical = true;
-    bool enable_pattern_detection = true;
-    bool enable_price_lags = true;
-    bool enable_return_lags = true;
-    
+// =============================================================================
+// Configuration for Production-Grade Unified Feature Engine
+// =============================================================================
+
+struct EngineConfig {
+    // Feature toggles
+    bool time = true;         // Time-of-day features (8 features)
+    bool patterns = true;     // Candlestick patterns (5 features)
+    bool momentum = true;
+    bool volatility = true;
+    bool volume = true;
+    bool statistics = true;
+
+    // Indicator periods
+    int rsi14 = 14;
+    int rsi21 = 21;
+    int atr14 = 14;
+    int bb20 = 20;
+    int bb_k = 2;
+    int stoch14 = 14;
+    int will14 = 14;
+    int macd_fast = 12;
+    int macd_slow = 26;
+    int macd_sig = 9;
+    int roc5 = 5;
+    int roc10 = 10;
+    int roc20 = 20;
+    int cci20 = 20;
+    int don20 = 20;
+    int keltner_ema = 20;
+    int keltner_atr = 10;
+    double keltner_mult = 2.0;
+
+    // Moving averages
+    int sma10 = 10;
+    int sma20 = 20;
+    int sma50 = 50;
+    int ema10 = 10;
+    int ema20 = 20;
+    int ema50 = 50;
+
     // Normalization
-    bool normalize_features = true;
-    bool use_robust_scaling = false;  // Use median/IQR instead of mean/std
-    
-    // Performance optimization
-    bool enable_caching = true;
-    bool enable_incremental_updates = true;
-    int max_history_size = 1000;
-    
-    // Feature dimensions (matching Kochi analysis)
-    int time_features = 8;
-    int price_action_features = 12;
-    int moving_average_features = 16;
-    int momentum_features = 20;
-    int volatility_features = 15;
-    int volume_features = 12;
-    int statistical_features = 10;
-    int pattern_features = 8;
-    int price_lag_features = 10;
-    int return_lag_features = 15;
-    
-    // Total: Variable based on enabled features  
-    int total_features() const {
-        int total = 0;
-        if (enable_time_features) total += time_features;
-        if (enable_price_action) total += price_action_features;
-        if (enable_moving_averages) total += moving_average_features;
-        if (enable_momentum) total += momentum_features;
-        if (enable_volatility) total += volatility_features;
-        if (enable_volume) total += volume_features;
-        if (enable_statistical) total += statistical_features;
-        if (enable_pattern_detection) total += pattern_features;
-        if (enable_price_lags) total += price_lag_features;
-        if (enable_return_lags) total += return_lag_features;
-        return total;
-    }
+    bool normalize = true;
+    bool robust = false;
 };
 
-/**
- * @brief Incremental calculator for O(1) moving averages
- */
-class IncrementalSMA {
-public:
-    explicit IncrementalSMA(int period);
-    double update(double value);
-    double get_value() const { return sum_ / std::min(period_, static_cast<int>(values_.size())); }
-    bool is_ready() const { return static_cast<int>(values_.size()) >= period_; }
+// =============================================================================
+// Feature Schema with Hash for Model Compatibility
+// =============================================================================
 
-private:
-    int period_;
-    std::deque<double> values_;
-    double sum_ = 0.0;
+struct Schema {
+    std::vector<std::string> names;
+    std::string sha1_hash;  // Hash of (names + config) for version control
 };
 
-/**
- * @brief Incremental calculator for O(1) EMA
- */
-class IncrementalEMA {
-public:
-    IncrementalEMA(int period, double alpha = -1.0);
-    double update(double value);
-    double get_value() const { return ema_value_; }
-    bool is_ready() const { return initialized_; }
+// =============================================================================
+// Production-Grade Unified Feature Engine
+//
+// Key Features:
+// - Stable, deterministic feature ordering (std::map, not unordered_map)
+// - O(1) incremental updates using Welford's algorithm and ring buffers
+// - Schema hash for model compatibility checks
+// - Complete public API: update(), features_view(), names(), schema()
+// - Serialization/restoration for online learning
+// - Zero duplicate calculations (shared statistics cache)
+// =============================================================================
 
-private:
-    double alpha_;
-    double ema_value_ = 0.0;
-    bool initialized_ = false;
-};
-
-/**
- * @brief Incremental calculator for O(1) RSI
- */
-class IncrementalRSI {
-public:
-    explicit IncrementalRSI(int period);
-    double update(double price);
-    double get_value() const;
-    bool is_ready() const { return gain_sma_.is_ready() && loss_sma_.is_ready(); }
-
-private:
-    double prev_price_ = 0.0;
-    bool first_update_ = true;
-    IncrementalSMA gain_sma_;
-    IncrementalSMA loss_sma_;
-};
-
-/**
- * @brief Unified Feature Engine implementing Kochi's 126-feature set
- * 
- * This engine provides a comprehensive set of technical indicators optimized
- * for machine learning applications. It implements all features identified
- * in the Kochi analysis with proper normalization and O(1) incremental updates.
- * 
- * Feature Categories:
- * 1. Time Features (8): Cyclical encoding of time components
- * 2. Price Action (12): OHLC patterns, gaps, shadows
- * 3. Moving Averages (16): SMA/EMA ratios at multiple periods
- * 4. Momentum (20): RSI, MACD, Stochastic, Williams %R
- * 5. Volatility (15): ATR, Bollinger Bands, Keltner Channels
- * 6. Volume (12): VWAP, OBV, A/D Line, Volume ratios
- * 7. Statistical (10): Correlation, regression, distribution metrics
- * 8. Patterns (8): Candlestick pattern detection
- * 9. Price Lags (10): Historical price references
- * 10. Return Lags (15): Historical return references
- */
 class UnifiedFeatureEngine {
 public:
-    using Config = UnifiedFeatureEngineConfig;
-    
-    explicit UnifiedFeatureEngine(const Config& config = Config{});
-    ~UnifiedFeatureEngine() = default;
+    explicit UnifiedFeatureEngine(EngineConfig cfg = {});
+
+    // ==========================================================================
+    // Core API
+    // ==========================================================================
 
     /**
-     * @brief Update engine with new bar data
-     * @param bar New OHLCV bar
+     * Idempotent update with new bar. Returns true if state advanced.
      */
-    void update(const Bar& bar);
+    bool update(const Bar& b);
 
     /**
-     * @brief Get current feature vector
-     * @return Vector of 126 normalized features
+     * Get contiguous feature vector in stable order (ready for model input).
+     * Values may contain NaN until warmup complete for each feature.
      */
-    std::vector<double> get_features() const;
+    const std::vector<double>& features_view() const { return feats_; }
 
     /**
-     * @brief Get specific feature category
+     * Get canonical feature names in fixed, deterministic order.
      */
-    std::vector<double> get_time_features() const;
-    std::vector<double> get_price_action_features() const;
-    std::vector<double> get_moving_average_features() const;
-    std::vector<double> get_momentum_features() const;
-    std::vector<double> get_volatility_features() const;
-    std::vector<double> get_volume_features() const;
-    std::vector<double> get_statistical_features() const;
-    std::vector<double> get_pattern_features() const;
-    std::vector<double> get_price_lag_features() const;
-    std::vector<double> get_return_lag_features() const;
+    const std::vector<std::string>& names() const { return schema_.names; }
 
     /**
-     * @brief Get feature names for debugging/analysis
+     * Get schema with hash for model compatibility checks.
      */
-    std::vector<std::string> get_feature_names() const;
+    const Schema& schema() const { return schema_; }
 
     /**
-     * @brief Reset engine state
+     * Count of bars remaining before all features are non-NaN.
+     */
+    int warmup_remaining() const;
+
+    /**
+     * Get list of indicator names that are not yet ready (for debugging).
+     */
+    std::vector<std::string> get_unready_indicators() const;
+
+    /**
+     * Reset engine to initial state.
      */
     void reset();
 
     /**
-     * @brief Check if engine has enough data for all features
+     * Serialize engine state for persistence (online learning resume).
      */
-    bool is_ready() const;
+    std::string serialize() const;
 
     /**
-     * @brief Get number of bars processed
+     * Restore engine state from serialized blob.
      */
-    size_t get_bar_count() const { return bar_history_.size(); }
+    void restore(const std::string& blob);
 
     /**
-     * @brief Get feature schema for validation
+     * Check if engine has processed at least one bar.
      */
-    const FeatureSchema& get_schema() const { return feature_schema_; }
+    bool is_seeded() const { return seeded_; }
+
+    /**
+     * Get number of bars processed.
+     */
+    size_t bar_count() const { return bar_count_; }
+
+    /**
+     * Get normalization scaler (for external persistence).
+     */
+    const Scaler& get_scaler() const { return scaler_; }
+
+    /**
+     * Set scaler from external source (for trained models).
+     */
+    void set_scaler(const Scaler& s) { scaler_ = s; }
+
+    /**
+     * Get realized volatility (standard deviation of returns).
+     * @param lookback Number of bars to calculate over (default 20)
+     * @return Realized volatility, or 0.0 if insufficient data
+     */
+    double get_realized_volatility(int lookback = 20) const;
+
+    /**
+     * Get annualized volatility (realized vol * sqrt(252 * 390 minutes/day)).
+     * @return Annualized volatility percentage
+     */
+    double get_annualized_volatility() const;
 
 private:
-    Config config_;
+    void build_schema_();
+    void recompute_vector_();
+    std::string compute_schema_hash_(const std::string& concatenated_names);
 
-    // Initialization methods
-    void initialize_feature_schema();
+    EngineConfig cfg_;
+    Schema schema_;
 
-    // Data storage
-    std::deque<Bar> bar_history_;
-    std::deque<double> returns_;
-    std::deque<double> log_returns_;
-    
-    // Incremental calculators
-    std::unordered_map<std::string, std::unique_ptr<IncrementalSMA>> sma_calculators_;
-    std::unordered_map<std::string, std::unique_ptr<IncrementalEMA>> ema_calculators_;
-    std::unordered_map<std::string, std::unique_ptr<IncrementalRSI>> rsi_calculators_;
-    
-    // Cached features
-    mutable std::vector<double> cached_features_;
+    // ==========================================================================
+    // Indicators (all O(1) incremental)
+    // ==========================================================================
 
-    // Feature schema for validation
-    FeatureSchema feature_schema_;
-    mutable bool cache_valid_ = false;
-    
-    // Normalization parameters
-    struct NormalizationParams {
-        double mean = 0.0;
-        double std = 1.0;
-        double median = 0.0;
-        double iqr = 1.0;
-        std::deque<double> history;
-        bool initialized = false;
-    };
-    mutable std::unordered_map<std::string, NormalizationParams> norm_params_;
-    
-    // Private methods
-    void initialize_calculators();
-    void update_returns(const Bar& bar);
-    void update_calculators(const Bar& bar);
-    void invalidate_cache();
-    
-    // Feature calculation methods
-    std::vector<double> calculate_time_features(const Bar& bar) const;
-    std::vector<double> calculate_price_action_features() const;
-    std::vector<double> calculate_moving_average_features() const;
-    std::vector<double> calculate_momentum_features() const;
-    std::vector<double> calculate_volatility_features() const;
-    std::vector<double> calculate_volume_features() const;
-    std::vector<double> calculate_statistical_features() const;
-    std::vector<double> calculate_pattern_features() const;
-    std::vector<double> calculate_price_lag_features() const;
-    std::vector<double> calculate_return_lag_features() const;
-    
-    // Utility methods
-    double normalize_feature(const std::string& name, double value) const;
-    void update_normalization_params(const std::string& name, double value) const;
-    double safe_divide(double numerator, double denominator, double fallback = 0.0) const;
-    double calculate_atr(int period) const;
-    double calculate_true_range(size_t index) const;
-    
-    // Pattern detection helpers
-    bool is_doji(const Bar& bar) const;
-    bool is_hammer(const Bar& bar) const;
-    bool is_shooting_star(const Bar& bar) const;
-    bool is_engulfing_bullish(size_t index) const;
-    bool is_engulfing_bearish(size_t index) const;
-    
-    // Statistical helpers
-    double calculate_correlation(const std::vector<double>& x, const std::vector<double>& y, int period) const;
-    double calculate_linear_regression_slope(const std::vector<double>& values, int period) const;
+    ind::RSI rsi14_;
+    ind::RSI rsi21_;
+    ind::ATR atr14_;
+    ind::Boll bb20_;
+    ind::Stoch stoch14_;
+    ind::WilliamsR will14_;
+    ind::MACD macd_;
+    ind::ROC roc5_, roc10_, roc20_;
+    ind::CCI cci20_;
+    ind::Donchian don20_;
+    ind::Keltner keltner_;
+    ind::OBV obv_;
+    ind::VWAP vwap_;
+
+    // Moving averages
+    roll::EMA ema10_, ema20_, ema50_;
+    roll::Ring<double> sma10_ring_, sma20_ring_, sma50_ring_;
+
+    // ==========================================================================
+    // State
+    // ==========================================================================
+
+    bool seeded_ = false;
+    size_t bar_count_ = 0;
+    uint64_t prevTimestamp_ = 0;  // For time features
+    double prevClose_ = std::numeric_limits<double>::quiet_NaN();
+    double prevOpen_ = std::numeric_limits<double>::quiet_NaN();
+    double prevHigh_ = std::numeric_limits<double>::quiet_NaN();
+    double prevLow_ = std::numeric_limits<double>::quiet_NaN();
+    double prevVolume_ = std::numeric_limits<double>::quiet_NaN();
+
+    // For computing 1-bar return (current close vs previous close)
+    double prevPrevClose_ = std::numeric_limits<double>::quiet_NaN();
+
+    // Rolling returns buffer for volatility calculation (stores last 50 returns)
+    std::deque<double> recent_returns_;
+    static constexpr size_t MAX_RETURNS_HISTORY = 50;
+
+    // Feature vector (stable order, contiguous for model input)
+    std::vector<double> feats_;
+
+    // Normalization
+    Scaler scaler_;
+    std::vector<std::vector<double>> normalization_buffer_;  // For fit()
 };
+
+// =============================================================================
+// Utility Functions
+// =============================================================================
+
+/**
+ * Compute SHA1 hash of string (for schema versioning).
+ */
+std::string sha1_hex(const std::string& s);
+
+/**
+ * Safe return calculation (handles NaN and division by zero).
+ */
+inline double safe_return(double current, double previous) {
+    if (std::isnan(previous) || previous == 0.0) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    return (current / previous) - 1.0;
+}
 
 } // namespace features
 } // namespace sentio

@@ -2,6 +2,8 @@
 
 #include "strategy/strategy_component.h"
 #include "strategy/signal_output.h"
+#include "strategy/market_regime_detector.h"
+#include "strategy/regime_parameter_manager.h"
 #include "learning/online_predictor.h"
 #include "features/unified_feature_engine.h"
 #include "common/types.h"
@@ -73,10 +75,10 @@ public:
         int performance_window = 200;          // Window for metrics
         double target_monthly_return = 0.10;   // Target 10% monthly return
 
-        // Volatility filter (prevent trading in flat markets)
-        bool enable_volatility_filter = false;  // Enable ATR-based volatility filter
-        int atr_period = 20;                    // ATR calculation period
-        double min_atr_ratio = 0.001;           // Minimum ATR as % of price (0.1%)
+        // Regime detection parameters
+        bool enable_regime_detection = false;  // Enable regime-aware parameter switching
+        int regime_check_interval = 100;       // Check regime every N bars
+        int regime_lookback_period = 100;      // Bars to analyze for regime detection
 
         OnlineEnsembleConfig() {
             name = "OnlineEnsemble";
@@ -103,10 +105,55 @@ public:
     void update(const Bar& bar, double realized_pnl);
     void on_bar(const Bar& bar);
 
+    // Predictor training (for warmup)
+    void train_predictor(const std::vector<double>& features, double realized_return);
+    std::vector<double> extract_features(const Bar& current_bar);
+
+    // Feature caching support (for Optuna optimization speedup)
+    void set_external_features(const std::vector<double>* features) {
+        external_features_ = features;
+        skip_feature_engine_update_ = (features != nullptr);
+    }
+
+    // Runtime configuration update (for mid-day optimization)
+    void update_config(const OnlineEnsembleConfig& new_config) {
+        config_ = new_config;
+        // CRITICAL: Update member variables used by determine_signal()
+        current_buy_threshold_ = new_config.buy_threshold;
+        current_sell_threshold_ = new_config.sell_threshold;
+    }
+
+    // Get current thresholds (for PSM decision logic)
+    double get_current_buy_threshold() const { return current_buy_threshold_; }
+    double get_current_sell_threshold() const { return current_sell_threshold_; }
+
+    // Learning state management
+    struct LearningState {
+        int64_t last_trained_bar_id = -1;      // Global bar ID of last training
+        int last_trained_bar_index = -1;       // Index of last trained bar
+        int64_t last_trained_timestamp_ms = 0; // Timestamp of last training
+        bool is_warmed_up = false;              // Feature engine ready
+        bool is_learning_current = true;        // Learning is up-to-date
+        int bars_behind = 0;                    // How many bars behind
+    };
+
+    LearningState get_learning_state() const { return learning_state_; }
+    bool ensure_learning_current(const Bar& bar);  // Catch up if needed
+    bool is_learning_current() const { return learning_state_.is_learning_current; }
+
     // Performance and diagnostics
     PerformanceMetrics get_performance_metrics() const;
     std::vector<double> get_feature_importance() const;
-    bool is_ready() const { return samples_seen_ >= config_.warmup_samples; }
+    bool is_ready() const {
+        // Check both predictor warmup AND feature engine warmup
+        return samples_seen_ >= config_.warmup_samples &&
+               feature_engine_->warmup_remaining() == 0;
+    }
+
+    // Feature engine access (for volatility calculation)
+    const features::UnifiedFeatureEngine* get_feature_engine() const {
+        return feature_engine_.get();
+    }
 
     // State persistence
     bool save_state(const std::string& path) const;
@@ -118,7 +165,7 @@ private:
     // Multi-horizon EWRLS predictor
     std::unique_ptr<learning::MultiHorizonPredictor> ensemble_predictor_;
 
-    // Feature engineering
+    // Feature engineering (production-grade with O(1) updates, 45 features)
     std::unique_ptr<features::UnifiedFeatureEngine> feature_engine_;
 
     // Bar history for feature generation
@@ -156,14 +203,28 @@ private:
     double current_sell_threshold_;
     int calibration_count_;
 
+    // Learning state tracking
+    LearningState learning_state_;
+    std::deque<Bar> missed_bars_;  // Queue of bars that need training
+
+    // External feature support for caching
+    const std::vector<double>* external_features_ = nullptr;
+    bool skip_feature_engine_update_ = false;
+
+    // Regime detection (optional)
+    std::unique_ptr<MarketRegimeDetector> regime_detector_;
+    std::unique_ptr<RegimeParameterManager> regime_param_manager_;
+    MarketRegime current_regime_;
+    int bars_since_regime_check_;
+
     // Private methods
-    std::vector<double> extract_features(const Bar& current_bar);
     void calibrate_thresholds();
     void track_prediction(int bar_index, int horizon, const std::vector<double>& features,
                          double entry_price, bool is_long);
     void process_pending_updates(const Bar& current_bar);
     SignalType determine_signal(double probability) const;
     void update_performance_metrics(bool won, double return_pct);
+    void check_and_update_regime();  // Regime detection method
 
     // BB amplification
     struct BollingerBands {
@@ -175,10 +236,6 @@ private:
     };
     BollingerBands calculate_bollinger_bands() const;
     double apply_bb_amplification(double base_probability, const BollingerBands& bb) const;
-
-    // Volatility filter
-    double calculate_atr(int period) const;
-    bool has_sufficient_volatility() const;
 
     // Constants
     static constexpr int MIN_FEATURES_BARS = 100;  // Minimum bars for features

@@ -283,6 +283,19 @@ bool RotationTradingBackend::on_bar() {
     // Step 1: Update OES on_bar (updates feature engines)
     oes_manager_->on_bar();
 
+    // Step 1.5: Data quality validation
+    // Get current snapshot and validate bars
+    auto snapshot = data_manager_->get_latest_snapshot();
+    std::map<std::string, Bar> current_bars;
+    for (const auto& [symbol, snap] : snapshot.snapshots) {
+        current_bars[symbol] = snap.latest_bar;
+    }
+    if (!data_validator_.validate_snapshot(current_bars)) {
+        std::string error = data_validator_.get_last_error();
+        utils::log_error("[DataValidator] Bar validation failed: " + error);
+        // In strict mode, we could skip this bar, but for now just warn
+    }
+
     // Step 2: Generate signals
     auto signals = generate_signals();
     session_stats_.signals_generated += signals.size();
@@ -313,6 +326,9 @@ bool RotationTradingBackend::on_bar() {
     double current_equity = current_cash_ + allocated_capital_ + unrealized_pnl;
     double equity_pct = current_equity / config_.starting_capital;
     const double MIN_TRADING_CAPITAL = 10000.0;  // $10k minimum to continue trading
+
+    // Update trading monitor with equity
+    trading_monitor_.update_equity(current_equity, config_.starting_capital);
 
     // Use stderr to ensure this shows up
     std::cerr << "[EQUITY] cash=$" << current_cash_
@@ -605,6 +621,10 @@ bool RotationTradingBackend::execute_decision(
     // Execute with rotation manager
     bool success = rotation_manager_->execute_decision(decision, execution_price);
 
+    // Variables for tracking realized P&L (for EXIT trades)
+    double realized_pnl = std::numeric_limits<double>::quiet_NaN();
+    double realized_pnl_pct = std::numeric_limits<double>::quiet_NaN();
+
     if (success) {
         if (decision.decision == RotationPositionManager::Decision::ENTER_LONG ||
             decision.decision == RotationPositionManager::Decision::ENTER_SHORT) {
@@ -652,8 +672,13 @@ bool RotationTradingBackend::execute_decision(
             session_stats_.positions_closed++;
             session_stats_.trades_executed++;
 
-            double realized_pnl = exit_value - entry_cost;
-            double realized_pnl_pct = realized_pnl / entry_cost;
+            // Calculate realized P&L for this exit
+            realized_pnl = exit_value - entry_cost;
+            realized_pnl_pct = realized_pnl / entry_cost;
+
+            // Update trading monitor with trade result
+            bool is_win = (realized_pnl > 0.0);
+            trading_monitor_.update_trade_result(is_win, realized_pnl);
 
             utils::log_info("Exit: " + decision.symbol +
                           " - entry_cost=$" + std::to_string(entry_cost) +
@@ -663,6 +688,21 @@ bool RotationTradingBackend::execute_decision(
 
             // Track realized P&L for learning
             realized_pnls_[decision.symbol] = realized_pnl;
+
+            // Track trade history for adaptive volatility adjustment (last 2 trades)
+            TradeHistory trade_record;
+            trade_record.pnl_pct = realized_pnl_pct;
+            trade_record.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()
+            ).count();
+
+            auto& history = symbol_trade_history_[decision.symbol];
+            history.push_back(trade_record);
+
+            // Keep only last 2 trades
+            if (history.size() > 2) {
+                history.pop_front();
+            }
 
             // Validate total capital
             double total_capital = current_cash_ + allocated_capital_;
@@ -683,8 +723,8 @@ bool RotationTradingBackend::execute_decision(
             session_stats_.rotations++;
         }
 
-        // Log trade
-        log_trade(decision, execution_price, shares);
+        // Log trade (with actual realized P&L for exits)
+        log_trade(decision, execution_price, shares, realized_pnl, realized_pnl_pct);
     } else {
         // ROLLBACK on failure for entry positions
         if (decision.decision == RotationPositionManager::Decision::ENTER_LONG ||
@@ -730,7 +770,105 @@ int RotationTradingBackend::calculate_position_size(
     // This adapts position sizing to account for current P&L
     double current_equity = current_cash_ + allocated_capital_;
     int max_positions = config_.rotation_config.max_positions;
-    double fixed_allocation = (current_equity * 0.95) / max_positions;
+    double base_allocation = (current_equity * 0.95) / max_positions;
+
+    // ADAPTIVE Volatility-adjusted position sizing
+    // Get realized volatility from the feature engine for this symbol
+    auto* oes_instance = oes_manager_->get_oes_instance(decision.symbol);
+    double volatility = 0.0;
+    if (oes_instance && oes_instance->get_feature_engine()) {
+        volatility = oes_instance->get_feature_engine()->get_realized_volatility(20);
+    }
+
+    // Check past 2 trades performance to determine if volatility is helping or hurting
+    double volatility_weight = 1.0;
+    std::string adjustment_reason = "no_history";
+
+    if (symbol_trade_history_.count(decision.symbol) > 0) {
+        const auto& history = symbol_trade_history_.at(decision.symbol);
+
+        if (history.size() >= 2) {
+            // Have 2 trades - check if both winning, both losing, or mixed
+            bool trade1_win = (history[0].pnl_pct > 0.0);
+            bool trade2_win = (history[1].pnl_pct > 0.0);
+
+            if (trade1_win && trade2_win) {
+                // Both trades won - volatility is helping us!
+                // INCREASE position aggressively when winning
+                double avg_pnl = (history[0].pnl_pct + history[1].pnl_pct) / 2.0;
+                if (avg_pnl > 0.03) {  // Average > 3% gain - strong winners
+                    volatility_weight = 1.5;  // AGGRESSIVE increase
+                    adjustment_reason = "both_wins_strong";
+                } else if (avg_pnl > 0.01) {  // Average > 1% gain
+                    volatility_weight = 1.3;  // Moderate increase
+                    adjustment_reason = "both_wins_moderate";
+                } else {
+                    volatility_weight = 1.15;  // Slight increase even for small wins
+                    adjustment_reason = "both_wins";
+                }
+            } else if (!trade1_win && !trade2_win) {
+                // Both trades lost - volatility is hurting us!
+                // Apply VERY aggressive inverse volatility reduction
+                if (volatility > 0.0) {
+                    const double baseline_vol = 0.01;  // VERY low baseline for extreme reduction
+                    volatility_weight = baseline_vol / (volatility + baseline_vol);
+                    volatility_weight = std::max(0.3, std::min(0.9, volatility_weight));  // Clamp [0.3, 0.9]
+                    adjustment_reason = "both_losses";
+                } else {
+                    volatility_weight = 0.7;  // Reduce even with no volatility data
+                    adjustment_reason = "both_losses_no_vol";
+                }
+            } else {
+                // Mixed results (1 win, 1 loss) - stay neutral or slight reduction
+                volatility_weight = 0.95;  // Very slight reduction
+                adjustment_reason = "mixed";
+            }
+        } else if (history.size() == 1) {
+            // Only 1 trade - use it as a signal and react quickly
+            bool trade_win = (history[0].pnl_pct > 0.0);
+            if (trade_win) {
+                // React faster to wins - increase position after just 1 win
+                if (history[0].pnl_pct > 0.03) {
+                    volatility_weight = 1.4;  // Strong win -> aggressive increase
+                    adjustment_reason = "one_win_strong";
+                } else if (history[0].pnl_pct > 0.015) {
+                    volatility_weight = 1.25;  // Good win -> moderate increase
+                    adjustment_reason = "one_win_good";
+                } else {
+                    volatility_weight = 1.15;  // Small win -> slight increase
+                    adjustment_reason = "one_win";
+                }
+            } else {
+                // React to losses with reduction
+                if (volatility > 0.0) {
+                    const double baseline_vol = 0.015;
+                    volatility_weight = baseline_vol / (volatility + baseline_vol);
+                    volatility_weight = std::max(0.6, std::min(1.0, volatility_weight));  // Clamp [0.6, 1.0]
+                    adjustment_reason = "one_loss";
+                } else {
+                    volatility_weight = 0.85;  // Reduce even without volatility data
+                    adjustment_reason = "one_loss_no_vol";
+                }
+            }
+        }
+    } else if (volatility > 0.0) {
+        // No trade history - use standard inverse volatility
+        const double baseline_vol = 0.02;
+        volatility_weight = baseline_vol / (volatility + baseline_vol);
+        volatility_weight = std::max(0.7, std::min(1.3, volatility_weight));  // Conservative clamp
+        adjustment_reason = "no_history";
+    }
+
+    // Apply volatility weight to allocation
+    double fixed_allocation = base_allocation * volatility_weight;
+
+    // Log volatility adjustment with reasoning (helps understand position sizing decisions)
+    std::cerr << "[ADAPTIVE VOL] " << decision.symbol
+              << ": vol=" << (volatility * 100.0) << "%"
+              << ", weight=" << volatility_weight
+              << ", reason=" << adjustment_reason
+              << ", base=$" << base_allocation
+              << " → adj=$" << fixed_allocation << std::endl;
 
     // But still check against available cash
     double available_cash = current_cash_;
@@ -868,7 +1006,9 @@ void RotationTradingBackend::log_decision(
 void RotationTradingBackend::log_trade(
     const RotationPositionManager::PositionDecision& decision,
     double execution_price,
-    int shares
+    int shares,
+    double realized_pnl,
+    double realized_pnl_pct
 ) {
     if (!trade_log_.is_open()) {
         return;
@@ -887,13 +1027,26 @@ void RotationTradingBackend::log_trade(
                      "LONG" : "SHORT";
     j["price"] = execution_price;
     j["value"] = execution_price * shares;
+    j["reason"] = decision.reason;  // Add reason for entry/exit
 
     // Add P&L for exits
     if (decision.decision != RotationPositionManager::Decision::ENTER_LONG &&
         decision.decision != RotationPositionManager::Decision::ENTER_SHORT) {
-        j["pnl"] = decision.position.pnl;
-        j["pnl_pct"] = decision.position.pnl_pct;
+        // CRITICAL FIX: Use actual realized P&L passed from execute_decision (exit_value - entry_cost)
+        if (!std::isnan(realized_pnl) && !std::isnan(realized_pnl_pct)) {
+            j["pnl"] = realized_pnl;
+            j["pnl_pct"] = realized_pnl_pct;
+        } else {
+            // Fallback to position P&L (should not happen for EXIT trades)
+            j["pnl"] = decision.position.pnl * shares;
+            j["pnl_pct"] = decision.position.pnl_pct;
+        }
         j["bars_held"] = decision.position.bars_held;
+    } else {
+        // For ENTRY trades, add signal metadata
+        j["signal_probability"] = decision.signal.signal.probability;
+        j["signal_confidence"] = decision.signal.signal.confidence;
+        j["signal_rank"] = decision.signal.rank;
     }
 
     trade_log_ << j.dump() << std::endl;

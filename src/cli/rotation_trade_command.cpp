@@ -155,6 +155,19 @@ RotationTradingBackend::Config RotationTradeCommand::load_config() {
             file >> j;
             file.close();
 
+            // Load symbols from config (if not already set via command line)
+            if (options_.symbols.empty() && j.contains("symbols") && j["symbols"].contains("active")) {
+                options_.symbols = j["symbols"]["active"].get<std::vector<std::string>>();
+                log_system("Loaded " + std::to_string(options_.symbols.size()) + " symbols from config:");
+                std::string symbol_list = "  ";
+                for (size_t i = 0; i < options_.symbols.size(); ++i) {
+                    symbol_list += options_.symbols[i];
+                    if (i < options_.symbols.size() - 1) symbol_list += ", ";
+                }
+                log_system(symbol_list);
+                log_system("");
+            }
+
             // Load OES config
             if (j.contains("oes_config")) {
                 auto oes = j["oes_config"];

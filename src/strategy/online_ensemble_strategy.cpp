@@ -50,6 +50,14 @@ OnlineEnsembleStrategy::OnlineEnsembleStrategy(const OnlineEnsembleConfig& confi
                    std::to_string(num_features) + " features");
 }
 
+void OnlineEnsembleStrategy::train_predictor(const std::vector<double>& features, double realized_return) {
+    // Train all horizons with the same realized return (for warmup)
+    for (size_t i = 0; i < config_.prediction_horizons.size(); ++i) {
+        int horizon = config_.prediction_horizons[i];
+        ensemble_predictor_->update(horizon, features, realized_return);
+    }
+}
+
 SignalOutput OnlineEnsembleStrategy::generate_signal(const Bar& bar) {
     SignalOutput output;
     output.bar_id = bar.bar_id;
@@ -63,6 +71,7 @@ SignalOutput OnlineEnsembleStrategy::generate_signal(const Bar& bar) {
     if (!is_ready()) {
         output.signal_type = SignalType::NEUTRAL;
         output.probability = 0.5;
+        output.confidence = 0.0;
         return output;
     }
 
@@ -71,6 +80,7 @@ SignalOutput OnlineEnsembleStrategy::generate_signal(const Bar& bar) {
     if (features.empty()) {
         output.signal_type = SignalType::NEUTRAL;
         output.probability = 0.5;
+        output.confidence = 0.0;
         return output;
     }
 
@@ -98,6 +108,7 @@ SignalOutput OnlineEnsembleStrategy::generate_signal(const Bar& bar) {
     }
 
     output.probability = prob;
+    output.confidence = prediction.confidence;
     output.signal_type = determine_signal(prob);
 
     // Track for multi-horizon updates (always, not just for non-neutral signals)
@@ -139,6 +150,32 @@ void OnlineEnsembleStrategy::on_bar(const Bar& bar) {
     feature_engine_->update(bar);
 
     samples_seen_++;
+
+    // CRITICAL FIX: Train predictor during warmup
+    // This ensures the predictor learns from historical data before making predictions
+    if (!is_ready() && bar_history_.size() >= 2 && feature_engine_->warmup_remaining() == 0) {
+        // Get previous bar (we're training on previous bar to predict current bar)
+        const Bar& prev_bar = bar_history_[bar_history_.size() - 2];
+
+        // Calculate realized return from previous bar to current bar
+        double realized_return = (bar.close - prev_bar.close) / prev_bar.close;
+
+        // Extract features at previous bar
+        // Note: features are already calculated for current state after update
+        std::vector<double> features = feature_engine_->features_view();
+
+        if (!features.empty()) {
+            // Train predictor with features and realized return
+            train_predictor(features, realized_return);
+
+            // Log progress periodically
+            if (samples_seen_ % 100 == 0) {
+                utils::log_debug("Warmup training: bar " + std::to_string(samples_seen_) +
+                               "/" + std::to_string(config_.warmup_samples) +
+                               ", return=" + std::to_string(realized_return * 100.0) + "%");
+            }
+        }
+    }
 
     // Calibrate thresholds periodically
     if (config_.enable_threshold_calibration &&

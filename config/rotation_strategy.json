@@ -36,7 +36,7 @@
     "ewrls_lambda": 0.98,
     "initial_variance": 10.0,
     "regularization": 0.1,
-    "warmup_samples": 200,
+    "warmup_samples": 500,
 
     "prediction_horizons": [1, 5, 10],
     "horizon_weights": [0.3, 0.5, 0.2],

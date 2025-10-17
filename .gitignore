@@ -32,6 +32,17 @@ data/processed/
 # Test outputs
 /test_output/
 
+# Logs directory - test run outputs (should be generated, not tracked)
+logs/**/*.jsonl
+logs/**/*.log
+logs/**/*.txt
+logs/**/dashboards/
+!logs/.gitkeep
+
+# Temporary test data
+data/tmp/**/*
+!data/tmp/.gitkeep
+
 # Large data files (>50MB)
 *.html
 data/tmp/qqq_full_signals.jsonl

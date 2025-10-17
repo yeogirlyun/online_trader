@@ -115,72 +115,100 @@ std::vector<Bar> read_csv_data(const std::string& path) {
 
     // Process each data row according to the detected format
     size_t sequence_index = 0;
+    size_t parse_errors = 0;
+
     while (std::getline(file, line)) {
+        // Skip empty lines
+        if (line.empty() || line.find_first_not_of(" \t\r\n") == std::string::npos) {
+            continue;
+        }
+
         std::stringstream ss(line);
         std::string item;
         Bar b{};
 
-        // Parse timestamp and symbol based on detected format
-        if (is_qqq_format) {
-            // QQQ format: ts_utc,ts_nyt_epoch,open,high,low,close,volume
-            b.symbol = default_symbol;
+        try {
+            // Parse timestamp and symbol based on detected format
+            if (is_qqq_format) {
+                // QQQ format: ts_utc,ts_nyt_epoch,open,high,low,close,volume
+                b.symbol = default_symbol;
 
-            // Parse ts_utc column (ISO timestamp string) but discard value
+                // Parse ts_utc column (ISO timestamp string) but discard value
+                std::getline(ss, item, ',');
+
+                // Use ts_nyt_epoch as timestamp (Unix seconds -> convert to milliseconds)
+                std::getline(ss, item, ',');
+                b.timestamp_ms = std::stoll(trim(item)) * 1000;
+
+            } else if (is_standard_format) {
+                // Standard format: symbol,timestamp_ms,open,high,low,close,volume
+                std::getline(ss, item, ',');
+                b.symbol = trim(item);
+
+                std::getline(ss, item, ',');
+                b.timestamp_ms = std::stoll(trim(item));
+
+            } else if (is_datetime_format) {
+                // Datetime format: timestamp,symbol,open,high,low,close,volume
+                // where timestamp is "YYYY-MM-DD HH:MM:SS"
+                std::getline(ss, item, ',');
+                b.timestamp_ms = timestamp_to_ms(trim(item));
+
+                std::getline(ss, item, ',');
+                b.symbol = trim(item);
+
+            } else {
+                // Unknown format: treat first column as symbol, second as timestamp_ms
+                std::getline(ss, item, ',');
+                b.symbol = trim(item);
+                std::getline(ss, item, ',');
+                b.timestamp_ms = std::stoll(trim(item));
+            }
+
+            // Parse OHLCV data (same format across all CSV types)
             std::getline(ss, item, ',');
-            
-            // Use ts_nyt_epoch as timestamp (Unix seconds -> convert to milliseconds)
-            std::getline(ss, item, ',');
-            b.timestamp_ms = std::stoll(trim(item)) * 1000;
-            
-        } else if (is_standard_format) {
-            // Standard format: symbol,timestamp_ms,open,high,low,close,volume
-            std::getline(ss, item, ',');
-            b.symbol = trim(item);
+            b.open = std::stod(trim(item));
 
             std::getline(ss, item, ',');
-            b.timestamp_ms = std::stoll(trim(item));
-
-        } else if (is_datetime_format) {
-            // Datetime format: timestamp,symbol,open,high,low,close,volume
-            // where timestamp is "YYYY-MM-DD HH:MM:SS"
-            std::getline(ss, item, ',');
-            b.timestamp_ms = timestamp_to_ms(trim(item));
+            b.high = std::stod(trim(item));
 
             std::getline(ss, item, ',');
-            b.symbol = trim(item);
+            b.low = std::stod(trim(item));
 
-        } else {
-            // Unknown format: treat first column as symbol, second as timestamp_ms
             std::getline(ss, item, ',');
-            b.symbol = trim(item);
+            b.close = std::stod(trim(item));
+
             std::getline(ss, item, ',');
-            b.timestamp_ms = std::stoll(trim(item));
+            b.volume = std::stod(trim(item));
+
+            // Populate immutable id and derived fields
+            b.bar_id = generate_bar_id(b.timestamp_ms, b.symbol);
+            b.sequence_num = static_cast<uint32_t>(sequence_index);
+            b.block_num = static_cast<uint16_t>(sequence_index / STANDARD_BLOCK_SIZE);
+            std::string ts = ms_to_timestamp(b.timestamp_ms);
+            if (ts.size() >= 10) b.date_str = ts.substr(0, 10);
+            bars.push_back(b);
+            ++sequence_index;
+
+        } catch (const std::invalid_argument& e) {
+            // Invalid numeric conversion (e.g., non-numeric string)
+            parse_errors++;
+            continue;
+        } catch (const std::out_of_range& e) {
+            // Number too large to fit in data type
+            parse_errors++;
+            continue;
+        } catch (const std::exception& e) {
+            // Any other parsing error
+            parse_errors++;
+            continue;
         }
+    }
 
-        // Parse OHLCV data (same format across all CSV types)
-        std::getline(ss, item, ',');
-        b.open = std::stod(trim(item));
-        
-        std::getline(ss, item, ',');
-        b.high = std::stod(trim(item));
-        
-        std::getline(ss, item, ',');
-        b.low = std::stod(trim(item));
-        
-        std::getline(ss, item, ',');
-        b.close = std::stod(trim(item));
-        
-        std::getline(ss, item, ',');
-        b.volume = std::stod(trim(item));
-
-        // Populate immutable id and derived fields
-        b.bar_id = generate_bar_id(b.timestamp_ms, b.symbol);
-        b.sequence_num = static_cast<uint32_t>(sequence_index);
-        b.block_num = static_cast<uint16_t>(sequence_index / STANDARD_BLOCK_SIZE);
-        std::string ts = ms_to_timestamp(b.timestamp_ms);
-        if (ts.size() >= 10) b.date_str = ts.substr(0, 10);
-        bars.push_back(b);
-        ++sequence_index;
+    // Log warning if we encountered malformed data
+    if (parse_errors > 0) {
+        log_warning("CSV parsing: skipped " + std::to_string(parse_errors) +
+                   " malformed line(s) from " + path);
     }
 
     return bars;

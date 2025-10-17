@@ -229,6 +229,57 @@ RotationTradingBackend::Config RotationTradeCommand::load_config() {
         log_system("   Using default configuration");
     }
 
+    // =========================================================================
+    // CRITICAL VALIDATION: Fail-fast on invalid configuration
+    // =========================================================================
+
+    // Validate buy/sell thresholds
+    if (config.oes_config.buy_threshold <= 0.0 || config.oes_config.buy_threshold > 1.0) {
+        throw std::runtime_error("FATAL: buy_threshold must be in (0, 1], got " +
+                                std::to_string(config.oes_config.buy_threshold));
+    }
+    if (config.oes_config.sell_threshold <= 0.0 || config.oes_config.sell_threshold > 1.0) {
+        throw std::runtime_error("FATAL: sell_threshold must be in (0, 1], got " +
+                                std::to_string(config.oes_config.sell_threshold));
+    }
+    if (config.oes_config.buy_threshold <= config.oes_config.sell_threshold) {
+        throw std::runtime_error("FATAL: buy_threshold (" +
+                                std::to_string(config.oes_config.buy_threshold) +
+                                ") must be > sell_threshold (" +
+                                std::to_string(config.oes_config.sell_threshold) + ")");
+    }
+
+    // Validate warmup samples
+    if (config.oes_config.warmup_samples < 10) {
+        throw std::runtime_error("FATAL: warmup_samples must be >= 10, got " +
+                                std::to_string(config.oes_config.warmup_samples));
+    }
+
+    // Validate symbols list (after loading from config)
+    if (options_.symbols.empty()) {
+        throw std::runtime_error("FATAL: No symbols configured. Check rotation_strategy.json");
+    }
+
+    // Validate rotation config
+    if (config.rotation_config.max_positions < 1) {
+        throw std::runtime_error("FATAL: max_positions must be >= 1, got " +
+                                std::to_string(config.rotation_config.max_positions));
+    }
+    if (config.rotation_config.min_strength_to_enter <= 0.0 ||
+        config.rotation_config.min_strength_to_enter > 1.0) {
+        throw std::runtime_error("FATAL: min_strength_to_enter must be in (0, 1], got " +
+                                std::to_string(config.rotation_config.min_strength_to_enter));
+    }
+
+    // Validate starting capital
+    if (options_.starting_capital <= 0.0) {
+        throw std::runtime_error("FATAL: starting_capital must be > 0, got " +
+                                std::to_string(options_.starting_capital));
+    }
+
+    log_system("✓ Configuration validation passed");
+    log_system("");
+
     // Set symbols and capital
     config.symbols = options_.symbols;
     config.starting_capital = options_.starting_capital;

@@ -1,0 +1,220 @@
+================================================================================
+DATA INTEGRITY AND CONSISTENCY REVIEW - SUMMARY
+================================================================================
+Generated: 2025-10-16
+Repository: /Volumes/ExternalSSD/Dev/C++/online_trader
+Review Level: Very Thorough
+
+================================================================================
+CRITICAL ISSUES (Must Fix Before Production)
+================================================================================
+
+1. MISSING DATA FILES FOR CONFIGURED SYMBOLS
+   Severity: CRITICAL
+   Location: config/rotation_strategy.json (lines 6-32)
+   Details: 8 symbols configured but no data files exist:
+            AAPL, MSFT, AMZN, TSLA, NVDA, META, BRK.B, GOOGL
+   Impact: Runtime failure when loading warmup data
+   Status: BLOCKS EXECUTION
+
+2. EMPTY CSV STUB FILES  
+   Severity: CRITICAL
+   Location: data/equities/
+   Files: QQQ.csv, SQQQ_NH.csv, SQQQ.csv, TQQQ.csv (all 44 bytes, header only)
+   Impact: Returns empty bar vectors
+   Status: RETURNS INVALID DATA
+
+3. NO EXCEPTION HANDLING IN CSV PARSING
+   Severity: HIGH
+   Location: src/common/utils.cpp (lines 87-187, specifically 133, 162-174)
+   Issue: std::stod/std::stoll without try-catch
+   Impact: Crashes on malformed CSV data instead of gracefully handling
+   Status: CRASH RISK
+
+4. TRACKED LOG FILES IN GIT
+   Severity: CRITICAL
+   Location: logs/ directory with multiple JSONL files tracked
+   Issue: Test outputs shouldn't be in version control
+   Status: REPOSITORY BLOAT
+
+================================================================================
+HIGH PRIORITY ISSUES (Fix Before Next Release)
+================================================================================
+
+5. INCONSISTENT DATA FILE ROW COUNTS
+   Severity: MODERATE
+   Location: data/equities/
+   Range: 5,617 to 8,994 lines (57% difference)
+   Shortest: ERX (5,617 lines)
+   Longest: UVXY, SQQQ, TQQQ, TNA (8,994 lines)
+   Impact: Data misalignment across symbols
+
+6. UNUSED CONFIGURATION PARAMETERS (13+ items)
+   Severity: MODERATE
+   Location: config/rotation_strategy.json
+   Not Loaded: enable_kelly_sizing, kelly_fraction, enable_correlation_filter,
+              max_correlation, enable_threshold_calibration, calibration_window,
+              threshold_step, min_rank_to_hold, rotation_cooldown_bars,
+              minimum_hold_bars, volatility_weight, capital_per_position,
+              data_manager_config parameters
+   Code: src/cli/rotation_trade_command.cpp (lines 147-248)
+   Impact: Configuration drift, unused features
+
+7. NO CONFIGURATION VALIDATION
+   Severity: MODERATE
+   Location: src/cli/rotation_trade_command.cpp (lines 147-248)
+   Issue: No bounds checking on thresholds, no validation of symbol list
+   Example: buy_threshold not verified to be in (0, 1) range
+   Impact: Invalid configuration silently accepted
+
+================================================================================
+MODERATE ISSUES (Fix This Sprint)
+================================================================================
+
+8. TEMPORARY FILES NOT CLEANED
+   Location: data/tmp/todays_bars/ (12 files, ~35KB)
+   Status: Untracked but should be cleaned or documented
+
+9. UNUSED DATA FILES
+   Location: data/equities/
+   Files: PSQ_RTH_NH.csv (16MB), QQQ_RTH_NH.csv (21MB), QQQ_1min_merged.csv (29MB)
+   Status: Not referenced in active config
+
+10. INCOMPLETE DATA VALIDATION
+    Location: src/common/utils.cpp (reading) vs src/data/multi_symbol_data_manager.cpp (validation)
+    Issue: Validation happens after loading; inconsistently applied
+
+================================================================================
+CODE LOCATIONS WITH ISSUES
+================================================================================
+
+File: config/rotation_strategy.json
+  Lines 6-32: Missing symbols (AAPL, MSFT, AMZN, TSLA, NVDA, META, BRK.B, GOOGL)
+  Lines 54-120: Unused parameters
+  
+File: src/common/utils.cpp
+  Lines 87-187: read_csv_data() lacks exception handling
+  Lines 133, 162-174: Unprotected numeric conversions
+  
+File: src/cli/rotation_trade_command.cpp
+  Lines 147-248: load_config() lacks validation
+  Lines 377-392: Validation of symbol loading (good implementation)
+  Lines 281-309: load_warmup_data() HAS proper exception handling (good)
+  
+File: src/data/multi_symbol_data_manager.cpp
+  Lines 253-315: validate_bar() properly validates data (good)
+  
+File: data/equities/
+  QQQ.csv (44B), SQQQ_NH.csv (44B), SQQQ.csv (44B), TQQQ.csv (44B): Empty stubs
+  
+File: .gitignore
+  Missing: logs/**/*.jsonl, logs/**/*.log, data/tmp/**/*
+
+================================================================================
+DATA FILES INVENTORY
+================================================================================
+
+ACTIVE SYMBOLS (13 with data):
+  ERX_RTH_NH.csv      5,617 lines   363K ✓
+  ERY_RTH_NH.csv      6,042 lines   389K ✓
+  FAS_RTH_NH.csv      7,011 lines   482K ✓
+  FAZ_RTH_NH.csv      8,035 lines   536K ✓
+  SDS_RTH_NH.csv      8,610 lines   615K ✓
+  SSO_RTH_NH.csv      8,793 lines   630K ✓
+  SQQQ_RTH_NH.csv     8,994 lines   641K ✓
+  SVIX_RTH_NH.csv     8,291 lines   545K ✓
+  SVXY_RTH_NH.csv     7,896 lines   512K ✓
+  TNA_RTH_NH.csv      8,994 lines   603K ✓
+  TQQQ_RTH_NH.csv     8,994 lines   661K ✓
+  TZA_RTH_NH.csv      8,979 lines   609K ✓
+  UVXY_RTH_NH.csv     8,984 lines   630K ✓
+
+CONFIGURED BUT MISSING (8 with NO data):
+  AAPL_RTH_NH.csv     MISSING  
+  MSFT_RTH_NH.csv     MISSING  
+  AMZN_RTH_NH.csv     MISSING  
+  TSLA_RTH_NH.csv     MISSING  
+  NVDA_RTH_NH.csv     MISSING  
+  META_RTH_NH.csv     MISSING  
+  BRK.B_RTH_NH.csv    MISSING  
+  GOOGL_RTH_NH.csv    MISSING  
+
+EMPTY STUBS (4 with headers only):
+  QQQ.csv             1 line  44B   (STUB)
+  SQQQ_NH.csv         1 line  44B   (STUB)
+  SQQQ.csv            1 line  44B   (STUB)
+  TQQQ.csv            1 line  44B   (STUB)
+
+UNUSED REFERENCE DATA (present but not in config):
+  PSQ_RTH_NH.csv      16 MB
+  QQQ_RTH_NH.csv      21 MB
+  QQQ_1min_merged.csv 29 MB
+  SPY_RTH_NH.csv      101K
+  Various test files  (SPY_*blocks.csv, QQQ_test_small.csv, etc.)
+
+================================================================================
+REQUIRED ACTIONS (PRIORITY ORDER)
+================================================================================
+
+IMMEDIATE (Blocks System):
+  [ ] Remove 8 missing symbols from config OR provide data files
+  [ ] Remove or populate 4 empty CSV stub files
+  [ ] Add exception handling to read_csv_data() function
+
+URGENT (Before Next Release):
+  [ ] Add .gitignore rules for log files and clean git cache
+  [ ] Add configuration validation in load_config()
+  [ ] Document or implement 13+ unused config parameters
+
+SOON (This Sprint):
+  [ ] Align data file row counts across symbols
+  [ ] Load data_manager_config from JSON
+  [ ] Add validation during CSV parsing (not after)
+  [ ] Clean up temporary files or document their purpose
+
+LATER (Technical Debt):
+  [ ] Remove obsolete test data files
+  [ ] Consolidate data directory structure
+  [ ] Document data file naming conventions
+
+================================================================================
+TESTING CHECKLIST
+================================================================================
+
+After fixes, verify:
+  [ ] No missing data file errors on startup
+  [ ] Configuration validation prevents invalid parameters
+  [ ] CSV parsing handles malformed data gracefully
+  [ ] All configured symbols can be loaded
+  [ ] Log files not tracked in git
+  [ ] No empty CSV files cause crashes
+
+Run test:
+  ./sentio_cli rotation-trade --mode mock --date 2025-10-15
+  Expected: Successful load without data errors
+
+================================================================================
+GENERATED DOCUMENTS
+================================================================================
+
+1. DATA_INTEGRITY_REVIEW.md (detailed analysis)
+   - Comprehensive issue descriptions
+   - Code locations and line numbers
+   - Impact analysis for each issue
+   - Specific recommendations
+
+2. DATA_CONSISTENCY_QUICK_FIXES.md (implementation guide)
+   - Step-by-step fix instructions
+   - Code snippets ready to implement
+   - Configuration examples
+   - Verification steps
+
+3. This summary (executive overview)
+   - Quick reference for all issues
+   - Priority classification
+   - Inventory of all data files
+   - Action items
+
+================================================================================
+END OF SUMMARY
+================================================================================
